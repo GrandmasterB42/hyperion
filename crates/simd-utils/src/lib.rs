@@ -1,12 +1,11 @@
 #![feature(portable_simd)]
 #![feature(trusted_len)]
-#![feature(slice_as_chunks)]
 #![feature(pointer_is_aligned_to)]
 
 use core::simd;
 use std::{
     iter::zip,
-    simd::{LaneCount, Mask, MaskElement, Simd, SupportedLaneCount, cmp::SimdPartialEq},
+    simd::{Mask, MaskElement, Simd, cmp::SimdPartialEq},
 };
 
 use crate::one_bit_positions::OneBitPositionsExt;
@@ -51,7 +50,6 @@ pub fn copy_and_get_diff<T, const LANES: usize>(
     Simd<T, LANES>: AsMut<[T; LANES]> + SimdPartialEq,
     T: simd::SimdElement + PartialEq + std::fmt::Debug,
     <T as simd::SimdElement>::Mask: MaskElement,
-    LaneCount<LANES>: SupportedLaneCount,
     <Simd<T, LANES> as SimdPartialEq>::Mask: Into<Mask<<T as simd::SimdElement>::Mask, LANES>>,
 {
     // Verify SIMD alignment requirement at compile time
@@ -192,7 +190,6 @@ mod tests {
         Simd<T, LANES>: AsMut<[T; LANES]> + SimdPartialEq,
         T: simd::SimdElement + PartialEq + Debug,
         <T as simd::SimdElement>::Mask: MaskElement,
-        LaneCount<LANES>: SupportedLaneCount,
         <Simd<T, LANES> as SimdPartialEq>::Mask: Into<Mask<<T as simd::SimdElement>::Mask, LANES>>,
     {
         // convert prev and current to simd-aligned arrays

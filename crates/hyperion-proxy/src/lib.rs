@@ -1,6 +1,4 @@
-#![feature(maybe_uninit_slice)]
 #![feature(allocator_api)]
-#![feature(let_chains)]
 #![feature(never_type)]
 #![feature(stmt_expr_attributes)]
 #![feature(gen_blocks)]

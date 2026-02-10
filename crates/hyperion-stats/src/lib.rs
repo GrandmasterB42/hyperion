@@ -1,5 +1,4 @@
 #![feature(portable_simd)]
-#![feature(array_chunks)]
 #![feature(iter_array_chunks)]
 
 use std::simd::{f64x4, num::SimdFloat};
@@ -41,10 +40,8 @@ impl ParallelStats {
             self.simd_update(chunk_start, chunk_end, &values[chunk_start..chunk_end]);
         }
 
-        if let Some(remainder) = chunks.into_remainder() {
-            for i in remainder {
-                self.update_single(i, values[i]);
-            }
+        for i in chunks.into_remainder() {
+            self.update_single(i, values[i]);
         }
     }
 
