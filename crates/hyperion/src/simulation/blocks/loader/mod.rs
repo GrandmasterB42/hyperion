@@ -4,7 +4,6 @@ use anyhow::{Context, bail};
 use bytes::BytesMut;
 use derive_more::Constructor;
 use glam::{I16Vec2, IVec2};
-use hyperion_nerd_font::NERD_ROCKET;
 use itertools::Itertools;
 use libdeflater::{CompressionLvl, Compressor};
 use parse::ColumnData;
@@ -161,7 +160,7 @@ impl ChunkLoader {
                 .unique()
                 .count();
 
-            trace!("{NERD_ROCKET} loaded chunk {position} with {unique_blocks} unique blocks");
+            trace!("loaded chunk {position} with {unique_blocks} unique blocks");
 
             tx_load_chunks.send(loaded_chunk).unwrap();
         });
