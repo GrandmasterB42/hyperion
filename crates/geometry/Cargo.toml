@@ -7,15 +7,15 @@ readme = "README.md"
 publish = false
 
 [dependencies]
-glam = { workspace = true, features = ["serde"] }
-serde = { workspace = true, features = ["derive"] }
-ordered-float = { workspace = true }
+glam.workspace = true
+serde.workspace = true
+ordered-float.workspace = true
 
 [dev-dependencies]
-approx = { workspace = true }
-itertools = { workspace = true }
-rand = { workspace = true }
-tango-bench = { workspace = true }
+approx.workspace = true
+itertools.workspace = true
+rand.workspace = true
+tango-bench.workspace = true
 
 [lints]
 workspace = true

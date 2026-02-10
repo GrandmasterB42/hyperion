@@ -1,3 +1,4 @@
+#=============== Profiles ==============#
 [profile]
 [profile.dev]
 incremental = true
@@ -44,112 +45,101 @@ members = [
 ]
 resolver = '2'
 
+#=============== Dependencies ==============#
+
 [workspace.dependencies]
-anyhow = '1.0.98'
-approx = '0.5.1'
-arc-swap = '1.7.1'
-arrayvec = '0.7.4'
-base64 = '0.22.1'
-bitfield-struct = "0.10.1"
-bitvec = '1.0.1'
-boxcar = '0.2.13'
-bumpalo = '3.16'
-byteorder = '1.5.0'
-bytes = '1.8.0'
-colored = "3.0.0"
-compact_str = '0.9.0'
-convert_case = "0.7.1"
-criterion = '0.5.1'
-derive-build = '0.1.1'
-directories = "6.0.0"
-dotenvy = '0.15.7'
-eframe = "0.31.0"
-egui = "0.31.0"
-egui_dock = "0.16.0"
-enumset = '1.1.6'
-fastrand = '2.1.0'
-flume = '0.11.1'
-futures-util = '0.3.31'
-glam = "0.29.3"
-heapless = '0.8.0'
-heed = "0.21.0"
-hex = '0.4.3'
-humantime = '2.1.0'
+# Workspace members
+hyperion = { path = 'crates/hyperion' }
+hyperion-clap = { path = "crates/hyperion-clap" }
+hyperion-clap-macros = { path = "crates/hyperion-clap-macros" }
+hyperion-command = { path = "crates/hyperion-command" }
+hyperion-crafting = { path = "crates/hyperion-crafting" }
+hyperion-genmap = { path = "crates/hyperion-genmap" }
+hyperion-gui = { path = "crates/hyperion-gui" }
+hyperion-inventory = { path = "crates/hyperion-inventory" }
+hyperion-item = { path = "crates/hyperion-item" }
+hyperion-packet-macros = { path = "crates/hyperion-packet-macros" }
+hyperion-palette = { path = "crates/hyperion-palette" }
+hyperion-permission = { path = "crates/hyperion-permission" }
+hyperion-proto = { path = "crates/hyperion-proto" }
 hyperion-proxy = { path = "crates/hyperion-proxy" }
-itertools = "0.14.0"
-kanal = '0.1.1'
-libc = '0.2.172'
-libdeflater = '1.24.0'
-memmap2 = '0.9.5'
-mio = { version = '1.0.3', features = ['os-poll', 'net'] }
-more-asserts = '0.3.1'
+hyperion-proxy-module = { path = "crates/hyperion-proxy-module" }
+hyperion-scheduled = { path = "crates/hyperion-scheduled" }
+hyperion-text = { path = "crates/hyperion-text" }
+hyperion-utils = { path = "crates/hyperion-utils" }
+
+bedwars = { path = "events/bedwars" }
+bvh-region = { path = "crates/bvh-region" }
+geometry = { path = "crates/geometry" }
+packet-channel = { path = "crates/packet-channel" }
+rust-mc-bot = { path = "tools/rust-mc-bot" }
+simd-utils = { path = 'crates/simd-utils' }
+
+# Valence
+valence_anvil = { branch = 'feat-bytes', features = [
+    'parsing',
+], git = 'https://github.com/TestingPlant/valence' }
+valence_build_utils = { branch = 'feat-bytes', git = 'https://github.com/TestingPlant/valence' }
+valence_bytes = { branch = 'feat-bytes', git = 'https://github.com/TestingPlant/valence' }
+valence_generated = { branch = 'feat-bytes', git = 'https://github.com/TestingPlant/valence' }
+valence_ident = { branch = 'feat-bytes', git = 'https://github.com/TestingPlant/valence' }
+valence_nbt = { branch = 'feat-bytes', features = [
+    'serde',
+], git = 'https://github.com/TestingPlant/valence' }
+valence_protocol = { branch = 'feat-bytes', features = [
+    'compression',
+], git = 'https://github.com/TestingPlant/valence' }
+valence_registry = { branch = 'feat-bytes', git = 'https://github.com/TestingPlant/valence' }
+valence_server = { branch = 'feat-bytes', git = 'https://github.com/TestingPlant/valence' }
+valence_text = { branch = 'feat-bytes', git = 'https://github.com/TestingPlant/valence' }
+
+
+# Error Handling
+anyhow = '1.0.98'
+snafu = '0.8.5'
+thiserror = '2.0.12'
+
+# Math
+approx = '0.5.1'
+fastrand = '2.1'
+glam = { version = '0.29.3', features = ['serde'] }
+ndarray = { version = '0.16.1', features = ['blas'] }
 num-derive = '0.4.2'
 num-traits = '0.2.19'
-num_cpus = "1.16.0"
-once_cell = '1.21.3'
-ordered-float = "5.0.0"
-papaya = "0.2.1"
-parking_lot = '0.12.3'
-paste = "1.0.15"
-plotters-bitmap = '0.3.6'
-proc-macro2 = '1.0.95'
-proptest = '1.5.0'
-quote = '1.0.39'
-rand = "0.9.1"
-rayon = '1.10.0'
-rkyv = '0.8.8'
-rustls = { version = '0.23.31', default-features = false, features = [
-    'logging',
-    'std',
-    'tls12',
-] }
-rustls-pki-types = '1.12.0'
-rustls-webpki = '0.103.4'
-serde = '1.0.217'
-serde_json = '1.0.140'
-serial_test = '3.2.0'
-slotmap = '1.0.7'
-snafu = '0.8.5'
-syn = '2.0.101'
-tango-bench = "0.6.0"
-tar = '0.4.41'
-thiserror = '2.0.12'
-thread_local = '1.1.8'
-tikv-jemallocator = '0.6.0'
-time = '0.3.41'
-tokio = '1.45.0'
-tokio-rustls = { version = '0.26.2', default-features = false, features = [
-    'logging',
-    'tls12',
-] }
-toml = '0.8.14'
-tracing-appender = '0.2.3'
-uuid = '1.16.0'
+ordered-float = '5.0'
+rand = '0.9.1'
+sha2 = '0.10.9'
 
-[workspace.dependencies.hyperion-proxy-module]
-path = "crates/hyperion-proxy-module"
+# Optimized Data Structures
+aligned-vec = '0.6'
+arc-swap = '1.7'
+arrayvec = '0.7.4'
+bitfield-struct = '0.12'
+bitvec = '1.0'
+boxcar = '0.2'
+bvh = { git = 'https://github.com/TestingPlant/bvh-data' }
+compact_str = '0.9'
+enumset = '1.1'
+flume = '0.11'
+heapless = '0.8'
+indexmap = { version = '2.9', features = ['rayon'] }
+kanal = '0.1'
+once_cell = '1.21'
+papaya = '0.2'
+parking_lot = '0.12'
+roaring = { version = '0.11' }
+rustc-hash = { version = '2.1', features = ['nightly'] }
+slotmap = '1.1'
+thread_local = '1.1'
+tikv-jemallocator = '0.6'
 
-[workspace.dependencies.bvh]
-git = 'https://github.com/TestingPlant/bvh-data'
+# Parsing
+clap = { version = '4.5', features = ['derive'] }
 
-[workspace.dependencies.bvh-region]
-path = 'crates/bvh-region'
-
-[workspace.dependencies.bevy]
-default-features = false
-features = ['multi_threaded']
-version = "0.16.1"
-
-[workspace.dependencies.bytemuck]
-features = ['derive']
-version = '1.23.0'
-
-[workspace.dependencies.clap]
-features = ['derive']
-version = '4.5.38'
-
-[workspace.dependencies.derive_more]
-features = [
+# Utilities
+bytes = '1.8'
+derive-build = '0.1.1'
+derive_more = { version = '2.0', features = [
     'display',
     'from',
     'into',
@@ -158,171 +148,103 @@ features = [
     'debug',
     'constructor',
     'add',
-]
-version = "2.0.1"
+] }
+futures-util = '0.3.31'
+itertools = '0.14'
+libc = '0.2'
+more-asserts = '0.3'
+time = { version = '0.3', features = ["local-offset"] }
+uuid = '1.16'
 
-[workspace.dependencies.divan]
-git = 'https://github.com/nvzqz/divan'
+# Proc Macros
+paste = '1.0'
+proc-macro2 = '1.0'
+quote = { version = '1.0', features = ['proc-macro'] }
+syn = '2.0'
 
-[workspace.dependencies.flate2]
-default-features = false
-version = '1.1.1'
+# Terminal output
+colored = '3.0'
+syntect = { version = '5.2', default-features = false, features = [
+    "default-fancy",
+] }
 
-[workspace.dependencies.geometry]
-path = 'crates/geometry'
+# Benchmarking / Testing
+criterion = '0.5'
+divan = { git = 'https://github.com/nvzqz/divan' }
+proptest = '1.5'
+serial_test = '3.2'
+tango-bench = '0.6'
 
-[workspace.dependencies.hyperion]
-path = 'crates/hyperion'
+# Files and Environment
+directories = '6.0'
+dotenvy = '0.15'
+envy = '0.4'
+flate2 = { version = '1.1', default-features = false, features = ['zlib-ng'] }
+libdeflater = '1.24'
+memmap2 = '0.9'
+mio = { version = '1.0', features = ['os-poll', 'net'] }
+tar = '0.4'
+toml = '0.8'
 
-[workspace.dependencies.hyperion-clap]
-path = 'crates/hyperion-clap'
+# GUI
+eframe = { version = '0.31', features = ['persistence', 'wgpu'] }
+egui = '0.31'
+egui_dock = { version = '0.16', features = ['serde'] }
+plotters = { version = '0.3', default-features = false }
+plotters-bitmap = '0.3'
 
-[workspace.dependencies.hyperion-clap-macros]
-path = 'crates/hyperion-clap-macros'
+# Database
+heed = '0.21'
 
-[workspace.dependencies.hyperion-command]
-path = 'crates/hyperion-command'
+# Runtime / Paralleism / SIMD
+bevy = { version = '0.16', default-features = false, features = [
+    'multi_threaded',
+] }
+num_cpus = '1.16'
+rayon = '1.10'
+tokio = { version = '1.45', features = [
+    'rt-multi-thread',
+    'io-util',
+    'net',
+    'time',
+    'macros',
+    'tracing',
+    'sync',
+] }
+tokio-util = { version = '0.7', features = ['net', 'codec', 'io-util'] }
 
-[workspace.dependencies.hyperion-crafting]
-path = 'crates/hyperion-crafting'
+# Data Transmission / Encryption
+reqwest = { version = '0.12', features = ['rustls-tls', 'stream'] }
+rustls = { version = '0.23', default-features = false, features = [
+    'logging',
+    'std',
+    'tls12',
+] }
+rustls-pki-types = '1.12'
+rustls-webpki = '0.103'
+tokio-rustls = { version = '0.26', default-features = false, features = [
+    'logging',
+    'tls12',
+] }
 
-[workspace.dependencies.hyperion-genmap]
-path = 'crates/hyperion-genmap'
+# Encoding / Decoding
+base64 = '0.22'
+byteorder = '1.5'
+hex = '0.4'
+bytemuck = { version = '1.23', features = ['derive'] }
 
-[workspace.dependencies.hyperion-gui]
-path = 'crates/hyperion-gui'
+# De-/Serialization
+rkyv = '0.8.8'
+serde = { version = '1.0', features = ['derive'] }
+serde_json = { version = '1.0', features = ['raw_value'] }
 
-[workspace.dependencies.hyperion-inventory]
-path = 'crates/hyperion-inventory'
+# Logging
+tracing = { version = '0.1', features = ['release_max_level_info'] }
+tracing-subscriber = { version = '0.3', features = ['env-filter', 'time'] }
+tracing-tracy = { version = '0.11', features = ['timer-fallback'] }
+tracing-appender = '0.2'
 
-[workspace.dependencies.hyperion-item]
-path = 'crates/hyperion-item'
-
-[workspace.dependencies.hyperion-packet-macros]
-path = 'crates/hyperion-packet-macros'
-
-[workspace.dependencies.hyperion-palette]
-path = 'crates/hyperion-palette'
-
-[workspace.dependencies.hyperion-permission]
-path = 'crates/hyperion-permission'
-
-[workspace.dependencies.hyperion-proto]
-path = 'crates/hyperion-proto'
-
-[workspace.dependencies.hyperion-scheduled]
-path = 'crates/hyperion-scheduled'
-
-[workspace.dependencies.hyperion-text]
-path = 'crates/hyperion-text'
-
-[workspace.dependencies.hyperion-utils]
-path = 'crates/hyperion-utils'
-
-[workspace.dependencies.packet-channel]
-path = 'crates/packet-channel'
-
-[workspace.dependencies.indexmap]
-features = ['rayon']
-version = '2.9.0'
-
-[workspace.dependencies.ndarray]
-features = ['blas']
-version = '0.16.1'
-
-[workspace.dependencies.plotters]
-default-features = false
-version = '0.3.6'
-
-[workspace.dependencies.reqwest]
-features = ['rustls-tls', 'stream']
-version = '0.12.12'
-
-[workspace.dependencies.hyperion-respawn]
-path = 'crates/hyperion-respawn'
-
-[workspace.dependencies.roaring]
-#features = ['simd'] # this feature is nightly only and not up to date with latest
-version = '0.11.3'
-
-[workspace.dependencies.rustc-hash]
-features = ['nightly']
-version = '2.1'
-
-[workspace.dependencies.sha2]
-version = '0.10.9'
-
-[workspace.dependencies.simd-utils]
-path = 'crates/simd-utils'
-
-[workspace.dependencies.syntect]
-default-features = false
-version = '5.2.0'
-
-[workspace.dependencies.tokio-util]
-features = ['full']
-version = '0.7.15'
-
-[workspace.dependencies.tracing]
-features = ['release_max_level_info']
-version = '0.1.40'
-
-[workspace.dependencies.tracing-subscriber]
-features = ['env-filter', 'time']
-version = '0.3.18'
-
-[workspace.dependencies.tracing-tracy]
-features = ['timer-fallback']
-version = '0.11.4'
-
-[workspace.dependencies.valence_anvil]
-branch = 'feat-bytes'
-features = ['parsing']
-git = 'https://github.com/TestingPlant/valence'
-
-[workspace.dependencies.valence_build_utils]
-branch = 'feat-bytes'
-git = 'https://github.com/TestingPlant/valence'
-
-[workspace.dependencies.valence_bytes]
-branch = 'feat-bytes'
-git = 'https://github.com/TestingPlant/valence'
-
-[workspace.dependencies.valence_generated]
-branch = 'feat-bytes'
-git = 'https://github.com/TestingPlant/valence'
-
-[workspace.dependencies.valence_ident]
-branch = 'feat-bytes'
-git = 'https://github.com/TestingPlant/valence'
-
-[workspace.dependencies.valence_nbt]
-branch = 'feat-bytes'
-features = ['serde']
-git = 'https://github.com/TestingPlant/valence'
-
-[workspace.dependencies.valence_protocol]
-branch = 'feat-bytes'
-features = ['compression']
-git = 'https://github.com/TestingPlant/valence'
-
-[workspace.dependencies.valence_registry]
-branch = 'feat-bytes'
-git = 'https://github.com/TestingPlant/valence'
-
-[workspace.dependencies.valence_server]
-branch = 'feat-bytes'
-git = 'https://github.com/TestingPlant/valence'
-
-[workspace.dependencies.valence_text]
-branch = 'feat-bytes'
-git = 'https://github.com/TestingPlant/valence'
-
-[workspace.dependencies.bedwars]
-path = "events/bedwars"
-
-[workspace.dependencies.rust-mc-bot]
-path = "tools/rust-mc-bot"
+#=============== Lints ==============#
 
 [workspace.lints]
 [workspace.lints.clippy]

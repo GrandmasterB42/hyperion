@@ -1,8 +1,8 @@
 [build-dependencies]
 
 [dependencies]
-rkyv = {workspace = true}
-glam = {workspace = true}
+rkyv.workspace = true
+glam.workspace = true
 
 [lints]
 workspace = true

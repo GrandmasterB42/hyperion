@@ -12,31 +12,28 @@ publish = false
 workspace = true
 
 [dependencies]
-valence_protocol = { git = 'https://github.com/TestingPlant/valence', branch = 'feat-open', features = ["compression"] }
+valence_protocol = { git = 'https://github.com/TestingPlant/valence', branch = 'feat-open', features = [
+    "compression",
+] }
 anyhow.workspace = true
 bytes.workspace = true
 flate2.workspace = true
 flume.workspace = true
-tokio = { workspace = true, features = ["full"] }
+tokio.workspace = true
 tracing.workspace = true
-time = { workspace = true, features = ["local-offset"] }
+time.workspace = true
 egui.workspace = true
-eframe = { workspace = true, features = [
-    "persistence",
-    "wgpu",
-] }
-egui_dock = { workspace = true, features = ["serde"] }
+eframe.workspace = true
+egui_dock.workspace = true
 itertools.workspace = true
-syntect = { workspace = true, default-features = false, features = [
-    "default-fancy",
-] }
-serde = { workspace = true, features = ["derive"] }
+syntect.workspace = true
+serde.workspace = true
 
 [build-dependencies]
 anyhow.workspace = true
-syn = { workspace = true, features = ["full"] }
+syn.workspace = true
 valence_build_utils = { git = 'https://github.com/TestingPlant/valence', branch = 'feat-open' }
-quote = { workspace = true, features = ["proc-macro"] }
-serde_json = { workspace = true, features = ["raw_value"] }
+quote.workspace = true
+serde_json.workspace = true
 proc-macro2.workspace = true
-serde = { workspace = true, features = ["derive"] }
+serde.workspace = true

@@ -9,8 +9,8 @@ publish = false
 [dependencies]
 
 [dev-dependencies]
-proptest = "1.5.0"
-aligned-vec = "0.6.4"
+proptest.workspace = true
+aligned-vec.workspace = true
 
 [lints]
 workspace = true
