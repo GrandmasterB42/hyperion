@@ -26,7 +26,6 @@ members = [
     'crates/hyperion-gui',
     'crates/hyperion-inventory',
     'crates/hyperion-item',
-    'crates/hyperion-minecraft-proto',
     'crates/hyperion-packet-macros',
     'crates/hyperion-palette',
     'crates/hyperion-permission',

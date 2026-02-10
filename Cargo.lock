@@ -3794,10 +3794,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hyperion-minecraft-proto"
-version = "0.1.0"
-
-[[package]]
 name = "hyperion-packet-macros"
 version = "0.1.0"
 dependencies = [
