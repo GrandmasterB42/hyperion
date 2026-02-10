@@ -5,7 +5,7 @@
               for the core libraries. These are tests, so it doesn't matter"
 )]
 
-use std::{assert_matches::assert_matches, collections::HashSet};
+use std::{assert_matches, collections::HashSet};
 
 use approx::assert_relative_eq;
 use bevy::{app::FixedMain, prelude::*};
