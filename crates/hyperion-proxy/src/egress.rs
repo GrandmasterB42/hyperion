@@ -45,7 +45,7 @@ impl Egress {
     pub fn handle_set_receive_broadcasts(&self, pkt: &ArchivedSetReceiveBroadcasts) {
         let player_registry = self.player_registry;
         let players = player_registry.pin();
-        let Ok(stream) = rkyv::deserialize::<u64, !>(&pkt.stream);
+        let Ok(stream) = rkyv::deserialize::<u64, std::convert::Infallible>(&pkt.stream);
 
         let Some(player) = players.get(&stream) else {
             error!("Player not found for stream {stream:?}");
@@ -59,7 +59,7 @@ impl Egress {
     pub fn handle_shutdown(&self, pkt: &ArchivedShutdown) {
         let player_registry = self.player_registry;
         let players = player_registry.pin();
-        let Ok(stream) = rkyv::deserialize::<u64, !>(&pkt.stream);
+        let Ok(stream) = rkyv::deserialize::<u64, std::convert::Infallible>(&pkt.stream);
 
         if let Some(result) = players.get(&stream) {
             result.shutdown();

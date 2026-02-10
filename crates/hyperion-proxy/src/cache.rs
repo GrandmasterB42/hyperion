@@ -77,8 +77,8 @@ impl BufferedEgress {
                 let mut players = Vec::with_capacity(packet.stream.len());
 
                 for (stream, position) in packet.stream.iter().zip(packet.positions.iter()) {
-                    let Ok(stream) = rkyv::deserialize::<u64, !>(stream);
-                    let Ok(position) = rkyv::deserialize::<_, !>(position);
+                    let Ok(stream) = rkyv::deserialize::<u64, std::convert::Infallible>(stream);
+                    let Ok(position) = rkyv::deserialize::<_, std::convert::Infallible>(position);
                     let position = I16Vec2::from(position);
 
                     players.push(Player {
@@ -132,7 +132,8 @@ impl BufferedEgress {
                         continue;
                     };
 
-                    let Ok(channel_position) = rkyv::deserialize::<_, !>(&update.position);
+                    let Ok(channel_position) =
+                        rkyv::deserialize::<_, std::convert::Infallible>(&update.position);
                     let channel_position = I16Vec2::from(channel_position);
 
                     let min = channel_position - I16Vec2::splat(RADIUS);
@@ -252,7 +253,8 @@ impl BufferedEgress {
             ArchivedServerToProxyMessage::BroadcastGlobal(packet) => {
                 let data =
                     Bytes::from(rkyv::deserialize::<_, rkyv::rancor::Error>(&packet.data).unwrap());
-                let Ok(exclude) = rkyv::deserialize::<u64, !>(&packet.exclude);
+                let Ok(exclude) =
+                    rkyv::deserialize::<u64, std::convert::Infallible>(&packet.exclude);
 
                 let players = self.egress.player_registry.pin_owned();
 
@@ -265,9 +267,12 @@ impl BufferedEgress {
                 }
             }
             ArchivedServerToProxyMessage::BroadcastLocal(packet) => {
-                let Ok(center_x) = rkyv::deserialize::<i16, !>(&packet.center.x);
-                let Ok(center_z) = rkyv::deserialize::<i16, !>(&packet.center.z);
-                let Ok(player_id_to_exclude) = rkyv::deserialize::<u64, !>(&packet.exclude);
+                let Ok(center_x) =
+                    rkyv::deserialize::<i16, std::convert::Infallible>(&packet.center.x);
+                let Ok(center_z) =
+                    rkyv::deserialize::<i16, std::convert::Infallible>(&packet.center.z);
+                let Ok(player_id_to_exclude) =
+                    rkyv::deserialize::<u64, std::convert::Infallible>(&packet.exclude);
                 let data =
                     Bytes::from(rkyv::deserialize::<_, rkyv::rancor::Error>(&packet.data).unwrap());
 

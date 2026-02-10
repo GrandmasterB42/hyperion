@@ -6,6 +6,7 @@ use hyperion::{
     net::{Compose, agnostic},
     simulation::packet::play,
 };
+use itertools::Itertools;
 use tracing::{debug, warn};
 
 use crate::component::CommandRegistry;
@@ -54,10 +55,7 @@ fn execute_commands(
             let mut msg = String::new();
             write!(&mut msg, "§cAvailable commands: §r[").unwrap();
 
-            for w in registry
-                .get_permitted(world, packet.sender())
-                .intersperse(", ")
-            {
+            for w in Itertools::intersperse(registry.get_permitted(world, packet.sender()), ", ") {
                 write!(&mut msg, "{w}").unwrap();
             }
 

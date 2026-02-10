@@ -3727,6 +3727,7 @@ dependencies = [
  "hyperion",
  "hyperion-utils",
  "indexmap",
+ "itertools 0.14.0",
  "tracing",
  "valence_bytes",
 ]
