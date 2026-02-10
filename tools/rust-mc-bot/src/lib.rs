@@ -10,7 +10,6 @@ use std::{
     io,
     io::{Read, Write},
     net::SocketAddr,
-    path::PathBuf,
     sync::{
         Arc,
         atomic::{AtomicU32, Ordering},
@@ -110,7 +109,7 @@ impl BotManager {
                 break;
             }
 
-            std::thread::sleep(self.dur - elapsed);
+            std::thread::sleep(self.dur.checked_sub(elapsed).unwrap());
         }
     }
 
@@ -203,7 +202,7 @@ impl BotManager {
                 bot.z += rand::random::<f64>().mul_add(1.0, -0.5);
                 bot.send_packet(play::write_current_pos(bot), &mut self.compression);
 
-                if (self.tick_counter + bot.id) % self.action_tick == 0 {
+                if (self.tick_counter + bot.id).is_multiple_of(self.action_tick) {
                     match rand::rng().random_range(0..=4u8) {
                         0 => {
                             // Send chat

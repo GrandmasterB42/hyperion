@@ -11,7 +11,7 @@ use crate::net::ConnectionId;
 pub struct Packet<T> {
     sender: Entity,
     connection_id: ConnectionId,
-    packet_id: u64,
+    id: u64,
 
     #[deref]
     body: T,
@@ -22,7 +22,7 @@ impl<T> Packet<T> {
         Self {
             sender,
             connection_id,
-            packet_id,
+            id: packet_id,
             body,
         }
     }
@@ -45,8 +45,8 @@ impl<T> Packet<T> {
     }
 
     /// Unique monotonically-increasing packet id
-    pub const fn packet_id(&self) -> u64 {
-        self.packet_id
+    pub const fn id(&self) -> u64 {
+        self.id
     }
 }
 
@@ -56,7 +56,7 @@ pub struct OrderedPacketRef<'a, T>(&'a Packet<T>);
 
 impl<T, U> PartialOrd<OrderedPacketRef<'_, U>> for OrderedPacketRef<'_, T> {
     fn partial_cmp(&self, other: &OrderedPacketRef<'_, U>) -> Option<Ordering> {
-        self.packet_id().partial_cmp(&other.packet_id())
+        self.id().partial_cmp(&other.id())
     }
 }
 

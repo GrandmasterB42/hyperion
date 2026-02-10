@@ -11,19 +11,23 @@ pub fn derive_command_permission(input: TokenStream) -> TokenStream {
     // Extract the group from the `#[command_permission(group = "Admin")]` attribute
     let mut group = None;
     for attr in &input.attrs {
-        if attr.path().is_ident("command_permission") {
-            if let Err(err) = attr.parse_nested_meta(|meta| {
-                if meta.path.is_ident("group") {
-                    if let Ok(Lit::Str(lit)) = meta.value()?.parse::<Lit>() {
-                        group = Some(lit);
-                    }
-                }
-                Ok(())
-            }) {
-                return Error::new_spanned(attr, format!("Failed to parse attribute: {err}"))
-                    .to_compile_error()
-                    .into();
+        if !attr.path().is_ident("command_permission") {
+            continue;
+        }
+
+        let parsed = attr.parse_nested_meta(|meta| {
+            if meta.path.is_ident("group")
+                && let Ok(Lit::Str(lit)) = meta.value()?.parse::<Lit>()
+            {
+                group = Some(lit);
             }
+            Ok(())
+        });
+
+        if let Err(err) = parsed {
+            return Error::new_spanned(attr, format!("Failed to parse attribute: {err}"))
+                .to_compile_error()
+                .into();
         }
     }
 

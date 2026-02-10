@@ -21,7 +21,7 @@ use valence_protocol::MAX_PACKET_SIZE;
 struct Fragment {
     /// Points to the next fragment, if available. Once this is set to `Some`, this fragment's `read_cursor` will never be
     /// updated and `next` will never be modified.
-    next: ArcSwapOption<Fragment>,
+    next: ArcSwapOption<Self>,
 
     /// Bytes `0..read_cursor` in the `data` field have been initialized, can be read, will never
     /// be modified again, and contain entire packets.
@@ -416,7 +416,6 @@ impl RawPacket {
         Self { fragment, range }
     }
 
-    #[expect(clippy::missing_const_for_fn, reason = "false positive")]
     #[must_use]
     pub fn fragment_id(&self) -> usize {
         self.fragment.id

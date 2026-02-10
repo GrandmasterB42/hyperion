@@ -223,7 +223,7 @@ pub fn process_login_hello(
             // TODO: The more specific components (such as ChunkSendQueue) should be added in a
             // separate system
             entity.remove::<packet_state::Login>().insert((
-                Name::new(username.to_string()),
+                Name::new(username.clone()),
                 ActiveAnimation::NONE,
                 AiTargetable,
                 ImmuneStatus::default(),
