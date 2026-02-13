@@ -237,7 +237,7 @@ pub fn process_login_hello(
                 ActiveAnimation::NONE,
                 AiTargetable,
                 ImmuneStatus::default(),
-                Uuid::from(uuid),
+                Uuid(uuid),
                 ChunkPosition::null(),
                 ChunkSendQueue::default(),
                 Yaw::default(),

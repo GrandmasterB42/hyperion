@@ -6,7 +6,6 @@ use bevy_ecs::{
     query::With,
     system::{Query, Res},
 };
-use derive_more::derive::{Deref, DerefMut};
 use glam::I16Vec2;
 use itertools::Itertools;
 use tracing::error;
@@ -25,9 +24,23 @@ use crate::{
     },
 };
 
-#[derive(Component, Deref, DerefMut, Default)]
+#[derive(Component, Default)]
 pub struct ChunkSendQueue {
     changes: Vec<I16Vec2>,
+}
+
+impl std::ops::Deref for ChunkSendQueue {
+    type Target = Vec<I16Vec2>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.changes
+    }
+}
+
+impl std::ops::DerefMut for ChunkSendQueue {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.changes
+    }
 }
 
 pub struct SyncChunksPlugin;

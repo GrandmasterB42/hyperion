@@ -12,7 +12,6 @@ use bevy_ecs::{
     system::{Commands, ParamSet, Query, Res, ResMut},
     world::World,
 };
-use derive_more::with_trait::Add as Add_D;
 use glam::IVec3;
 use hyperion::{
     BlockKind, ingress,
@@ -47,12 +46,25 @@ pub struct ImmuneUntil {
 }
 
 // Used as a component only for commands, does not include armor or weapons
-#[derive(Component, Default, Copy, Clone, Debug, Add_D)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 pub struct CombatStats {
     pub armor: f32,
     pub armor_toughness: f32,
     pub damage: f32,
     pub protection: f32,
+}
+
+impl std::ops::Add for CombatStats {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            armor: self.armor + rhs.armor,
+            armor_toughness: self.armor_toughness + rhs.armor_toughness,
+            damage: self.damage + rhs.damage,
+            protection: self.protection + rhs.protection,
+        }
+    }
 }
 
 /// Checks if the entity is immune to attacks and updates the immunity timer if it is

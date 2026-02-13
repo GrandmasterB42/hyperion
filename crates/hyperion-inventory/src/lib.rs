@@ -2,7 +2,6 @@
 use std::{cell::Cell, cmp::min, num::Wrapping};
 
 use bevy_ecs::{component::Component, entity::Entity};
-use derive_more::{Deref, DerefMut};
 use tracing::debug;
 use valence_generated::item::EquipmentSlot;
 use valence_protocol::{
@@ -144,8 +143,22 @@ impl OpenInventory {
     }
 }
 
-#[derive(Component, Clone, PartialEq, Default, Debug, Deref, DerefMut)]
+#[derive(Component, Clone, PartialEq, Default, Debug)]
 pub struct CursorItem(pub ItemStack);
+
+impl std::ops::Deref for CursorItem {
+    type Target = ItemStack;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for CursorItem {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 #[derive(Debug)]
 pub struct AddItemResult {

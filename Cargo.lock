@@ -617,7 +617,6 @@ dependencies = [
  "bevy_ecs 0.18.0",
  "clap",
  "compact_str",
- "derive_more 2.0.1",
  "dotenvy",
  "envy",
  "fastrand 2.3.0",
@@ -1128,7 +1127,6 @@ dependencies = [
  "approx",
  "arrayvec",
  "criterion",
- "derive_more 2.0.1",
  "fastrand 2.3.0",
  "geometry",
  "glam 0.29.3",
@@ -3071,7 +3069,6 @@ dependencies = [
  "byteorder",
  "bytes",
  "colored",
- "derive_more 2.0.1",
  "divan",
  "enumset",
  "fastrand 2.3.0",
@@ -3166,7 +3163,6 @@ version = "0.1.0"
 dependencies = [
  "bevy_app 0.18.0",
  "bevy_ecs 0.18.0",
- "derive_more 2.0.1",
  "hyperion",
  "hyperion-utils",
  "indexmap",
@@ -3214,7 +3210,6 @@ name = "hyperion-inventory"
 version = "0.1.0"
 dependencies = [
  "bevy_ecs 0.18.0",
- "derive_more 2.0.1",
  "hyperion-crafting",
  "roaring",
  "snafu",
@@ -3230,7 +3225,6 @@ dependencies = [
  "bevy_app 0.18.0",
  "bevy_ecs 0.18.0",
  "bytemuck",
- "derive_more 2.0.1",
  "hyperion",
  "hyperion-inventory",
  "hyperion-utils",

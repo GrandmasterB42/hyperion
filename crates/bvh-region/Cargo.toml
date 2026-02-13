@@ -12,7 +12,6 @@ name = "sort"
 
 [dependencies]
 arrayvec.workspace = true
-derive_more.workspace = true
 fastrand.workspace = true
 geometry.workspace = true
 glam.workspace = true

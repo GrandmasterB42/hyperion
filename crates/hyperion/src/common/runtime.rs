@@ -3,12 +3,19 @@
 use std::sync::Arc;
 
 use bevy_ecs::resource::Resource;
-use derive_more::{Deref, DerefMut};
 
 /// Wrapper around [`tokio::runtime::Runtime`]
-#[derive(Resource, Deref, DerefMut, Clone)]
+#[derive(Resource, Clone)]
 pub struct AsyncRuntime {
     runtime: Arc<tokio::runtime::Runtime>,
+}
+
+impl std::ops::Deref for AsyncRuntime {
+    type Target = tokio::runtime::Runtime;
+
+    fn deref(&self) -> &Self::Target {
+        &self.runtime
+    }
 }
 
 impl AsyncRuntime {

@@ -9,7 +9,6 @@ publish = false
 [dependencies]
 bevy_app.workspace = true
 bevy_ecs.workspace = true
-derive_more.workspace = true
 hyperion.workspace = true
 hyperion-utils.workspace = true
 indexmap.workspace = true

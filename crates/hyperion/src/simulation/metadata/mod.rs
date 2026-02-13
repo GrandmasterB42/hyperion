@@ -124,18 +124,30 @@ pub trait Metadata {
 #[macro_export]
 macro_rules! define_metadata_component {
     ($index:literal, $name:ident -> $type:ty) => {
-        #[derive(
-            bevy_ecs::component::Component,
-            Clone,
-            PartialEq,
-            derive_more::Deref,
-            derive_more::DerefMut,
-            derive_more::Constructor,
-            Debug
-        )]
+        #[derive(bevy_ecs::component::Component, Clone, PartialEq, Debug)]
         #[allow(clippy::derive_partial_eq_without_eq)]
         pub struct $name {
             value: $type,
+        }
+
+        impl $name {
+            pub const fn new(value: $type) -> Self {
+                Self { value }
+            }
+        }
+
+        impl std::ops::Deref for $name {
+            type Target = $type;
+
+            fn deref(&self) -> &Self::Target {
+                &self.value
+            }
+        }
+
+        impl std::ops::DerefMut for $name {
+            fn deref_mut(&mut self) -> &mut Self::Target {
+                &mut self.value
+            }
         }
 
         #[allow(warnings)]

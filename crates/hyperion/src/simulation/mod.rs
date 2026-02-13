@@ -16,7 +16,6 @@ use bevy_ecs::{
     world::World,
 };
 use bytemuck::{Pod, Zeroable};
-use derive_more::{Add, Constructor, Deref, DerefMut, Display, From, Sub};
 use geometry::aabb::Aabb;
 use glam::{DVec3, I16Vec2, IVec3, Vec3};
 use rustc_hash::FxHashMap;
@@ -58,26 +57,88 @@ pub mod packet_state;
 pub mod skin;
 pub mod util;
 
-#[derive(Resource, Default, Debug, Deref, DerefMut)]
+#[derive(Resource, Default, Debug)]
 pub struct StreamLookup {
     /// The UUID of all players
     inner: FxHashMap<u64, Entity>,
 }
 
-#[derive(Component, Default, Debug, Deref, DerefMut)]
+impl std::ops::Deref for StreamLookup {
+    type Target = FxHashMap<u64, Entity>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl std::ops::DerefMut for StreamLookup {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+#[derive(Component, Default, Debug)]
 pub struct PlayerUuidLookup {
     /// The UUID of all players
     inner: HashMap<Uuid, Entity>,
 }
 
+impl std::ops::Deref for PlayerUuidLookup {
+    type Target = HashMap<Uuid, Entity>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl std::ops::DerefMut for PlayerUuidLookup {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
 /// Communicates with the proxy server.
-#[derive(Clone, Deref, DerefMut, From)]
+#[derive(Clone)]
 pub struct EgressComm {
     pub(crate) tx: tokio::sync::mpsc::UnboundedSender<bytes::Bytes>,
 }
 
-#[derive(Resource, Deref, DerefMut, From, Debug, Default)]
+impl From<tokio::sync::mpsc::UnboundedSender<bytes::Bytes>> for EgressComm {
+    fn from(tx: tokio::sync::mpsc::UnboundedSender<bytes::Bytes>) -> Self {
+        Self { tx }
+    }
+}
+
+impl std::ops::Deref for EgressComm {
+    type Target = tokio::sync::mpsc::UnboundedSender<bytes::Bytes>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.tx
+    }
+}
+
+impl std::ops::DerefMut for EgressComm {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.tx
+    }
+}
+
+#[derive(Resource, Debug, Default)]
 pub struct IgnMap(FxHashMap<String, Entity>);
+
+impl std::ops::Deref for IgnMap {
+    type Target = FxHashMap<String, Entity>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for IgnMap {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 #[derive(Component, Debug, Default)]
 pub struct RaycastTravel;
@@ -89,8 +150,7 @@ pub struct RaycastTravel;
 pub struct Player;
 
 #[derive(
-    Component, Debug, Deref, DerefMut, PartialEq, Eq, PartialOrd, Copy, Clone, Default, Pod,
-    Zeroable, From
+    Component, Debug, PartialEq, Eq, PartialOrd, Copy, Clone, Default, Pod, Zeroable
 )]
 #[repr(C)]
 pub struct Xp {
@@ -247,8 +307,22 @@ impl Xp {
 
 pub const FULL_HEALTH: f32 = 20.0;
 
-#[derive(Component, Debug, Default, Deref, DerefMut)]
+#[derive(Component, Debug, Default)]
 pub struct ConfirmBlockSequences(pub Vec<i32>);
+
+impl std::ops::Deref for ConfirmBlockSequences {
+    type Target = Vec<i32>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for ConfirmBlockSequences {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 #[derive(Component, Debug, Eq, PartialEq, Default)]
 #[expect(missing_docs)]
@@ -266,15 +340,21 @@ impl ImmuneStatus {
 }
 
 /// A UUID component. Generally speaking, this tends to be tied to entities with a [`Player`] component.
-#[derive(
-    Component, Copy, Clone, Debug, Deref, From, Hash, Eq, PartialEq, Display
-)]
+#[derive(Component, Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub struct Uuid(pub uuid::Uuid);
 
 impl Uuid {
     #[must_use]
     pub fn new_v4() -> Self {
         Self(uuid::Uuid::new_v4())
+    }
+}
+
+impl std::ops::Deref for Uuid {
+    type Target = uuid::Uuid;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -312,20 +392,7 @@ impl Owner {
 pub struct AiTargetable;
 
 /// The full pose of an entity. This is used for both [`Player`] and [`Npc`].
-#[derive(
-    Component,
-    Copy,
-    Clone,
-    Debug,
-    Serialize,
-    Deserialize,
-    Deref,
-    DerefMut,
-    From,
-    PartialEq,
-    Add,
-    Sub
-)]
+#[derive(Component, Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Position {
     /// The (x, y, z) position of the entity.
     /// Note we are using [`Vec3`] instead of [`glam::DVec3`] because *cache locality* is important.
@@ -342,25 +409,82 @@ impl Position {
     }
 }
 
-#[derive(
-    Component,
-    Copy,
-    Clone,
-    Debug,
-    Deref,
-    DerefMut,
-    Default,
-    Constructor,
-    PartialEq
-)]
+impl std::ops::Add for Position {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            position: self.position + rhs.position,
+        }
+    }
+}
+
+impl std::ops::Sub for Position {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            position: self.position - rhs.position,
+        }
+    }
+}
+
+impl From<Vec3> for Position {
+    fn from(value: Vec3) -> Self {
+        Self { position: value }
+    }
+}
+
+impl std::ops::Deref for Position {
+    type Target = Vec3;
+
+    fn deref(&self) -> &Self::Target {
+        &self.position
+    }
+}
+
+impl std::ops::DerefMut for Position {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.position
+    }
+}
+
+#[derive(Component, Copy, Clone, Debug, Default, PartialEq)]
 pub struct Yaw {
     yaw: f32,
+}
+
+impl Yaw {
+    #[must_use]
+    pub const fn new(yaw: f32) -> Self {
+        Self { yaw }
+    }
 }
 
 impl std::fmt::Display for Yaw {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let yaw = self.yaw;
         write!(f, "{yaw}")
+    }
+}
+
+impl std::ops::Deref for Yaw {
+    type Target = f32;
+
+    fn deref(&self) -> &Self::Target {
+        &self.yaw
+    }
+}
+
+#[derive(Component, Copy, Clone, Debug, Default, PartialEq)]
+pub struct Pitch {
+    pitch: f32,
+}
+
+impl Pitch {
+    #[must_use]
+    pub const fn new(pitch: f32) -> Self {
+        Self { pitch }
     }
 }
 
@@ -371,25 +495,18 @@ impl std::fmt::Display for Pitch {
     }
 }
 
-#[derive(
-    Component,
-    Copy,
-    Clone,
-    Debug,
-    Deref,
-    DerefMut,
-    Default,
-    Constructor,
-    PartialEq
-)]
-pub struct Pitch {
-    pitch: f32,
+impl std::ops::Deref for Pitch {
+    type Target = f32;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pitch
+    }
 }
 
 const PLAYER_WIDTH: f32 = 0.6;
 const PLAYER_HEIGHT: f32 = 1.8;
 
-#[derive(Component, Copy, Clone, Debug, Constructor, PartialEq)]
+#[derive(Component, Copy, Clone, Debug, PartialEq)]
 pub struct EntitySize {
     pub half_width: f32,
     pub height: f32,

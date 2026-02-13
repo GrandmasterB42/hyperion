@@ -5,7 +5,6 @@ use bevy_ecs::{
     schedule::IntoScheduleConfigs,
     system::Query,
 };
-use derive_more::Deref;
 use hyperion::{ingress, simulation::event::InteractEvent};
 use hyperion_inventory::PlayerInventory;
 use tracing::error;
@@ -16,12 +15,18 @@ pub mod builder;
 pub struct ItemPlugin;
 
 /// Event sent when an item with an NBT is clicked in the hotbar
-#[derive(Message, Deref)]
+#[derive(Message)]
 pub struct NbtInteractEvent {
     pub handler: Entity,
-
-    #[deref]
     pub event: InteractEvent,
+}
+
+impl std::ops::Deref for NbtInteractEvent {
+    type Target = InteractEvent;
+
+    fn deref(&self) -> &Self::Target {
+        &self.event
+    }
 }
 
 fn handle_interact(

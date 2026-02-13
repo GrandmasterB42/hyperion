@@ -14,10 +14,8 @@ use crate::{
     },
 };
 
-#[derive(derive_more::Debug)]
 pub struct DeltaDrainPacket<'a> {
     position: ChunkSectionPos,
-    #[debug(skip)]
     section: &'a mut Section,
 }
 
@@ -57,10 +55,8 @@ impl PacketBundle for DeltaDrainPacket<'_> {
     }
 }
 
-#[derive(derive_more::Debug)]
 pub struct DeltaPacket<'a> {
     position: ChunkSectionPos,
-    #[debug(skip)]
     section: &'a Section,
 }
 

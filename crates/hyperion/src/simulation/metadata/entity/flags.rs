@@ -1,12 +1,19 @@
 use bevy_ecs::component::Component;
-use derive_more::Deref;
 
 use crate::simulation::metadata::Metadata;
 
 // todo: can be u8
-#[derive(Component, PartialEq, Eq, Copy, Clone, Debug, Deref)]
+#[derive(Component, PartialEq, Eq, Copy, Clone, Debug)]
 pub struct EntityFlags {
     value: u8,
+}
+
+impl std::ops::Deref for EntityFlags {
+    type Target = u8;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
+    }
 }
 
 impl Default for EntityFlags {

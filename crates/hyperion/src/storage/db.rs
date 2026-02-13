@@ -4,14 +4,13 @@ use std::path::Path;
 
 use bevy_ecs::resource::Resource;
 use byteorder::NativeEndian;
-use derive_more::Deref;
 use heed::{Database, Env, EnvOpenOptions, types};
 use uuid::Uuid;
 
 use crate::simulation::skin::{ArchivedPlayerSkin, PlayerSkin};
 
 /// A wrapper around a `Heed` database
-#[derive(Resource, Debug, Clone, Deref)]
+#[derive(Resource, Debug, Clone)]
 pub struct LocalDb {
     env: Env,
 }
@@ -31,6 +30,14 @@ impl LocalDb {
         };
 
         Ok(Self { env })
+    }
+}
+
+impl std::ops::Deref for LocalDb {
+    type Target = Env;
+
+    fn deref(&self) -> &Self::Target {
+        &self.env
     }
 }
 

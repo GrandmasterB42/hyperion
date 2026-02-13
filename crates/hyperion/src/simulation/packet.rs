@@ -2,19 +2,16 @@ use std::cmp::Ordering;
 
 use bevy_app::{App, Plugin};
 use bevy_ecs::{entity::Entity, message::Message};
-use derive_more::{Deref, From, Into};
 use hyperion_packet_macros::for_each_state;
 use hyperion_utils::EntityExt;
 
 use crate::net::ConnectionId;
 
-#[derive(Copy, Clone, Debug, Deref, Message)]
+#[derive(Copy, Clone, Debug, Message)]
 pub struct Packet<T> {
     sender: Entity,
     connection_id: ConnectionId,
     id: u64,
-
-    #[deref]
     body: T,
 }
 
@@ -51,9 +48,31 @@ impl<T> Packet<T> {
     }
 }
 
+impl<T> std::ops::Deref for Packet<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.body
+    }
+}
+
 /// Packet ordered by the time it was received by the server
-#[derive(Copy, Clone, Debug, Deref, From, Into)]
+#[derive(Copy, Clone, Debug)]
 pub struct OrderedPacketRef<'a, T>(&'a Packet<T>);
+
+impl<T> std::ops::Deref for OrderedPacketRef<'_, T> {
+    type Target = Packet<T>;
+
+    fn deref(&self) -> &Self::Target {
+        self.0
+    }
+}
+
+impl<'a, T> From<&'a Packet<T>> for OrderedPacketRef<'a, T> {
+    fn from(packet: &'a Packet<T>) -> Self {
+        Self(packet)
+    }
+}
 
 impl<T, U> PartialOrd<OrderedPacketRef<'_, U>> for OrderedPacketRef<'_, T> {
     fn partial_cmp(&self, other: &OrderedPacketRef<'_, U>) -> Option<Ordering> {

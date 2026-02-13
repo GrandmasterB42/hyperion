@@ -6,7 +6,6 @@ use anyhow::Context;
 use bevy_ecs::{entity::Entity, resource::Resource};
 use bytes::Bytes;
 use chunk::Column;
-use derive_more::Constructor;
 use geometry::{aabb::Aabb, ray::Ray};
 use glam::{I16Vec2, IVec2, IVec3, Vec3};
 use indexmap::IndexMap;
@@ -42,10 +41,17 @@ pub enum GetChunk<'a> {
     Loading,
 }
 
-#[derive(Constructor, Debug)]
+#[derive(Debug)]
 pub struct EntityAndSequence {
     pub entity: Entity,
     pub sequence: i32,
+}
+
+impl EntityAndSequence {
+    #[must_use]
+    pub const fn new(entity: Entity, sequence: i32) -> Self {
+        Self { entity, sequence }
+    }
 }
 
 #[derive(Debug)]

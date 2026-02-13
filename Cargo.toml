@@ -138,16 +138,6 @@ clap = { version = '4.5', features = ['derive'] }
 # Utilities
 bytes = '1.8'
 derive-build = '0.1.1'
-derive_more = { version = '2.0', features = [
-    'display',
-    'from',
-    'into',
-    'deref',
-    'deref_mut',
-    'debug',
-    'constructor',
-    'add',
-] }
 futures-util = '0.3.31'
 itertools = '0.14'
 libc = '0.2'

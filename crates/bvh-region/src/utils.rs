@@ -1,4 +1,3 @@
-use derive_more::Constructor;
 use geometry::aabb::Aabb;
 
 use crate::node::BvhNode;
@@ -22,7 +21,7 @@ pub trait GetAabb<T>: Fn(&T) -> Aabb {}
 
 impl<T, F> GetAabb<T> for F where F: Fn(&T) -> Aabb {}
 
-#[derive(Constructor, Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct NodeOrd<'a, T> {
     pub node: &'a BvhNode,
     pub by: T,

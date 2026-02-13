@@ -4,7 +4,6 @@ bevy_app.workspace = true
 bevy_ecs.workspace = true
 clap.workspace = true
 compact_str.workspace = true
-derive_more.workspace = true
 dotenvy.workspace = true
 envy.workspace = true
 fastrand.workspace = true

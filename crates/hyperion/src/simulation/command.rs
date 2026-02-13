@@ -2,7 +2,6 @@ use bevy_app::{App, Plugin};
 use bevy_ecs::{
     component::Component, entity::Entity, hierarchy::Children, resource::Resource, world::World,
 };
-use derive_more::Deref;
 use tracing::{error, warn};
 use valence_bytes::Utf8Bytes;
 pub use valence_protocol::packets::play::command_tree_s2c::Parser;
@@ -17,8 +16,16 @@ pub struct Command {
     has_permission: fn(world: &World, caller: Entity) -> bool,
 }
 
-#[derive(Resource, Deref)]
+#[derive(Resource)]
 pub struct RootCommand(Entity);
+
+impl std::ops::Deref for RootCommand {
+    type Target = Entity;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 impl Command {
     pub const ROOT: Self = Self {

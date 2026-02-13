@@ -18,7 +18,6 @@ bytemuck.workspace = true
 byteorder.workspace = true
 bytes.workspace = true
 colored.workspace = true
-derive_more.workspace = true
 enumset.workspace = true
 fastrand.workspace = true
 flate2.workspace = true

@@ -4,7 +4,7 @@ use std::{
     cell::SyncUnsafeCell,
     mem::{MaybeUninit, size_of},
     num::NonZeroU32,
-    ops::{Deref, Range},
+    ops::Range,
     sync::{
         Arc,
         atomic::{AtomicUsize, Ordering},
@@ -438,7 +438,7 @@ impl RawPacket {
     }
 }
 
-impl Deref for RawPacket {
+impl std::ops::Deref for RawPacket {
     type Target = [u8];
 
     fn deref(&self) -> &[u8] {
