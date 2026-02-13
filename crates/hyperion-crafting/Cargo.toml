@@ -1,7 +1,6 @@
 [dependencies]
 bevy_ecs.workspace = true
 anyhow.workspace = true
-derive-build.workspace = true
 slotmap.workspace = true
 valence_protocol.workspace = true
 

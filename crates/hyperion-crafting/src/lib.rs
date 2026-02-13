@@ -1,7 +1,6 @@
 use std::{collections::HashMap, io::Write};
 
 use bevy_ecs::resource::Resource;
-use derive_build::Build;
 use slotmap::{SecondaryMap, SlotMap, new_key_type};
 use valence_protocol::{Encode, ItemKind, ItemStack, Packet};
 
@@ -82,7 +81,7 @@ impl Encode for RecipeData {
 }
 
 /// Represents data for a shapeless crafting recipe.
-#[derive(Clone, Debug, Build)]
+#[derive(Clone, Debug)]
 pub struct CraftingShapelessData {
     /// Used to group similar recipes together in the recipe book.
     group: String,
@@ -91,10 +90,38 @@ pub struct CraftingShapelessData {
     /// The list of ingredients for the recipe.
     ingredients: Vec<Ingredient>,
     /// The result of the crafting recipe.
-    #[required]
     result: ItemStack,
 }
 
+impl CraftingShapelessData {
+    #[must_use]
+    pub fn new(result: ItemStack) -> Self {
+        Self {
+            group: String::new(),
+            category: CraftingCategory::default(),
+            ingredients: Vec::new(),
+            result,
+        }
+    }
+
+    #[must_use]
+    pub fn ingredient(mut self, ingredient: impl Into<Ingredient>) -> Self {
+        self.ingredients.push(ingredient.into());
+        self
+    }
+
+    #[must_use]
+    pub fn group(mut self, group: String) -> Self {
+        self.group = group;
+        self
+    }
+
+    #[must_use]
+    pub const fn category(mut self, category: CraftingCategory) -> Self {
+        self.category = category;
+        self
+    }
+}
 /// Represents data for special crafting recipes.
 #[derive(Clone, Debug)]
 pub struct CraftingSpecialData {
@@ -122,7 +149,7 @@ pub enum SmeltingCategory {
 
 /// Represents an ingredient in a recipe, which can be multiple possible items.
 #[derive(Encode, Clone, Debug)]
-struct Ingredient(Vec<ItemStack>);
+pub struct Ingredient(Vec<ItemStack>);
 
 impl From<Vec<ItemStack>> for Ingredient {
     fn from(value: Vec<ItemStack>) -> Self {
