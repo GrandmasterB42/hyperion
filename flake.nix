@@ -25,7 +25,7 @@
             inherit system overlays;
           };
 
-          rustToolchain = pkgs.rust-bin.nightly."2025-02-22".default.override {
+          rustToolchain = pkgs.rust-bin.nightly.latest.default.override {
             extensions = [ "rust-src" "rustfmt" "clippy" ];
           };
 
