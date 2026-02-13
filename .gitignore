@@ -3,6 +3,8 @@
 *.jar
 *.svg
 *.zip
+*.crt
+*.pem
 
 /result
 
@@ -34,3 +36,4 @@ vendor/
 .trigger-debug
 .trigger
 valence/
+/certs
