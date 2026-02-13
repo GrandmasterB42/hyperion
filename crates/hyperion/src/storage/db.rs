@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use bevy::prelude::*;
+use bevy_ecs::resource::Resource;
 use byteorder::NativeEndian;
 use derive_more::Deref;
 use heed::{Database, Env, EnvOpenOptions, types};

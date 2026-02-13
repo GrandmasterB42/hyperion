@@ -1,6 +1,12 @@
 use std::iter::zip;
 
-use bevy::{ecs::system::SystemState, prelude::*};
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    hierarchy::ChildOf,
+    system::{Commands, SystemState},
+    world::{FromWorld, World},
+};
 use clap::{Arg as ClapArg, Parser, ValueEnum, ValueHint, error::ErrorKind};
 use hyperion::{
     net::{Compose, ConnectionId, DataBundle, agnostic},

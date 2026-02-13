@@ -1,6 +1,11 @@
 use std::cmp::Ordering;
 
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    component::Component,
+    query::With,
+    system::{Query, Res},
+};
 use derive_more::derive::{Deref, DerefMut};
 use glam::I16Vec2;
 use itertools::Itertools;

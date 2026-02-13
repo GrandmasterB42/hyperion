@@ -1,7 +1,8 @@
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true
-bevy.workspace = true
+bevy_app.workspace = true
+bevy_ecs.workspace = true
 heed.workspace = true
 hyperion.workspace = true
 num-derive.workspace = true

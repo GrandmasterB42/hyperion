@@ -1,6 +1,7 @@
 use std::sync::Mutex;
 
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{entity::Entity, resource::Resource, world::World};
 use derive_more::{Deref, DerefMut};
 use hyperion::simulation::packet::play;
 use hyperion_utils::ApplyWorld;

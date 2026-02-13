@@ -3,7 +3,7 @@
 use std::{sync::Arc, time::Duration};
 
 use anyhow::{Context, bail};
-use bevy::prelude::*;
+use bevy_ecs::resource::Resource;
 use serde_json::Value;
 use tokio::{
     sync::Semaphore,

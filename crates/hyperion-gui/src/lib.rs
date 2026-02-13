@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use bevy::prelude::*;
+use bevy_ecs::{component::Component, entity::Entity, system::Commands, world::World};
 use hyperion::{
     simulation::{Uuid, entity_kind::EntityKind},
     valence_protocol::packets::play::{

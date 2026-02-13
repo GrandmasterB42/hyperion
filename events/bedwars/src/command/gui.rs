@@ -1,4 +1,8 @@
-use bevy::{ecs::system::SystemState, prelude::*};
+use bevy_ecs::{
+    entity::Entity,
+    system::{Commands, Query, SystemState},
+    world::World,
+};
 use clap::Parser;
 use hyperion::{ItemKind, ItemStack, simulation::entity_kind::EntityKind};
 use hyperion_clap::{CommandPermission, MinecraftCommand};

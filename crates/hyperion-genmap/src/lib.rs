@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
 use hyperion::{runtime::AsyncRuntime, simulation::blocks::Blocks};
 
 pub struct GenMapPlugin;

@@ -1,5 +1,5 @@
 [dependencies]
-bevy.workspace = true
+bevy_ecs.workspace = true
 hyperion-crafting.workspace = true
 roaring.workspace = true
 snafu.workspace = true

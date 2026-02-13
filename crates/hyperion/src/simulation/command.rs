@@ -1,4 +1,7 @@
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    component::Component, entity::Entity, hierarchy::Children, resource::Resource, world::World,
+};
 use derive_more::Deref;
 use tracing::{error, warn};
 use valence_bytes::Utf8Bytes;
@@ -144,7 +147,7 @@ impl Plugin for CommandPlugin {
 
 #[cfg(test)]
 mod tests {
-    use bevy::prelude::*;
+    use bevy_ecs::hierarchy::ChildOf;
 
     use super::{Command as HyperionCommand, *};
 

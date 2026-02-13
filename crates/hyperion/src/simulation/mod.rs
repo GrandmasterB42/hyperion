@@ -3,7 +3,18 @@ use std::{
     hash::Hash,
 };
 
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    component::Component,
+    entity::Entity,
+    lifecycle::{Add, Insert, Remove},
+    message::Message,
+    name::Name,
+    observer::On,
+    resource::Resource,
+    system::{Commands, Query, Res, ResMut},
+    world::World,
+};
 use bytemuck::{Pod, Zeroable};
 use derive_more::{Add, Constructor, Deref, DerefMut, Display, From, Sub};
 use geometry::aabb::Aabb;
@@ -283,6 +294,7 @@ impl Default for RunningSpeed {
     }
 }
 
+// TODO: This might be a good fit for a relationship?
 #[derive(Component)]
 pub struct Owner {
     pub entity: Entity,
@@ -544,14 +556,14 @@ pub struct Flight {
 }
 
 fn initialize_player(
-    trigger: Trigger<'_, OnAdd, packet_state::Play>,
+    now_playing: On<'_, '_, Add, packet_state::Play>,
     mut ign_map: ResMut<'_, IgnMap>,
     compose: Res<'_, Compose>,
     name_query: Query<'_, '_, &Name>,
     connection_id_query: Query<'_, '_, &ConnectionId>,
     mut commands: Commands<'_, '_>,
 ) {
-    commands.entity(trigger.target()).insert((
+    commands.entity(now_playing.entity).insert((
         ConfirmBlockSequences::default(),
         EntitySize::default(),
         Flight::default(),
@@ -559,12 +571,12 @@ fn initialize_player(
         hyperion_inventory::CursorItem::default(),
     ));
 
-    let Ok(name) = name_query.get(trigger.target()) else {
+    let Ok(name) = name_query.get(now_playing.entity) else {
         error!("failed to initialize player: missing Name component");
         return;
     };
 
-    if let Some(other) = ign_map.insert(name.to_string(), trigger.target()) {
+    if let Some(other) = ign_map.insert(name.to_string(), now_playing.entity) {
         // Another player with the same username is already connected to the server.
         // Disconnect the previous player with the same username.
         // There are some Minecraft accounts with the same username, but this is an extremely
@@ -590,11 +602,11 @@ fn initialize_player(
 }
 
 fn remove_player(
-    trigger: Trigger<'_, OnRemove, packet_state::Play>,
+    not_playing: On<'_, '_, Remove, packet_state::Play>,
     mut ign_map: ResMut<'_, IgnMap>,
     name_query: Query<'_, '_, &Name>,
 ) {
-    let name = match name_query.get(trigger.target()) {
+    let name = match name_query.get(not_playing.entity) {
         Ok(name) => name,
         Err(e) => {
             error!("failed to remove player: query failed: {e}");
@@ -604,7 +616,7 @@ fn remove_player(
 
     match ign_map.entry(name.to_string()) {
         Entry::Occupied(entry) => {
-            if *entry.get() == trigger.target() {
+            if *entry.get() == not_playing.entity {
                 // This entry points to the same entity that got disconnected
                 entry.remove();
             } else {
@@ -625,10 +637,10 @@ fn remove_player(
 }
 
 /// For every new entity without a UUID, give it one
-fn initialize_uuid(trigger: Trigger<'_, OnAdd, EntityKind>, mut commands: Commands<'_, '_>) {
-    let target = trigger.target();
+fn initialize_uuid(known_entitykind: On<'_, '_, Add, EntityKind>, mut commands: Commands<'_, '_>) {
+    let e = known_entitykind.entity;
     commands.queue(move |world: &mut World| {
-        let mut entity = world.entity_mut(target);
+        let mut entity = world.entity_mut(e);
 
         // This doesn't use insert_if_new to avoid the cost of generating a random uuid if it is not needed
         if entity.get::<Uuid>().is_none() {
@@ -638,11 +650,11 @@ fn initialize_uuid(trigger: Trigger<'_, OnAdd, EntityKind>, mut commands: Comman
 }
 
 fn send_pending_teleportation(
-    trigger: Trigger<'_, OnInsert, PendingTeleportation>,
+    now_teleporting: On<'_, '_, Insert, PendingTeleportation>,
     query: Query<'_, '_, (&PendingTeleportation, &Yaw, &Pitch, &ConnectionId)>,
     compose: Res<'_, Compose>,
 ) {
-    let (pending_teleportation, yaw, pitch, &connection) = match query.get(trigger.target()) {
+    let (pending_teleportation, yaw, pitch, &connection) = match query.get(now_teleporting.entity) {
         Ok(data) => data,
         Err(e) => {
             error!("failed to send pending teleportation: query failed: {e}");
@@ -662,11 +674,11 @@ fn send_pending_teleportation(
 }
 
 fn update_flight(
-    trigger: Trigger<'_, OnInsert, (FlyingSpeed, Flight)>,
+    now_flying: On<'_, '_, Insert, (FlyingSpeed, Flight)>,
     compose: Res<'_, Compose>,
     query: Query<'_, '_, (&ConnectionId, &Flight, &FlyingSpeed)>,
 ) {
-    let Ok((&connection_id, flight, flying_speed)) = query.get(trigger.target()) else {
+    let Ok((&connection_id, flight, flying_speed)) = query.get(now_flying.entity) else {
         return;
     };
 
@@ -699,32 +711,32 @@ impl Plugin for SimPlugin {
             MetadataPlugin,
         ));
 
-        app.add_event::<RequestSubscribeChannelPackets>();
-        app.add_event::<event::ItemDropEvent>();
-        app.add_event::<event::ItemInteract>();
-        app.add_event::<event::SetSkin>();
-        app.add_event::<event::AttackEntity>();
-        app.add_event::<event::StartDestroyBlock>();
-        app.add_event::<event::DestroyBlock>();
-        app.add_event::<event::PlaceBlock>();
-        app.add_event::<event::ToggleDoor>();
-        app.add_event::<event::SwingArm>();
-        app.add_event::<event::ReleaseUseItem>();
-        app.add_event::<event::PostureUpdate>();
-        app.add_event::<event::BlockInteract>();
-        app.add_event::<event::ProjectileEntityEvent>();
-        app.add_event::<event::ProjectileBlockEvent>();
-        app.add_event::<event::ClickSlotEvent>();
-        app.add_event::<event::DropItemStackEvent>();
-        app.add_event::<event::UpdateSelectedSlotEvent>();
-        app.add_event::<event::HitGroundEvent>();
-        app.add_event::<event::InteractEvent>();
+        app.add_message::<RequestSubscribeChannelPackets>();
+        app.add_message::<event::ItemDropEvent>();
+        app.add_message::<event::ItemInteract>();
+        app.add_message::<event::SetSkin>();
+        app.add_message::<event::AttackEntity>();
+        app.add_message::<event::StartDestroyBlock>();
+        app.add_message::<event::DestroyBlock>();
+        app.add_message::<event::PlaceBlock>();
+        app.add_message::<event::ToggleDoor>();
+        app.add_message::<event::SwingArm>();
+        app.add_message::<event::ReleaseUseItem>();
+        app.add_message::<event::PostureUpdate>();
+        app.add_message::<event::BlockInteract>();
+        app.add_message::<event::ProjectileEntityEvent>();
+        app.add_message::<event::ProjectileBlockEvent>();
+        app.add_message::<event::ClickSlotEvent>();
+        app.add_message::<event::DropItemStackEvent>();
+        app.add_message::<event::UpdateSelectedSlotEvent>();
+        app.add_message::<event::HitGroundEvent>();
+        app.add_message::<event::InteractEvent>();
     }
 }
 
 /// Event sent when the proxy requests packets to send to a player who has subscribed to a channel.
 /// This event stores the channel entity.
-#[derive(Event)]
+#[derive(Message)]
 pub struct RequestSubscribeChannelPackets(pub Entity);
 
 #[derive(Component)]

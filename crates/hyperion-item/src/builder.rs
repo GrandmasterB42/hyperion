@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy_ecs::entity::Entity;
 use valence_protocol::{ItemKind, ItemStack, nbt, nbt::Value};
 
 mod book;

@@ -4,7 +4,7 @@
               for the core libraries. These are tests, so it doesn't matter"
 )]
 
-use bevy::{app::FixedMain, prelude::*};
+use bevy_app::{App, FixedMain};
 use hyperion::{
     HyperionCore,
     simulation::{Owner, Position, Uuid, Velocity, entity_kind::EntityKind},

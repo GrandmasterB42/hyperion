@@ -1,6 +1,13 @@
 use std::fmt::Debug;
 
-use bevy::prelude::*;
+use bevy_app::{App, FixedPostUpdate, Plugin};
+use bevy_ecs::{
+    component::Component,
+    lifecycle::Insert,
+    observer::On,
+    system::{Commands, Query},
+    world::EntityRef,
+};
 use hyperion_utils::{Prev, track_prev};
 use tracing::error;
 use valence_protocol::{Encode, VarInt};
@@ -36,11 +43,11 @@ where
 }
 
 fn initialize_entity(
-    trigger: Trigger<'_, OnInsert, EntityKind>,
+    entity: On<'_, '_, Insert, EntityKind>,
     query: Query<'_, '_, &EntityKind>,
     mut commands: Commands<'_, '_>,
 ) {
-    let kind = match query.get(trigger.target()) {
+    let kind = match query.get(entity.entity) {
         Ok(kind) => *kind,
         Err(e) => {
             error!("failed to initialize entity: query failed: {e}");
@@ -48,7 +55,7 @@ fn initialize_entity(
         }
     };
 
-    let mut entity = commands.entity(trigger.target());
+    let mut entity = commands.entity(entity.entity);
 
     entity.insert((
         MetadataChanges::default(),
@@ -118,7 +125,7 @@ pub trait Metadata {
 macro_rules! define_metadata_component {
     ($index:literal, $name:ident -> $type:ty) => {
         #[derive(
-            Component,
+            bevy_ecs::component::Component,
             Clone,
             PartialEq,
             derive_more::Deref,
@@ -165,14 +172,14 @@ macro_rules! define_and_register_components {
             $crate::define_metadata_component!($index, $name -> $type);
         )*
 
-        pub fn register(app: &mut App) {
+        pub fn register(app: &mut bevy_app::App) {
             $(
                 $crate::simulation::metadata::component_and_track::<$name>(app);
             )*
         }
 
         #[must_use]
-        pub fn default_components() -> impl bevy::ecs::bundle::Bundle {
+        pub fn default_components() -> impl bevy_ecs::bundle::Bundle {
             (
                 $(
                     $name::default(),
@@ -180,7 +187,7 @@ macro_rules! define_and_register_components {
             )
         }
 
-        pub fn encode_non_default_components(entity: EntityRef<'_>, metadata: &mut $crate::simulation::metadata::MetadataChanges) {
+        pub fn encode_non_default_components(entity: bevy_ecs::world::EntityRef<'_>, metadata: &mut $crate::simulation::metadata::MetadataChanges) {
             $(
                 if let Some(component) = entity.get::<$name>() {
                     metadata.encode_if_not_default(component.clone());

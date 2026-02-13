@@ -8,9 +8,12 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use bevy::{
-    ecs::ptr::{OwningPtr, Unaligned},
-    prelude::*,
+use bevy_app::{App, Plugin, PreUpdate};
+use bevy_ecs::{
+    ptr::{OwningPtr, Unaligned},
+    resource::Resource,
+    system::Command,
+    world::World,
 };
 use tracing::error;
 

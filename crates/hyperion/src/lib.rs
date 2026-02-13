@@ -17,7 +17,9 @@ use std::{
     alloc::Allocator, fmt::Debug, io::Write, net::SocketAddr, path::Path, sync::Arc, time::Duration,
 };
 
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{entity::Entity, event::EntityEvent, resource::Resource};
+use bevy_time::{Fixed, Time};
 use egress::EgressPlugin;
 pub use glam;
 #[cfg(unix)]
@@ -170,7 +172,7 @@ impl From<SocketAddr> for Endpoint {
     }
 }
 
-#[derive(Event, Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(EntityEvent, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct InitializePlayerPosition(pub Entity);
 
 /// The central [`HyperionCore`] struct which owns and manages the entire server.
@@ -204,9 +206,9 @@ impl Plugin for HyperionCore {
         // IoTaskPool which are not used by Hyperion but are given 50% of the available cores.
         // Setting up ComputeTaskPool manually allows it to use 100% of the available cores.
         let mut init = false;
-        bevy::tasks::ComputeTaskPool::get_or_init(|| {
+        bevy_tasks::ComputeTaskPool::get_or_init(|| {
             init = true;
-            bevy::tasks::TaskPool::new()
+            bevy_tasks::TaskPool::new()
         });
         if !init {
             warn!("failed to initialize ComputeTaskPool because it was already initialized");
@@ -230,7 +232,6 @@ impl Plugin for HyperionCore {
         app.insert_resource(skins);
         app.insert_resource(MojangClient::new(&runtime, ApiProvider::MAT_DOES_DEV));
         app.insert_resource(Blocks::empty(&runtime));
-        app.add_event::<InitializePlayerPosition>();
 
         let global = Global::new(shared.clone());
 
@@ -254,8 +255,8 @@ impl Plugin for HyperionCore {
         app.insert_resource(StreamLookup::default());
 
         app.add_plugins((
-            bevy::time::TimePlugin,
-            bevy::app::ScheduleRunnerPlugin::run_loop(Duration::from_millis(10)),
+            bevy_time::TimePlugin,
+            bevy_app::ScheduleRunnerPlugin::run_loop(Duration::from_millis(10)),
             IngressPlugin,
             EgressPlugin,
             SimPlugin,

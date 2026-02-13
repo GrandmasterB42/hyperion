@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Context;
-use bevy::prelude::*;
+use bevy_ecs::world::World;
 use futures_util::stream::StreamExt;
 use sha2::Digest;
 use tar::Archive;

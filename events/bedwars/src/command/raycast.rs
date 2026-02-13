@@ -1,4 +1,8 @@
-use bevy::{ecs::system::SystemState, prelude::*};
+use bevy_ecs::{
+    entity::Entity,
+    system::{Query, Res, SystemState},
+    world::World,
+};
 use clap::Parser;
 use hyperion::{
     glam::Vec3,

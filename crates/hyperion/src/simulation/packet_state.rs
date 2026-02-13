@@ -3,7 +3,7 @@
 //! All players with a state component assigned are guaranteed to have the following components:
 /// - [`crate::ConnectionId`]
 /// - [`crate::PacketDecoder`]
-use bevy::prelude::*;
+use bevy_ecs::component::Component;
 
 /// Marks players who are in the handshake state.
 #[derive(Component)]

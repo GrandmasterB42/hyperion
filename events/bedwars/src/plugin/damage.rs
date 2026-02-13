@@ -1,4 +1,8 @@
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    message::MessageReader,
+    system::{Query, Res},
+};
 use hyperion::{
     net::{Compose, ConnectionId, agnostic},
     simulation::{Position, event::HitGroundEvent, metadata::living_entity::Health},
@@ -9,7 +13,7 @@ use valence_protocol::{VarInt, packets::play, text::IntoText};
 use valence_server::ident;
 
 fn apply_natural_damages(
-    mut events: EventReader<'_, '_, HitGroundEvent>,
+    mut events: MessageReader<'_, '_, HitGroundEvent>,
     mut query: Query<'_, '_, (&mut Health, &ConnectionId, &Position)>,
     compose: Res<'_, Compose>,
 ) {

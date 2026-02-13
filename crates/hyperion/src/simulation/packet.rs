@@ -1,13 +1,14 @@
 use std::cmp::Ordering;
 
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{entity::Entity, message::Message};
 use derive_more::{Deref, From, Into};
 use hyperion_packet_macros::for_each_state;
 use hyperion_utils::EntityExt;
 
 use crate::net::ConnectionId;
 
-#[derive(Copy, Clone, Debug, Deref, Event)]
+#[derive(Copy, Clone, Debug, Deref, Message)]
 pub struct Packet<T> {
     sender: Entity,
     connection_id: ConnectionId,
@@ -86,7 +87,7 @@ impl Plugin for PacketPlugin {
             #{
                 #for_each_packet! {
                     #{
-                        app.add_event::<#state::#packet_name>();
+                        app.add_message::<#state::#packet_name>();
                     }
                 }
             }

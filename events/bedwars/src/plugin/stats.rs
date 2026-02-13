@@ -1,6 +1,10 @@
 use std::time::Instant;
 
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin, PreUpdate, Update};
+use bevy_ecs::{
+    resource::Resource,
+    system::{Res, ResMut},
+};
 use hyperion::{
     net::Compose,
     valence_protocol::{packets::play, text::IntoText},

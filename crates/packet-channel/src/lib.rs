@@ -12,7 +12,7 @@ use std::{
 };
 
 use arc_swap::ArcSwapOption;
-use bevy::prelude::*;
+use bevy_ecs::component::Component;
 use more_asserts::debug_assert_le;
 use valence_protocol::MAX_PACKET_SIZE;
 

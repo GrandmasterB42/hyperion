@@ -7,8 +7,9 @@ readme = "README.md"
 publish = false
 
 [dependencies]
+bevy_app.workspace = true
+bevy_ecs.workspace = true
 clap.workspace = true
-bevy.workspace = true
 hyperion.workspace = true
 hyperion-clap-macros.workspace = true
 hyperion-command.workspace = true

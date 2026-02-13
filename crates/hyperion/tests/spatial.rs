@@ -8,7 +8,8 @@
 use std::{assert_matches, collections::HashSet};
 
 use approx::assert_relative_eq;
-use bevy::{app::FixedMain, prelude::*};
+use bevy_app::{App, FixedMain};
+use bevy_ecs::system::{Query, Res};
 use geometry::{aabb::Aabb, ray::Ray};
 use glam::Vec3;
 use hyperion::{

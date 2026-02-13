@@ -1,7 +1,19 @@
 use std::borrow::Cow;
 
-use bevy::prelude::*;
-use derive_more::with_trait::Add;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    component::Component,
+    entity::Entity,
+    lifecycle::Add,
+    message::{MessageReader, MessageWriter},
+    name::Name,
+    observer::On,
+    schedule::IntoScheduleConfigs,
+    system::{Commands, ParamSet, Query, Res, ResMut},
+    world::World,
+};
+use derive_more::with_trait::Add as Add_D;
+use glam::IVec3;
 use hyperion::{
     BlockKind, ingress,
     net::{Compose, ConnectionId, agnostic},
@@ -35,7 +47,7 @@ pub struct ImmuneUntil {
 }
 
 // Used as a component only for commands, does not include armor or weapons
-#[derive(Component, Default, Copy, Clone, Debug, Add)]
+#[derive(Component, Default, Copy, Clone, Debug, Add_D)]
 pub struct CombatStats {
     pub armor: f32,
     pub armor_toughness: f32,
@@ -74,19 +86,19 @@ fn total_combat_stats(
 }
 
 fn initialize_player(
-    trigger: Trigger<'_, OnAdd, packet_state::Play>,
+    now_playing: On<'_, '_, Add, packet_state::Play>,
     mut commands: Commands<'_, '_>,
 ) {
     commands
-        .entity(trigger.target())
+        .entity(now_playing.entity)
         .insert((ImmuneUntil::default(), CombatStats::default()));
 }
 
 fn handle_melee_attacks(
-    mut packets: EventReader<'_, '_, play::PlayerInteractEntity>,
+    mut packets: MessageReader<'_, '_, play::PlayerInteractEntity>,
     origin_query: Query<'_, '_, (&Position, &PlayerInventory, &CombatStats)>,
     target_query: Query<'_, '_, (&Prev<Position>, &Position)>,
-    mut world_and_writer: ParamSet<'_, '_, (&World, EventWriter<'_, event::AttackEntity>)>,
+    mut world_and_writer: ParamSet<'_, '_, (&World, MessageWriter<'_, event::AttackEntity>)>,
 ) {
     for packet in packets.read() {
         if packet.interact != EntityInteraction::Attack {
@@ -152,7 +164,7 @@ fn handle_melee_attacks(
 }
 
 fn handle_attacks(
-    mut events: EventReader<'_, '_, event::AttackEntity>,
+    mut events: MessageReader<'_, '_, event::AttackEntity>,
     compose: Res<'_, Compose>,
     mut origin_query: Query<'_, '_, (&Team, &Name, &ConnectionId)>,
     mut target_query: Query<
@@ -289,7 +301,7 @@ fn handle_attacks(
 }
 
 fn handle_respawn(
-    mut packets: EventReader<'_, '_, play::ClientStatus>,
+    mut packets: MessageReader<'_, '_, play::ClientStatus>,
     query: Query<'_, '_, &Team>,
     candidates_query: Query<'_, '_, (Entity, &Position, &Team)>,
     mut blocks: ResMut<'_, Blocks>,

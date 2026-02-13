@@ -1,4 +1,9 @@
-use bevy::{ecs::system::SystemState, prelude::*};
+use bevy_ecs::{
+    entity::Entity,
+    name::Name,
+    system::{Commands, Query, Res, SystemState},
+    world::World,
+};
 use clap::Parser;
 use hyperion::net::{Compose, ConnectionId};
 use hyperion_clap::{CommandPermission, MinecraftCommand};

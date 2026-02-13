@@ -4,7 +4,8 @@
               for the core libraries. These are tests, so it doesn't matter"
 )]
 
-use bevy::{app::FixedMain, prelude::*};
+use bevy_app::{App, FixedMain};
+use bevy_ecs::{entity::Entity, world::World};
 use glam::Vec3;
 use hyperion::{
     HyperionCore,

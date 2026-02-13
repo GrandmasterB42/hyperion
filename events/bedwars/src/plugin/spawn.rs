@@ -1,4 +1,9 @@
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    event::EntityEvent,
+    observer::On,
+    system::{Commands, Res, ResMut},
+};
 use hyperion::{
     InitializePlayerPosition,
     runtime::AsyncRuntime,
@@ -46,14 +51,15 @@ impl Plugin for SpawnPlugin {
         let avoid_blocks = avoid_blocks();
 
         app.add_observer(
-            move |trigger: Trigger<'_, InitializePlayerPosition>,
+            move |init_position: On<'_, '_, InitializePlayerPosition>,
                   mut blocks: ResMut<'_, Blocks>,
                   runtime: Res<'_, AsyncRuntime>,
                   mut commands: Commands<'_, '_>| {
                 let position =
                     Position::from(find_spawn_position(&mut blocks, &runtime, &avoid_blocks));
-                let target = trigger.event().0;
-                commands.entity(target).insert(position);
+                commands
+                    .entity(init_position.event_target())
+                    .insert(position);
             },
         );
     }

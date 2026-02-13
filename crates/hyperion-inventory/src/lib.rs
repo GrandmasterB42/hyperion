@@ -1,7 +1,7 @@
 #![feature(thread_local)]
 use std::{cell::Cell, cmp::min, num::Wrapping};
 
-use bevy::prelude::*;
+use bevy_ecs::{component::Component, entity::Entity};
 use derive_more::{Deref, DerefMut};
 use tracing::debug;
 use valence_generated::item::EquipmentSlot;
@@ -130,15 +130,15 @@ impl ItemSlot {
 
 #[derive(Component, Clone, Debug)]
 pub struct OpenInventory {
-    pub entity: Entity,
+    pub inventory: Entity,
     pub client_changed: u64,
 }
 
 impl OpenInventory {
     #[must_use]
-    pub const fn new(entity: Entity) -> Self {
+    pub const fn new(inventory: Entity) -> Self {
         Self {
-            entity,
+            inventory,
             client_changed: 0,
         }
     }

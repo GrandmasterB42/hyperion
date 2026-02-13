@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use bevy::prelude::*;
+use bevy_ecs::resource::Resource;
 use derive_more::{Deref, DerefMut};
 
 /// Wrapper around [`tokio::runtime::Runtime`]

@@ -1,4 +1,11 @@
-use bevy::prelude::*;
+use bevy_app::{App, FixedPreUpdate, Plugin};
+use bevy_ecs::{
+    component::Component,
+    entity::Entity,
+    query::With,
+    resource::Resource,
+    system::{Query, ResMut},
+};
 use geometry::{aabb::Aabb, ray::Ray};
 use ordered_float::NotNan;
 use rayon::iter::Either;

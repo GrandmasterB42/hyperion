@@ -1,4 +1,3 @@
-use bevy::prelude::*;
 use valence_protocol::ItemStack;
 
 use super::Metadata;

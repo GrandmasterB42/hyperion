@@ -2,7 +2,7 @@
 
 use std::{fmt::Debug, fs::File, io::Read, path::Path};
 
-use bevy::prelude::*;
+use bevy_ecs::{component::Component, resource::Resource};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument, warn};
 

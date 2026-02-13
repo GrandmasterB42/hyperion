@@ -1,12 +1,20 @@
-use bevy::prelude::*;
+use std::ops::Deref;
+
+use bevy_app::{App, FixedPreUpdate};
+use bevy_ecs::{
+    component::Component,
+    lifecycle::Add,
+    observer::On,
+    system::{Commands, Query},
+};
 use tracing::error;
 
 fn initialize_previous<T: Component + Clone>(
-    trigger: Trigger<'_, OnAdd, T>,
+    added: On<'_, '_, Add, T>,
     query: Query<'_, '_, &T>,
     mut commands: Commands<'_, '_>,
 ) {
-    let value = match query.get(trigger.target()) {
+    let value = match query.get(added.entity) {
         Ok(value) => value,
         Err(e) => {
             error!("could not initialize previous: query failed: {e}");
@@ -14,9 +22,7 @@ fn initialize_previous<T: Component + Clone>(
         }
     };
 
-    commands
-        .entity(trigger.target())
-        .insert(Prev(value.clone()));
+    commands.entity(added.entity).insert(Prev(value.clone()));
 }
 
 fn update_previous<T: Component + Clone>(mut query: Query<'_, '_, (&mut Prev<T>, &T)>) {
@@ -33,11 +39,19 @@ pub fn track_prev<T: Component + Clone>(app: &mut App) {
 
 /// Component storing the value of a component in the previous frame. This is updated every
 /// `FixedPreUpdate`.
-#[derive(Component, Copy, Clone, Deref, PartialEq, Eq, Debug)]
-pub struct Prev<T>(#[deref] T);
+#[derive(Component, Copy, Clone, PartialEq, Eq, Debug)]
+pub struct Prev<T>(T);
 
 impl<T> Prev<T> {
     fn set(&mut self, new: T) {
         self.0 = new;
+    }
+}
+
+impl<T> Deref for Prev<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }

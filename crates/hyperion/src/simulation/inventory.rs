@@ -1,6 +1,14 @@
 use std::borrow::Cow;
 
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    lifecycle::{Add, Insert, Remove},
+    message::{MessageReader, MessageWriter},
+    observer::On,
+    schedule::IntoScheduleConfigs,
+    system::{Commands, Query, Res},
+};
 use hyperion_inventory::{
     CursorItem, Inventory, InventoryState, ItemKindExt, ItemSlot, OpenInventory, PlayerInventory,
 };
@@ -50,17 +58,17 @@ impl Plugin for InventoryPlugin {
 }
 
 fn initialize_inventory_state(
-    trigger: Trigger<'_, OnAdd, packet_state::Play>,
+    now_playing: On<'_, '_, Add, packet_state::Play>,
     mut commands: Commands<'_, '_>,
 ) {
     commands
-        .entity(trigger.target())
+        .entity(now_playing.entity)
         .insert(InventoryState::default())
         .insert(PlayerInventory::default());
 }
 
 fn on_inventory_open(
-    trigger: Trigger<'_, OnInsert, OpenInventory>,
+    inv_opened: On<'_, '_, Insert, OpenInventory>,
     compose: Res<'_, Compose>,
     mut player_query: Query<
         '_,
@@ -75,7 +83,7 @@ fn on_inventory_open(
     inventory_query: Query<'_, '_, &Inventory>,
 ) {
     let (open_inventory, mut inv_state, cursor_item, &stream_id) =
-        match player_query.get_mut(trigger.target()) {
+        match player_query.get_mut(inv_opened.entity) {
             Ok(data) => data,
             Err(e) => {
                 error!("failed to process open inventory: player query failed: {e}");
@@ -83,7 +91,7 @@ fn on_inventory_open(
             }
         };
 
-    let inventory = match inventory_query.get(open_inventory.entity) {
+    let inventory = match inventory_query.get(open_inventory.inventory) {
         Ok(data) => data,
         Err(e) => {
             error!("failed to process open inventory: inventory query failed: {e}");
@@ -118,11 +126,11 @@ fn on_inventory_open(
 }
 
 fn on_inventory_close(
-    trigger: Trigger<'_, OnRemove, OpenInventory>,
+    removed: On<'_, '_, Remove, OpenInventory>,
     compose: Res<'_, Compose>,
     mut query: Query<'_, '_, (&mut InventoryState, &ConnectionId)>,
 ) {
-    let (mut inv_state, &stream_id) = match query.get_mut(trigger.target()) {
+    let (mut inv_state, &stream_id) = match query.get_mut(removed.entity) {
         Ok(data) => data,
         Err(e) => {
             error!("failed to process close inventory: query failed: {e}");
@@ -158,7 +166,7 @@ fn update_player_inventory(
         let mut inventory;
         let open_inv;
         if let Some(open_inventory) = open_inventory {
-            match inventory_query.get_many_mut([entity, open_inventory.entity]) {
+            match inventory_query.get_many_mut([entity, open_inventory.inventory]) {
                 Ok([a, b]) => {
                     inventory = a;
                     open_inv = Some(b);
@@ -290,7 +298,7 @@ fn update_player_inventory_inner<'a>(
 }
 
 fn handle_close_window(
-    mut packets: EventReader<'_, '_, packet::play::CloseHandledScreen>,
+    mut packets: MessageReader<'_, '_, packet::play::CloseHandledScreen>,
     mut commands: Commands<'_, '_>,
 ) {
     for packet in packets.read() {
@@ -299,9 +307,9 @@ fn handle_close_window(
 }
 
 fn handle_update_selected_slot(
-    mut packets: EventReader<'_, '_, packet::play::UpdateSelectedSlot>,
+    mut packets: MessageReader<'_, '_, packet::play::UpdateSelectedSlot>,
     mut query: Query<'_, '_, &mut Inventory>,
-    mut event_writer: EventWriter<'_, event::UpdateSelectedSlotEvent>,
+    mut event_writer: MessageWriter<'_, event::UpdateSelectedSlotEvent>,
 ) {
     for packet in packets.read() {
         let mut inventory = match query.get_mut(packet.sender()) {
@@ -333,7 +341,7 @@ fn handle_update_selected_slot(
 fn handle_click_slot_inner<'a>(
     packet: &packet::play::ClickSlot,
     compose: &Compose,
-    event_writer: &mut EventWriter<'_, event::DropItemStackEvent>,
+    event_writer: &mut MessageWriter<'_, event::DropItemStackEvent>,
     inv_state: &mut InventoryState,
     player_inventory: &'a mut PlayerInventory,
     cursor_item: &mut CursorItem,
@@ -507,7 +515,7 @@ fn handle_click_slot_inner<'a>(
 }
 
 fn handle_click_slot(
-    mut packets: EventReader<'_, '_, packet::play::ClickSlot>,
+    mut packets: MessageReader<'_, '_, packet::play::ClickSlot>,
     mut player_query: Query<
         '_,
         '_,
@@ -520,7 +528,7 @@ fn handle_click_slot(
     >,
     compose: Res<'_, Compose>,
     mut inventory_query: Query<'_, '_, &mut Inventory>,
-    mut event_writer: EventWriter<'_, event::DropItemStackEvent>,
+    mut event_writer: MessageWriter<'_, event::DropItemStackEvent>,
 ) {
     let compose = compose.into_inner();
     for packet in packets.read() {
@@ -536,7 +544,7 @@ fn handle_click_slot(
         let mut player_inventory;
         let open_inv;
         if let Some(open_inventory) = open_inventory {
-            match inventory_query.get_many_mut([entity, open_inventory.entity]) {
+            match inventory_query.get_many_mut([entity, open_inventory.inventory]) {
                 Ok([a, b]) => {
                     player_inventory = a;
                     open_inv = Some(b);
@@ -605,7 +613,7 @@ fn handle_click_slot(
 fn handle_left_click_slot(
     packet: &packet::play::ClickSlot,
     compose: &Compose,
-    event_writer: &mut EventWriter<'_, event::DropItemStackEvent>,
+    event_writer: &mut MessageWriter<'_, event::DropItemStackEvent>,
     inventories_mut: &mut Vec<&mut ItemSlot>,
     inv_state: &mut InventoryState,
     cursor_item: &mut CursorItem,
@@ -681,7 +689,7 @@ fn handle_left_click_slot(
 
 fn handle_right_click_slot(
     packet: &packet::play::ClickSlot,
-    event_writer: &mut EventWriter<'_, event::DropItemStackEvent>,
+    event_writer: &mut MessageWriter<'_, event::DropItemStackEvent>,
     inventories_mut: &mut Vec<&mut ItemSlot>,
     cursor_item: &mut CursorItem,
     player_only: bool,
@@ -1112,7 +1120,7 @@ fn handle_hotbar_swap(
 
 fn handle_drop_key(
     packet: &packet::play::ClickSlot,
-    event_writer: &mut EventWriter<'_, event::DropItemStackEvent>,
+    event_writer: &mut MessageWriter<'_, event::DropItemStackEvent>,
     inventories_mut: &mut Vec<&mut ItemSlot>,
     cursor_item: &mut CursorItem,
     _player_only: bool,

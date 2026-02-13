@@ -1,5 +1,6 @@
 [dependencies]
-bevy.workspace = true
+bevy_app.workspace = true
+bevy_ecs.workspace = true
 hyperion-proxy.workspace = true
 hyperion.workspace = true
 tracing.workspace = true

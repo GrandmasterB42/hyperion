@@ -3,7 +3,7 @@
 use std::{future::Future, ops::Try, path::Path, pin::Pin, sync::Arc};
 
 use anyhow::Context;
-use bevy::prelude::*;
+use bevy_ecs::{entity::Entity, resource::Resource};
 use bytes::Bytes;
 use chunk::Column;
 use derive_more::Constructor;

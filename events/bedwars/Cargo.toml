@@ -1,6 +1,7 @@
 [dependencies]
 anyhow.workspace = true
-bevy.workspace = true
+bevy_app.workspace = true
+bevy_ecs.workspace = true
 clap.workspace = true
 compact_str.workspace = true
 derive_more.workspace = true

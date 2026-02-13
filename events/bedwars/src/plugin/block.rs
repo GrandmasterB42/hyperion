@@ -1,4 +1,8 @@
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    message::MessageReader,
+    system::{Query, Res, ResMut},
+};
 use hyperion::{
     chat,
     net::{Compose, ConnectionId},
@@ -16,7 +20,7 @@ use hyperion::{
 use tracing::error;
 
 fn handle_destroyed_blocks(
-    mut events: EventReader<'_, '_, event::DestroyBlock>,
+    mut events: MessageReader<'_, '_, event::DestroyBlock>,
     compose: Res<'_, Compose>,
     mut blocks: ResMut<'_, Blocks>,
     query: Query<'_, '_, &ConnectionId>,
@@ -48,7 +52,7 @@ fn handle_destroyed_blocks(
 }
 
 fn handle_placed_blocks(
-    mut events: EventReader<'_, '_, event::PlaceBlock>,
+    mut events: MessageReader<'_, '_, event::PlaceBlock>,
     mut blocks: ResMut<'_, Blocks>,
     compose: Res<'_, Compose>,
     query: Query<'_, '_, &ConnectionId>,
@@ -92,7 +96,7 @@ fn handle_placed_blocks(
 }
 
 fn handle_toggled_doors(
-    mut events: EventReader<'_, '_, event::ToggleDoor>,
+    mut events: MessageReader<'_, '_, event::ToggleDoor>,
     mut blocks: ResMut<'_, Blocks>,
 ) {
     for event in events.read() {

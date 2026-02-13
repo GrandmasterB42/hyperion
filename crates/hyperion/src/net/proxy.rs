@@ -9,7 +9,7 @@ use std::{
     },
 };
 
-use bevy::prelude::*;
+use bevy_ecs::{entity::Entity, message::Messages, query::With, world::World};
 use hyperion_proto::ArchivedProxyToServerMessage;
 use hyperion_utils::EntityExt;
 use rustc_hash::FxHashMap;
@@ -196,8 +196,9 @@ async fn handle_proxy_messages(
                         })
                         .collect::<Vec<_>>();
 
-                    let mut events = world.resource_mut::<Events<RequestSubscribeChannelPackets>>();
-                    events.send_batch(channels);
+                    let mut messages =
+                        world.resource_mut::<Messages<RequestSubscribeChannelPackets>>();
+                    messages.write_batch(channels);
                 });
             }
         }

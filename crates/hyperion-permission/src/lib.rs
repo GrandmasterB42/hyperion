@@ -1,6 +1,14 @@
 mod storage;
 
-use bevy::{ecs::world::OnDespawn, prelude::*};
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    component::Component,
+    lifecycle::{Add, Despawn, Insert},
+    observer::On,
+    query::With,
+    system::{Commands, Query, Res},
+    world::World,
+};
 use clap::ValueEnum;
 use hyperion::{
     net::{Compose, ConnectionId},
@@ -37,25 +45,25 @@ pub enum Group {
 // todo:
 
 fn load_permissions(
-    trigger: Trigger<'_, OnAdd, Uuid>,
+    new_uuid: On<'_, '_, Add, Uuid>,
     query: Query<'_, '_, &Uuid, With<ConnectionId>>,
     permissions: Res<'_, PermissionStorage>,
     mut commands: Commands<'_, '_>,
 ) {
-    let Ok(uuid) = query.get(trigger.target()) else {
+    let Ok(uuid) = query.get(new_uuid.entity) else {
         return;
     };
 
     let group = permissions.get(**uuid);
-    commands.entity(trigger.target()).insert(group);
+    commands.entity(new_uuid.entity).insert(group);
 }
 
 fn store_permissions(
-    trigger: Trigger<'_, OnDespawn, Group>,
+    group_removal: On<'_, '_, Despawn, Group>,
     query: Query<'_, '_, (&Uuid, &Group)>,
     permissions: Res<'_, PermissionStorage>,
 ) {
-    let (uuid, group) = match query.get(trigger.target()) {
+    let (uuid, group) = match query.get(group_removal.entity) {
         Ok(data) => data,
         Err(e) => {
             error!("failed to store permissions: query failed: {e}");
@@ -67,13 +75,13 @@ fn store_permissions(
 }
 
 fn initialize_commands(
-    trigger: Trigger<'_, OnInsert, Group>,
+    new_group: On<'_, '_, Insert, Group>,
     query: Query<'_, '_, &ConnectionId>,
     compose: Res<'_, Compose>,
     world: &World,
 ) {
-    let cmd_pkt = get_command_packet(world, Some(trigger.target()));
-    let Ok(&connection_id) = query.get(trigger.target()) else {
+    let cmd_pkt = get_command_packet(world, Some(new_group.entity));
+    let Ok(&connection_id) = query.get(new_group.entity) else {
         error!("failed to initialize commands: player is missing ConnectionId");
         return;
     };

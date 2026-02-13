@@ -1,7 +1,15 @@
 use std::{borrow::Cow, collections::BTreeSet};
 
 use anyhow::Context;
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    lifecycle::Add,
+    message::{Message, MessageReader, MessageWriter},
+    name::Name,
+    observer::On,
+    system::{ParallelCommands, Query, Res},
+};
 use glam::DVec3;
 use hyperion_crafting::{Action, CraftingRegistry, RecipeBookState};
 use hyperion_utils::EntityExt;
@@ -32,18 +40,18 @@ use crate::{
     },
 };
 
-#[derive(Event)]
+#[derive(Message)]
 struct ProcessPlayerJoin(Entity);
 
 fn add_process_player_join(
-    trigger: Trigger<'_, OnAdd, PlayerSkin>,
-    mut events: EventWriter<'_, ProcessPlayerJoin>,
+    added_player_skin: On<'_, '_, Add, PlayerSkin>,
+    mut events: MessageWriter<'_, ProcessPlayerJoin>,
 ) {
-    events.write(ProcessPlayerJoin(trigger.target()));
+    events.write(ProcessPlayerJoin(added_player_skin.entity));
 }
 
 fn process_player_join(
-    mut events: EventReader<'_, '_, ProcessPlayerJoin>,
+    mut events: MessageReader<'_, '_, ProcessPlayerJoin>,
     compose: Res<'_, Compose>,
     crafting_registry: Res<'_, CraftingRegistry>,
     config: Res<'_, Config>,
@@ -364,12 +372,11 @@ fn generate_cached_packet_bytes(
     Ok(())
 }
 
-#[derive(Component)]
 pub struct PlayerJoinPlugin;
 
 impl Plugin for PlayerJoinPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ProcessPlayerJoin>();
+        app.add_message::<ProcessPlayerJoin>();
         app.add_observer(add_process_player_join);
         app.add_systems(FixedUpdate, process_player_join);
     }

@@ -1,6 +1,10 @@
 use std::borrow::Cow;
 
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    message::MessageReader,
+    system::{Query, Res},
+};
 use hyperion::{
     egress::player_join::{PlayerListActions, PlayerListEntry, PlayerListS2c},
     net::{Compose, ConnectionId, DataBundle},
@@ -25,7 +29,7 @@ impl Plugin for SkinPlugin {
 }
 
 fn on_set_skin(
-    mut events: EventReader<'_, '_, event::SetSkin>,
+    mut events: MessageReader<'_, '_, event::SetSkin>,
     compose: Res<'_, Compose>,
     query: Query<'_, '_, (&ConnectionId, &hyperion::simulation::Uuid)>,
 ) {

@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy_ecs::resource::Resource;
 use heed::{Database, Env, byteorder::NativeEndian, types};
 use hyperion::storage::LocalDb;
 use num_traits::{FromPrimitive, ToPrimitive};
