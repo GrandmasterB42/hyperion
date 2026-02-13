@@ -620,7 +620,6 @@ dependencies = [
  "hyperion-item",
  "hyperion-permission",
  "hyperion-proxy-module",
- "hyperion-scheduled",
  "hyperion-text",
  "hyperion-utils",
  "rayon",
@@ -3294,10 +3293,6 @@ dependencies = [
  "tokio",
  "tracing",
 ]
-
-[[package]]
-name = "hyperion-scheduled"
-version = "0.1.0"
 
 [[package]]
 name = "hyperion-stats"

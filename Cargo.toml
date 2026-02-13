@@ -32,7 +32,6 @@ members = [
     'crates/hyperion-proto',
     'crates/hyperion-proxy',
     'crates/hyperion-proxy-module',
-    'crates/hyperion-scheduled',
     'crates/hyperion-stats',
     'crates/hyperion-text',
     'crates/hyperion-utils',
@@ -63,7 +62,6 @@ hyperion-permission = { path = "crates/hyperion-permission" }
 hyperion-proto = { path = "crates/hyperion-proto" }
 hyperion-proxy = { path = "crates/hyperion-proxy" }
 hyperion-proxy-module = { path = "crates/hyperion-proxy-module" }
-hyperion-scheduled = { path = "crates/hyperion-scheduled" }
 hyperion-text = { path = "crates/hyperion-text" }
 hyperion-utils = { path = "crates/hyperion-utils" }
 
