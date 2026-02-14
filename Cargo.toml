@@ -163,7 +163,7 @@ syntect = { version = '5.2', default-features = false, features = [
 
 # Benchmarking / Testing
 criterion = '0.5'
-divan = { git = 'https://github.com/nvzqz/divan' }
+divan = '0.1.21'
 proptest = '1.5'
 serial_test = '3.2'
 tango-bench = '0.6'
