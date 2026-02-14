@@ -1,8 +1,5 @@
 use bevy_app::{App, Plugin, PostUpdate};
-use bevy_ecs::{
-    component::Component,
-    system::{Query, Res, ResMut},
-};
+use bevy_ecs::system::{Query, Res, ResMut};
 use tracing::error;
 use valence_protocol::{VarInt, packets::play::PlayerActionResponseS2c};
 
@@ -81,7 +78,6 @@ fn broadcast_chunk_deltas(
     }
 }
 
-#[derive(Component)]
 pub struct EgressPlugin;
 
 impl Plugin for EgressPlugin {

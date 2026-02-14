@@ -103,7 +103,6 @@ fn initialize_player(
         .insert((Spatial, Team::Red));
 }
 
-#[derive(Component)]
 pub struct BedwarsPlugin;
 
 impl Plugin for BedwarsPlugin {
