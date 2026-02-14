@@ -1,12 +1,21 @@
+[package]
+name = "packet-channel"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
 [[bench]]
 harness = false
 name = "packet_channel"
 
 [dependencies]
-arc-swap.workspace = true
-bevy_ecs.workspace = true
-more-asserts.workspace = true
 valence_protocol.workspace = true
+
+bevy_ecs.workspace = true
+
+arc-swap.workspace = true
+more-asserts.workspace = true
 
 [dev-dependencies]
 divan.workspace = true
@@ -14,11 +23,3 @@ proptest.workspace = true
 
 [lints]
 workspace = true
-
-[package]
-authors = ["TestingPlant"]
-edition.workspace = true
-name = "packet-channel"
-publish = false
-readme = "README.md"
-version.workspace = true

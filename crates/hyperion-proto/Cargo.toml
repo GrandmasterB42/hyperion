@@ -1,19 +1,16 @@
-[build-dependencies]
+[package]
+name = "hyperion-proto"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
 
 [dependencies]
 rkyv.workspace = true
 glam.workspace = true
 
-[lints]
-workspace = true
-
-[package]
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-edition.workspace = true
-name = "hyperion-proto"
-publish = false
-readme = "README.md"
-version.workspace = true
-
 [package.metadata.cargo-machete]
 ignored = ["prost"]
+
+[lints]
+workspace = true

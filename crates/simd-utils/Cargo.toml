@@ -1,16 +1,15 @@
 [package]
 name = "simd-utils"
-version.workspace = true
 edition.workspace = true
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-readme = "README.md"
+version.workspace = true
 publish = false
+readme = "README.md"
 
 [dependencies]
 
 [dev-dependencies]
-proptest.workspace = true
 aligned-vec.workspace = true
+proptest.workspace = true
 
 [lints]
 workspace = true

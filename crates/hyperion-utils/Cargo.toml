@@ -1,28 +1,30 @@
+[package]
+name = "hyperion-utils"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
 [dependencies]
-bevy_ecs.workspace = true
+hyperion-packet-macros.workspace = true
+
+valence_protocol.workspace = true
+
 bevy_app.workspace = true
+bevy_ecs.workspace = true
+
 anyhow.workspace = true
 bytemuck.workspace = true
 directories.workspace = true
 flate2.workspace = true
 futures-util.workspace = true
 hex.workspace = true
-hyperion-packet-macros.workspace = true
 reqwest.workspace = true
 sha2.workspace = true
 tar.workspace = true
 tokio.workspace = true
 tokio-util.workspace = true
 tracing.workspace = true
-valence_protocol.workspace = true
 
 [lints]
 workspace = true
-
-[package]
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-edition.workspace = true
-name = "hyperion-utils"
-publish = false
-readme = "README.md"
-version.workspace = true

@@ -1,41 +1,41 @@
+[package]
+name = "hyperion-proxy"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
 [dependencies]
+hyperion-proto.workspace = true
+
+anyhow.workspace = true
 arrayvec.workspace = true
+bvh.workspace = true
+bytes.workspace = true
+clap.workspace = true
 colored.workspace = true
+dotenvy.workspace = true
+envy.workspace = true
+glam.workspace = true
+heapless.workspace = true
 kanal.workspace = true
+more-asserts.workspace = true
 papaya.workspace = true
 rkyv.workspace = true
 rustc-hash.workspace = true
 rustls.workspace = true
 rustls-pki-types.workspace = true
 rustls-webpki.workspace = true
+serde.workspace = true
+slotmap.workspace = true
 tokio.workspace = true
 tokio-rustls.workspace = true
 tokio-util.workspace = true
-anyhow.workspace = true
-bvh.workspace = true
-bytes.workspace = true
-clap.workspace = true
-glam.workspace = true
-heapless.workspace = true
-hyperion-proto.workspace = true
-more-asserts.workspace = true
-slotmap.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
-serde.workspace = true
-envy.workspace = true
-dotenvy.workspace = true
-
-[lints]
-workspace = true
-
-[package]
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-edition.workspace = true
-name = "hyperion-proxy"
-publish = false
-readme = "README.md"
-version.workspace = true
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 tikv-jemallocator.workspace = true
+
+[lints]
+workspace = true

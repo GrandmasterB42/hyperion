@@ -1,20 +1,22 @@
 [package]
 name = "hyperion-command"
-version.workspace = true
 edition.workspace = true
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-readme = "README.md"
+version.workspace = true
 publish = false
+readme = "README.md"
 
 [dependencies]
-bevy_app.workspace = true
-bevy_ecs.workspace = true
 hyperion.workspace = true
 hyperion-utils.workspace = true
+
+valence_bytes.workspace = true
+
+bevy_app.workspace = true
+bevy_ecs.workspace = true
+
 indexmap.workspace = true
 itertools.workspace = true
 tracing.workspace = true
-valence_bytes.workspace = true
 
 [lints]
 workspace = true

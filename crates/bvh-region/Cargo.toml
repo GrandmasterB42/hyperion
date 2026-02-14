@@ -1,3 +1,14 @@
+[package]
+name = "bvh-region"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
+[features]
+default = []
+plot = ["dep:plotters", "dep:plotters-bitmap"]
+
 [[bench]]
 harness = false
 name = "sort"
@@ -17,14 +28,14 @@ geometry.workspace = true
 glam.workspace = true
 num-traits.workspace = true
 ordered-float.workspace = true
-proptest.workspace = true
-rayon.workspace = true
-tracing.workspace = true
 plotters = { workspace = true, features = [
     "plotters-bitmap",
     "image",
 ], optional = true }
 plotters-bitmap = { workspace = true, optional = true }
+proptest.workspace = true
+rayon.workspace = true
+tracing.workspace = true
 
 [dev-dependencies]
 approx.workspace = true
@@ -33,17 +44,5 @@ rand.workspace = true
 #divan = {workspace = true}
 #tango-bench = {workspace = true}
 
-[features]
-default = []
-plot = ["dep:plotters", "dep:plotters-bitmap"]
-
 [lints]
 workspace = true
-
-[package]
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-edition.workspace = true
-name = "bvh-region"
-publish = false
-readme = "README.md"
-version.workspace = true

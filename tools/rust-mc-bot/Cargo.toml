@@ -1,23 +1,21 @@
 [package]
 name = "rust-mc-bot"
-version.workspace = true
-authors = [
-    "Eoghanmc22 <eoghanmc@icloud.com>",
-    "Andrew Gazelka <andrew.gazelka@gmail.com>",
-]
 edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
 
 [dependencies]
 anyhow.workspace = true
+dotenvy.workspace = true
+envy.workspace = true
 libdeflater.workspace = true
 mio.workspace = true
 num_cpus.workspace = true
 rand.workspace = true
+serde.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
-serde.workspace = true
-envy.workspace = true
-dotenvy.workspace = true
 
 [lints]
 workspace = true

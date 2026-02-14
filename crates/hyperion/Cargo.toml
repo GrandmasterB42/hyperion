@@ -1,15 +1,41 @@
+[package]
+name = "hyperion"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
 [[bench]]
 harness = false
 name = "set"
 
 [dependencies]
-anyhow.workspace = true
-arc-swap.workspace = true
-base64.workspace = true
+hyperion-crafting.workspace = true
+hyperion-inventory.workspace = true
+hyperion-packet-macros.workspace = true
+hyperion-palette.workspace = true
+hyperion-proto.workspace = true
+hyperion-text.workspace = true
+hyperion-utils.workspace = true
+
+valence_anvil.workspace = true
+valence_bytes.workspace = true
+valence_generated.workspace = true
+valence_ident.workspace = true
+valence_nbt.workspace = true
+valence_protocol.workspace = true
+valence_registry.workspace = true
+valence_server.workspace = true
+valence_text.workspace = true
+
 bevy_app.workspace = true
 bevy_ecs.workspace = true
 bevy_tasks.workspace = true
 bevy_time.workspace = true
+
+anyhow.workspace = true
+arc-swap.workspace = true
+base64.workspace = true
 bitfield-struct.workspace = true
 bitvec.workspace = true
 boxcar.workspace = true
@@ -25,13 +51,6 @@ geometry.workspace = true
 glam.workspace = true
 heapless.workspace = true
 heed.workspace = true
-hyperion-crafting.workspace = true
-hyperion-inventory.workspace = true
-hyperion-packet-macros.workspace = true
-hyperion-palette.workspace = true
-hyperion-proto.workspace = true
-hyperion-text.workspace = true
-hyperion-utils.workspace = true
 indexmap.workspace = true
 itertools.workspace = true
 kanal.workspace = true
@@ -41,6 +60,7 @@ memmap2.workspace = true
 more-asserts.workspace = true
 ndarray.workspace = true
 once_cell.workspace = true
+ordered-float.workspace = true
 packet-channel.workspace = true
 parking_lot.workspace = true
 paste.workspace = true
@@ -64,33 +84,16 @@ toml.workspace = true
 tracing.workspace = true
 tracing-tracy.workspace = true
 uuid.workspace = true
-valence_anvil.workspace = true
-valence_bytes.workspace = true
-valence_generated.workspace = true
-valence_ident.workspace = true
-valence_nbt.workspace = true
-valence_protocol.workspace = true
-valence_registry.workspace = true
-valence_server.workspace = true
-valence_text.workspace = true
-ordered-float.workspace = true
 
 [dev-dependencies]
+hyperion-genmap.workspace = true
+
 approx.workspace = true
 divan.workspace = true
 fastrand.workspace = true
-hyperion-genmap.workspace = true
 serial_test.workspace = true
 tracing-appender.workspace = true
 tracing-subscriber.workspace = true
 
 [lints]
 workspace = true
-
-[package]
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-edition.workspace = true
-name = "hyperion"
-publish = false
-readme = "README.md"
-version.workspace = true

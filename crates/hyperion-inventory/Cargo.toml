@@ -1,19 +1,21 @@
+[package]
+name = "hyperion-inventory"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
 [dependencies]
-bevy_ecs.workspace = true
 hyperion-crafting.workspace = true
+
+valence_generated.workspace = true
+valence_protocol.workspace = true
+
+bevy_ecs.workspace = true
+
 roaring.workspace = true
 snafu.workspace = true
-valence_protocol.workspace = true
-valence_generated.workspace = true
 tracing.workspace = true
 
 [lints]
 workspace = true
-
-[package]
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-edition.workspace = true
-name = "hyperion-inventory"
-publish = false
-readme = "README.md"
-version.workspace = true

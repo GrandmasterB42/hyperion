@@ -1,8 +1,8 @@
 [package]
 name = "antithesis-bot"
-version.workspace = true
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
 edition.workspace = true
+version.workspace = true
+publish = false
 
 [dependencies]
 antithesis_sdk.workspace = true

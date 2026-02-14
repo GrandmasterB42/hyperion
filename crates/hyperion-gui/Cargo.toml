@@ -1,16 +1,19 @@
 [package]
 name = "hyperion-gui"
-version.workspace = true
 edition.workspace = true
+version.workspace = true
 
 [dependencies]
-anyhow.workspace = true
-bevy_ecs.workspace = true
 hyperion.workspace = true
 hyperion-inventory.workspace = true
 hyperion-utils.workspace = true
-serde.workspace = true
+
 valence_protocol.workspace = true
+
+bevy_ecs.workspace = true
+
+anyhow.workspace = true
+serde.workspace = true
 tracing.workspace = true
 
 [lints]

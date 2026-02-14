@@ -1,3 +1,10 @@
+[workspace.package]
+edition = '2024'
+version = '0.1.0'
+license = 'Apache-2.0'
+repository = 'https://github.com/GrandmasterB42/hyperion'
+documentation = ''
+
 #=============== Profiles ==============#
 [profile]
 [profile.dev]
@@ -304,10 +311,3 @@ priority = -1
 [workspace.lints.rust.rust_2024_compatibility]
 level = 'deny'
 priority = -1
-
-[workspace.package]
-documentation = 'https://andrewgazelka.github.io/hyperion'
-edition = '2024'
-license = 'Apache-2.0'
-repository = 'https://github.com/andrewgazelka/hyperion'
-version = '0.1.0'
