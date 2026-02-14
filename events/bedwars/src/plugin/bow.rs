@@ -9,9 +9,8 @@ use bevy_ecs::{
     schedule::IntoScheduleConfigs,
     system::{Commands, Query},
 };
+use glam::Vec3;
 use hyperion::{
-    ItemKind, ItemStack,
-    glam::Vec3,
     net::Channel,
     simulation::{
         Owner, Pitch, Position, Uuid, Velocity, Yaw,
@@ -23,7 +22,7 @@ use hyperion::{
 };
 use hyperion_inventory::PlayerInventory;
 use tracing::{debug, error};
-use valence_protocol::ident;
+use valence_protocol::{ItemKind, ItemStack, ident};
 
 #[derive(Component)]
 pub struct LastFireTime {

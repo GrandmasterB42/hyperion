@@ -3,6 +3,7 @@ use bevy_ecs::{
     message::MessageReader,
     system::{Query, Res, ResMut},
 };
+use glam::IVec3;
 use hyperion::{
     chat,
     net::{Compose, ConnectionId},
@@ -10,14 +11,13 @@ use hyperion::{
         blocks::{Blocks, EntityAndSequence},
         event,
     },
-    valence_protocol::{
-        BlockPos,
-        block::{PropName, PropValue},
-        math::IVec3,
-        packets::play,
-    },
 };
 use tracing::error;
+use valence_protocol::{
+    BlockPos,
+    block::{PropName, PropValue},
+    packets::play,
+};
 
 fn handle_destroyed_blocks(
     mut events: MessageReader<'_, '_, event::DestroyBlock>,

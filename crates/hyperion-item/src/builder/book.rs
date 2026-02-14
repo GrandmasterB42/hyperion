@@ -1,5 +1,4 @@
-use hyperion::{ItemKind, ItemStack};
-use valence_protocol::nbt;
+use valence_protocol::{ItemKind, ItemStack, nbt};
 
 use crate::builder::ItemBuilder;
 

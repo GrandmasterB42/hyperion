@@ -12,12 +12,12 @@ use hyperion::{
     ingress,
     net::{Compose, ConnectionId},
     simulation::{Position, packet, packet_state},
-    valence_protocol::{
-        packets::play,
-        text::{Color, IntoText, Text},
-    },
 };
 use tracing::error;
+use valence_protocol::{
+    packets::play,
+    text::{Color, IntoText, Text},
+};
 
 use crate::Team;
 

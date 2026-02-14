@@ -4,15 +4,15 @@ use bevy_ecs::{
     observer::On,
     system::{Commands, Res, ResMut},
 };
+use glam::{I16Vec2, IVec2, IVec3, Vec3};
 use hyperion::{
     InitializePlayerPosition,
     runtime::AsyncRuntime,
     simulation::{Position, blocks::Blocks},
-    valence_protocol::{
-        BlockKind,
-        math::{IVec2, IVec3, Vec3},
-    },
 };
+use roaring::RoaringBitmap;
+use tracing::info;
+use valence_protocol::{BlockKind, BlockState};
 
 const RADIUS: i32 = 0;
 const SPAWN_MIN_Y: i16 = 3;
@@ -29,10 +29,6 @@ fn random_chunk_in_radius() -> I16Vec2 {
     let pos: IVec2 = position_in_radius() >> 4;
     pos.as_i16vec2()
 }
-
-use hyperion::{glam::I16Vec2, valence_protocol::BlockState};
-use roaring::RoaringBitmap;
-use tracing::info;
 
 pub fn avoid_blocks() -> RoaringBitmap {
     let mut blocks = RoaringBitmap::new();

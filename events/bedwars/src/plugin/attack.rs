@@ -12,9 +12,9 @@ use bevy_ecs::{
     system::{Commands, ParamSet, Query, Res, ResMut},
     world::World,
 };
-use glam::IVec3;
+use glam::{DVec3, IVec3, Vec3};
 use hyperion::{
-    BlockKind, ingress,
+    ingress,
     net::{Compose, ConnectionId, agnostic},
     runtime::AsyncRuntime,
     simulation::{
@@ -26,8 +26,7 @@ use hyperion_inventory::PlayerInventory;
 use hyperion_utils::{EntityExt, Prev};
 use tracing::error;
 use valence_protocol::{
-    ItemKind, ItemStack, Particle, VarInt, ident,
-    math::{DVec3, Vec3},
+    BlockKind, ItemKind, ItemStack, Particle, VarInt, ident,
     packets::play::{
         DamageTiltS2c, DeathMessageS2c, EntityDamageS2c, GameMessageS2c, ParticleS2c,
         client_status_c2s::ClientStatusC2s, player_interact_entity_c2s::EntityInteraction,

@@ -4,8 +4,8 @@ use bevy_ecs::{
     world::World,
 };
 use clap::Parser;
+use glam::Vec3;
 use hyperion::{
-    glam::Vec3,
     net::Channel,
     simulation::{Pitch, Position, Uuid, Velocity, Yaw, entity_kind::EntityKind},
 };

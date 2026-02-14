@@ -18,6 +18,7 @@ hyperion-text.workspace = true
 hyperion-utils.workspace = true
 
 valence_bytes.workspace = true
+valence_ident.workspace = true
 valence_protocol.workspace = true
 valence_server.workspace = true
 valence_text.workspace = true

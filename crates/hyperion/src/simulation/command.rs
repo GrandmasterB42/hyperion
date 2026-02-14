@@ -4,10 +4,9 @@ use bevy_ecs::{
 };
 use tracing::{error, warn};
 use valence_bytes::Utf8Bytes;
-pub use valence_protocol::packets::play::command_tree_s2c::Parser;
 use valence_protocol::{
     VarInt,
-    packets::play::command_tree_s2c::{Node, NodeData, Suggestion},
+    packets::play::command_tree_s2c::{Node, NodeData, Parser, Suggestion},
 };
 
 #[derive(Component)]

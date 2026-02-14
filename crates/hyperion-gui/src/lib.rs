@@ -1,14 +1,12 @@
 use std::collections::HashMap;
 
 use bevy_ecs::{component::Component, entity::Entity, system::Commands, world::World};
-use hyperion::{
-    simulation::{Uuid, entity_kind::EntityKind},
-    valence_protocol::packets::play::{
-        click_slot_c2s::ClickMode, close_screen_s2c::CloseScreenS2c,
-    },
-};
+use hyperion::simulation::{Uuid, entity_kind::EntityKind};
 use hyperion_inventory::{Inventory, OpenInventory};
 use serde::{Deserialize, Serialize};
+use valence_protocol::packets::play::{
+    click_slot_c2s::ClickMode, close_screen_s2c::CloseScreenS2c,
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct InventoryItem {

@@ -9,11 +9,11 @@ use hyperion::{
     egress::player_join::{PlayerListActions, PlayerListEntry, PlayerListS2c},
     net::{Compose, ConnectionId, DataBundle},
     simulation::event,
-    valence_ident::ident,
 };
 use hyperion_utils::EntityExt;
 use tracing::error;
 use valence_bytes::Utf8Bytes;
+use valence_ident::ident;
 use valence_protocol::{
     GameMode, VarInt,
     game_mode::OptGameMode,

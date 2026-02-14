@@ -5,11 +5,9 @@ use bevy_ecs::{
     resource::Resource,
     system::{Res, ResMut},
 };
-use hyperion::{
-    net::Compose,
-    valence_protocol::{packets::play, text::IntoText},
-};
+use hyperion::net::Compose;
 use tracing::info_span;
+use valence_protocol::{packets::play, text::IntoText};
 
 #[derive(Resource)]
 struct UpdateStart(Instant);

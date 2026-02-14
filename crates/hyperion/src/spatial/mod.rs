@@ -7,15 +7,13 @@ use bevy_ecs::{
     system::{Query, ResMut},
 };
 use geometry::{aabb::Aabb, ray::Ray};
+use glam::Vec3;
 use ordered_float::NotNan;
 use rayon::iter::Either;
 
-use super::{
-    glam::Vec3,
-    simulation::{
-        EntitySize, Position, aabb,
-        blocks::{Blocks, RayCollision},
-    },
+use super::simulation::{
+    EntitySize, Position, aabb,
+    blocks::{Blocks, RayCollision},
 };
 
 pub struct SpatialPlugin;

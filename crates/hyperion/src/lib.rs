@@ -11,8 +11,6 @@
 #![feature(pointer_is_aligned_to)]
 #![feature(thread_local)]
 
-pub const CHUNK_HEIGHT_SPAN: u32 = 384; // 512; // usually 384
-
 use std::{
     alloc::Allocator, fmt::Debug, io::Write, net::SocketAddr, path::Path, sync::Arc, time::Duration,
 };
@@ -21,29 +19,18 @@ use bevy_app::{App, Plugin};
 use bevy_ecs::{entity::Entity, event::EntityEvent, resource::Resource};
 use bevy_time::{Fixed, Time};
 use egress::EgressPlugin;
-pub use glam;
 #[cfg(unix)]
 use libc::{RLIMIT_NOFILE, getrlimit, setrlimit};
 use libdeflater::CompressionLvl;
 use rustls_pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
 use storage::{LocalDb, SkinHandler};
 use tracing::{info, warn};
-pub use uuid;
-pub use valence_protocol as protocol;
-// todo: slowly move more and more things to arbitrary module
-// and then eventually do not re-export valence_protocol
-pub use valence_protocol;
 use valence_protocol::{CompressionThreshold, Encode, Packet};
-pub use valence_protocol::{
-    ItemKind, ItemStack, Particle,
-    block::{BlockKind, BlockState},
-};
 
 mod common;
 pub use common::*;
 use hyperion_crafting::CraftingRegistry;
 use hyperion_utils::HyperionUtilsPlugin;
-pub use valence_ident;
 
 use crate::{
     command_channel::{CommandChannel, CommandChannelPlugin},
@@ -61,6 +48,8 @@ pub mod net;
 pub mod simulation;
 pub mod spatial;
 pub mod storage;
+
+pub const CHUNK_HEIGHT_SPAN: u32 = 384; // 512; // usually 384
 
 pub trait PacketBundle {
     fn encode_including_ids(self, w: impl Write) -> anyhow::Result<()>;
