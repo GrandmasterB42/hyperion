@@ -57,6 +57,7 @@ pub fn handle_chat_messages(
         // Check if player is still on cooldown
         if cooldown.expires > current_tick {
             let remaining_ticks = cooldown.expires - current_tick;
+            #[expect(clippy::cast_precision_loss)]
             let remaining_secs = remaining_ticks as f32 / 20.0;
 
             let cooldown_msg =

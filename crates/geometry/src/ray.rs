@@ -74,6 +74,7 @@ impl Ray {
             if self.direction.z > 0.0 { 1 } else { -1 },
         );
 
+        #[expect(clippy::cast_precision_loss)]
         // Calculate distance to next voxel boundary for each axis
         let next_boundary = Vec3::new(
             if step.x > 0 {

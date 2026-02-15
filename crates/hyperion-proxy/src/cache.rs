@@ -70,7 +70,7 @@ impl BufferedEgress {
 
     /// Handles incoming server-to-proxy messages.
     // #[instrument(skip_all)]
-    #[expect(clippy::excessive_nesting)]
+    #[expect(clippy::excessive_nesting, clippy::too_many_lines)] // TODO: Maybe refactor this function
     pub fn handle_packet(&mut self, message: &ArchivedServerToProxyMessage<'_>) {
         match message {
             ArchivedServerToProxyMessage::UpdatePlayerPositions(packet) => {

@@ -51,6 +51,7 @@ fn regenerate(
         let ramp_factor = 0.0001_f32; // Increase in regeneration per tick
         let max_regen = 0.1; // Maximum regeneration per tick
 
+        #[expect(clippy::cast_precision_loss)]
         let regen_rate = ramp_factor
             .mul_add(ticks_since_damage as f32, base_regen)
             .min(max_regen);

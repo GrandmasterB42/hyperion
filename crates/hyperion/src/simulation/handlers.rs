@@ -296,6 +296,7 @@ fn has_block_collision(position: &Vec3, size: EntitySize, blocks: &Blocks) -> bo
     let shrunk = aabb(*position, size).shrink(0.01);
 
     let res = blocks.get_blocks(min, max, |pos, block| {
+        #[expect(clippy::cast_precision_loss)]
         let pos = Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32);
 
         for aabb in block.collision_shapes() {

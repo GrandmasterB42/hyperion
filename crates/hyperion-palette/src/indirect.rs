@@ -77,17 +77,16 @@ impl Indirect {
     pub unsafe fn set_unchecked(&mut self, index: usize, value: Data) -> Result<Data, Full> {
         debug_assert!(index < LEN, "index {index} is out of bounds");
 
-        let palette_index = match self.index_of(value) {
-            Some(idx) => idx,
-            None => {
-                if self.palette_len == 16 {
-                    return Err(Full);
-                }
-                let new_index = self.palette_len;
-                self.palette[new_index as usize] = value;
-                self.palette_len += 1;
-                new_index
+        let palette_index = if let Some(idx) = self.index_of(value) {
+            idx
+        } else {
+            if self.palette_len == 16 {
+                return Err(Full);
             }
+            let new_index = self.palette_len;
+            self.palette[new_index as usize] = value;
+            self.palette_len += 1;
+            new_index
         };
 
         let packed_byte_index = index / 2;

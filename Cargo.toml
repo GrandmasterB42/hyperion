@@ -235,19 +235,14 @@ tracing-appender = '0.2'
 
 [workspace.lints]
 [workspace.lints.clippy]
-cast_precision_loss = 'allow'
-future_not_send = 'allow'
 missing_errors_doc = 'allow'
 missing_panics_doc = 'allow'
 module_name_repetitions = 'allow'
-print_stdout = 'deny'
-single_match_else = 'allow'
-too_long_first_doc_paragraph = 'allow'
-too_many_lines = 'allow'
 needless_pass_by_value = 'allow'
-type_complexity = 'allow'
+print_stdout = 'deny'
+too_long_first_doc_paragraph = 'allow'
 too_many_arguments = 'allow'
-
+type_complexity = 'allow'
 upper_case_acronyms = 'deny'
 
 [workspace.lints.clippy.complexity]

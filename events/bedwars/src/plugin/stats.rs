@@ -56,6 +56,7 @@ impl Plugin for StatsPlugin {
                     .player_count
                     .load(std::sync::atomic::Ordering::Relaxed);
 
+                #[expect(clippy::cast_precision_loss)]
                 let ms_per_tick = start.0.elapsed().as_secs_f32() * 1000.0 / (ticks_elapsed as f32);
 
                 // If ticks_elapsed > 1, this inserts the average tick time multiple times for
@@ -70,6 +71,7 @@ impl Plugin for StatsPlugin {
 
                 let avg_s05 = tick_times.iter().rev().take(20 * 5).sum::<f32>() / (20.0 * 5.0);
                 let avg_s15 = tick_times.iter().rev().take(20 * 15).sum::<f32>() / (20.0 * 15.0);
+                #[expect(clippy::cast_precision_loss)]
                 let avg_s60 = tick_times.iter().sum::<f32>() / tick_times.len() as f32;
 
                 let title = format!(
