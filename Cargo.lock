@@ -153,15 +153,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aligned-vec"
-version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc890384c8602f339876ded803c97ad529f3842aba97f6392b3dba0dd171769b"
-dependencies = [
- "equator",
-]
-
-[[package]]
 name = "alloca"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -606,7 +597,6 @@ dependencies = [
  "bevy_app 0.18.0",
  "bevy_ecs 0.18.0",
  "clap",
- "compact_str",
  "dotenvy",
  "envy",
  "fastrand 2.3.0",
@@ -620,15 +610,14 @@ dependencies = [
  "hyperion-item",
  "hyperion-permission",
  "hyperion-proxy-module",
- "hyperion-text",
  "hyperion-utils",
  "rayon",
  "roaring",
- "rustc-hash 2.1.1",
  "serde",
  "tikv-jemallocator",
  "tracing",
  "tracing-subscriber",
+ "tracing-tracy",
  "uuid",
  "valence_bytes",
  "valence_ident 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
@@ -1224,15 +1213,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37b2a672a2cb129a2e41c10b1224bb368f9f37a2b16b612598138befd7b37eb5"
 
 [[package]]
-name = "castaway"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0abae9be0aaf9ea96a3b1b8b1b55c602ca751eba1b1500220cea4ecbafe7c0d5"
-dependencies = [
- "rustversion",
-]
-
-[[package]]
 name = "cblas-sys"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1413,20 +1393,6 @@ checksum = "ba5a308b75df32fe02788e748662718f03fde005016435c444eea572398219fd"
 dependencies = [
  "bytes",
  "memchr",
-]
-
-[[package]]
-name = "compact_str"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fdb1325a1cece981e8a296ab8f0f9b63ae357bd0784a9faaf548cc7b480707a"
-dependencies = [
- "castaway",
- "cfg-if",
- "itoa",
- "rustversion",
- "ryu",
- "static_assertions",
 ]
 
 [[package]]
@@ -2128,26 +2094,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc7e7a64c02cf7a5b51e745a9e45f60660a286f151c238b9d397b3e923f5082f"
 
 [[package]]
-name = "equator"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4711b213838dfee0117e3be6ac926007d7f433d7bbe33595975d4190cb07e6fc"
-dependencies = [
- "equator-macro",
-]
-
-[[package]]
-name = "equator-macro"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44f23cf4b44bfce11a86ace86f8a73ffdec849c9fd00a386a53d278bd9e81fb3"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2491,15 +2437,17 @@ dependencies = [
 
 [[package]]
 name = "generator"
-version = "0.8.4"
+version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc6bd114ceda131d3b1d665eba35788690ad37f5916457286b32ab6fd3c438dd"
+checksum = "52f04ae4152da20c76fe800fa48659201d5cf627c5149ca0b707b69d7eef6cf9"
 dependencies = [
+ "cc",
  "cfg-if",
  "libc",
  "log",
  "rustversion",
- "windows",
+ "windows-link 0.2.1",
+ "windows-result 0.3.2",
 ]
 
 [[package]]
@@ -3035,7 +2983,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "approx",
- "arc-swap",
  "base64 0.22.1",
  "bevy_app 0.18.0",
  "bevy_ecs 0.18.0",
@@ -3067,7 +3014,6 @@ dependencies = [
  "hyperion-utils",
  "indexmap",
  "itertools 0.14.0",
- "kanal",
  "libc",
  "libdeflater",
  "memmap2",
@@ -3075,7 +3021,6 @@ dependencies = [
  "ndarray",
  "ordered-float 5.0.0",
  "packet-channel",
- "parking_lot",
  "paste",
  "rayon",
  "reqwest",
@@ -3089,16 +3034,12 @@ dependencies = [
  "serde_json",
  "serial_test",
  "sha2",
- "simd-utils",
  "thiserror 2.0.12",
  "thread_local",
  "tokio",
  "tokio-rustls",
  "toml",
  "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "tracing-tracy",
  "uuid",
  "valence_anvil",
  "valence_bytes",
@@ -3147,7 +3088,6 @@ dependencies = [
  "indexmap",
  "itertools 0.14.0",
  "tracing",
- "valence_bytes",
 ]
 
 [[package]]
@@ -3173,13 +3113,10 @@ dependencies = [
 name = "hyperion-gui"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "bevy_ecs 0.18.0",
  "hyperion",
  "hyperion-inventory",
- "hyperion-utils",
  "serde",
- "tracing",
  "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
 ]
 
@@ -3189,7 +3126,6 @@ version = "0.1.0"
 dependencies = [
  "bevy_ecs 0.18.0",
  "hyperion-crafting",
- "roaring",
  "snafu",
  "tracing",
  "valence_generated 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
@@ -3205,7 +3141,6 @@ dependencies = [
  "bytemuck",
  "hyperion",
  "hyperion-inventory",
- "hyperion-utils",
  "tracing",
  "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
 ]
@@ -3264,10 +3199,8 @@ dependencies = [
  "dotenvy",
  "envy",
  "glam 0.29.3",
- "heapless 0.8.0",
  "hyperion-proto",
  "kanal",
- "more-asserts",
  "papaya",
  "rkyv",
  "rustc-hash 2.1.1",
@@ -3328,14 +3261,12 @@ dependencies = [
  "flate2",
  "futures-util",
  "hex",
- "hyperion-packet-macros",
  "reqwest",
  "sha2",
  "tar",
  "tokio",
  "tokio-util",
  "tracing",
- "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
 ]
 
 [[package]]
@@ -5742,14 +5673,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d66dc143e6b11c1eddc06d5c423cfc97062865baf299914ab64caa38182078fe"
 
 [[package]]
-name = "simd-utils"
-version = "0.1.0"
-dependencies = [
- "aligned-vec",
- "proptest",
-]
-
-[[package]]
 name = "simdutf8"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6451,18 +6374,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tracing-appender"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3566e8ce28cc0a3fe42519fc80e6b4c943cc4c8cef275620eb8dac2d3d4e06cf"
-dependencies = [
- "crossbeam-channel",
- "thiserror 1.0.69",
- "time",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "tracing-attributes"
 version = "0.1.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6526,9 +6437,9 @@ dependencies = [
 
 [[package]]
 name = "tracy-client"
-version = "0.18.0"
+version = "0.18.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d90a2c01305b02b76fdd89ac8608bae27e173c829a35f7d76a345ab5d33836db"
+checksum = "a4f6fc3baeac5d86ab90c772e9e30620fc653bf1864295029921a15ef478e6a5"
 dependencies = [
  "loom",
  "once_cell",
@@ -6537,9 +6448,9 @@ dependencies = [
 
 [[package]]
 name = "tracy-client-sys"
-version = "0.24.3"
+version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69fff37da548239c3bf9e64a12193d261e8b22b660991c6fd2df057c168f435f"
+checksum = "c5f7c95348f20c1c913d72157b3c6dee6ea3e30b3d19502c5a7f6d3f160dacbf"
 dependencies = [
  "cc",
  "windows-targets 0.52.6",

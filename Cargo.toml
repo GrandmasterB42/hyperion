@@ -43,7 +43,6 @@ members = [
     'crates/hyperion-text',
     'crates/hyperion-utils',
     'crates/packet-channel',
-    'crates/simd-utils',
     'events/bedwars',
     'tools/packet-inspector',
     'tools/rust-mc-bot',
@@ -77,7 +76,6 @@ bvh-region = { path = "crates/bvh-region" }
 geometry = { path = "crates/geometry" }
 packet-channel = { path = "crates/packet-channel" }
 rust-mc-bot = { path = "tools/rust-mc-bot" }
-simd-utils = { path = 'crates/simd-utils' }
 
 # Valence
 valence_anvil = { branch = 'feat-bytes', features = [
@@ -128,7 +126,6 @@ heapless = '0.8'
 indexmap = { version = '2.9', features = ['rayon'] }
 kanal = '0.1'
 papaya = '0.2'
-parking_lot = '0.12'
 roaring = { version = '0.11' }
 rustc-hash = { version = '2.1', features = ['nightly'] }
 slotmap = '1.1'

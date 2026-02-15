@@ -6,10 +6,6 @@ publish = false
 readme = "README.md"
 
 [dependencies]
-hyperion-packet-macros.workspace = true
-
-valence_protocol.workspace = true
-
 bevy_app.workspace = true
 bevy_ecs.workspace = true
 

@@ -9,8 +9,6 @@ readme = "README.md"
 hyperion.workspace = true
 hyperion-utils.workspace = true
 
-valence_bytes.workspace = true
-
 bevy_app.workspace = true
 bevy_ecs.workspace = true
 

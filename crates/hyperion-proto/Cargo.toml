@@ -9,8 +9,5 @@ readme = "README.md"
 rkyv.workspace = true
 glam.workspace = true
 
-[package.metadata.cargo-machete]
-ignored = ["prost"]
-
 [lints]
 workspace = true

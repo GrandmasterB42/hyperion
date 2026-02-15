@@ -6,15 +6,12 @@ version.workspace = true
 [dependencies]
 hyperion.workspace = true
 hyperion-inventory.workspace = true
-hyperion-utils.workspace = true
 
 valence_protocol.workspace = true
 
 bevy_ecs.workspace = true
 
-anyhow.workspace = true
 serde.workspace = true
-tracing.workspace = true
 
 [lints]
 workspace = true
