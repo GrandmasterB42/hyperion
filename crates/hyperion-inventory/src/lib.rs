@@ -1,7 +1,7 @@
-#![feature(thread_local)]
 use std::{cell::Cell, cmp::min, num::Wrapping};
 
 use bevy_ecs::{component::Component, entity::Entity};
+use thread_local::ThreadLocal;
 use tracing::debug;
 use valence_generated::item::EquipmentSlot;
 use valence_protocol::{
@@ -534,16 +534,16 @@ pub const OFFHAND_SLOT: u16 = 45;
 ///
 /// We are skipping 0 because it is reserved for the player's inventory.
 pub fn non_zero_window_id() -> u8 {
-    #[thread_local]
-    static ID: Cell<u8> = Cell::new(0);
+    static ID: ThreadLocal<Cell<u8>> = ThreadLocal::new();
+    let cell = ID.get_or(|| Cell::new(0));
 
-    ID.set(ID.get().wrapping_add(1));
+    cell.set(cell.get().wrapping_add(1));
 
-    if ID.get() == 0 {
-        ID.set(1);
+    if cell.get() == 0 {
+        cell.set(1);
     }
 
-    ID.get()
+    cell.get()
 }
 
 pub trait ItemKindExt {

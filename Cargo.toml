@@ -189,6 +189,7 @@ bevy_app = '0.18'
 bevy_ecs = { version = '0.18', default-features = false, features = [
     'multi_threaded',
 ] }
+bevy_platform = '0.18'
 bevy_tasks = '0.18'
 bevy_time = '0.18'
 num_cpus = '1.16'

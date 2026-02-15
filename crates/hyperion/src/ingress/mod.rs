@@ -261,11 +261,10 @@ pub fn process_login_hello(
 fn offline_uuid(username: &str) -> uuid::Uuid {
     let digest = sha2::Sha256::digest(username);
     let digest: [u8; 32] = digest.into();
-    let (&digest, ..) = digest.split_array_ref::<16>();
 
+    // UUid expects 16 bytes
     // todo: I have no idea which way we should go (be or le)
-    let digest = u128::from_be_bytes(digest);
-    uuid::Uuid::from_u128(digest)
+    uuid::Uuid::from_slice(&digest[0..16]).unwrap()
 }
 
 fn remove_player_from_visibility(

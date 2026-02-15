@@ -1,7 +1,4 @@
-#![feature(sync_unsafe_cell)]
-
 use std::{
-    cell::SyncUnsafeCell,
     mem::{MaybeUninit, size_of},
     num::NonZeroU32,
     ops::Range,
@@ -13,6 +10,7 @@ use std::{
 
 use arc_swap::ArcSwapOption;
 use bevy_ecs::component::Component;
+use bevy_platform::cell::SyncUnsafeCell;
 use more_asserts::debug_assert_le;
 use valence_protocol::MAX_PACKET_SIZE;
 

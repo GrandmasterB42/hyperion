@@ -13,6 +13,7 @@ name = "packet_channel"
 valence_protocol.workspace = true
 
 bevy_ecs.workspace = true
+bevy_platform.workspace = true
 
 arc-swap.workspace = true
 more-asserts.workspace = true

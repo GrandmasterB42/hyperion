@@ -1,15 +1,9 @@
 //! Hyperion
-#![feature(trusted_len)]
 #![feature(allocator_api)]
 #![feature(read_buf)]
 #![feature(core_io_borrowed_buf)]
-#![feature(iter_array_chunks)]
 #![feature(try_trait_v2)]
-#![feature(split_array)]
-#![feature(portable_simd)]
 #![feature(trivial_bounds)]
-#![feature(pointer_is_aligned_to)]
-#![feature(thread_local)]
 
 use std::{
     alloc::Allocator, fmt::Debug, io::Write, net::SocketAddr, path::Path, sync::Arc, time::Duration,

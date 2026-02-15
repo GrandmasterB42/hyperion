@@ -3127,6 +3127,7 @@ dependencies = [
  "bevy_ecs 0.18.0",
  "hyperion-crafting",
  "snafu",
+ "thread_local",
  "tracing",
  "valence_generated 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
  "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
@@ -4458,6 +4459,7 @@ version = "0.1.0"
 dependencies = [
  "arc-swap",
  "bevy_ecs 0.18.0",
+ "bevy_platform",
  "divan",
  "more-asserts",
  "proptest",
