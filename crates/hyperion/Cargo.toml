@@ -59,7 +59,6 @@ libdeflater.workspace = true
 memmap2.workspace = true
 more-asserts.workspace = true
 ndarray.workspace = true
-once_cell.workspace = true
 ordered-float.workspace = true
 packet-channel.workspace = true
 parking_lot.workspace = true

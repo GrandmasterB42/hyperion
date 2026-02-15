@@ -3073,7 +3073,6 @@ dependencies = [
  "memmap2",
  "more-asserts",
  "ndarray",
- "once_cell",
  "ordered-float 5.0.0",
  "packet-channel",
  "parking_lot",
