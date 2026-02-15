@@ -97,8 +97,7 @@ valence_text = { branch = 'feat-bytes', git = 'https://github.com/TestingPlant/v
 
 # Error Handling
 anyhow = '1.0.98'
-snafu = '0.8.5'
-thiserror = '2.0.12'
+thiserror = '2'
 
 # Math
 approx = '0.5.1'

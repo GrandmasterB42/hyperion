@@ -1,6 +1,7 @@
 use std::{cell::Cell, cmp::min, num::Wrapping};
 
 use bevy_ecs::{component::Component, entity::Entity};
+use thiserror::Error;
 use thread_local::ThreadLocal;
 use tracing::debug;
 use valence_generated::item::EquipmentSlot;
@@ -172,11 +173,10 @@ impl Default for Inventory {
 }
 
 use hyperion_crafting::{Crafting2x2, CraftingRegistry};
-use snafu::prelude::*;
 
-#[derive(Debug, Snafu)]
+#[derive(Error, Debug)]
 pub enum InventoryAccessError {
-    #[snafu(display("Invalid slot index: {index}"))]
+    #[error("Invalid slot index: {index}")]
     InvalidSlot { index: u16 },
 }
 

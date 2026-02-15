@@ -13,8 +13,8 @@ valence_protocol.workspace = true
 
 bevy_ecs.workspace = true
 
-snafu.workspace = true
 tracing.workspace = true
+thiserror.workspace = true
 thread_local.workspace = true
 
 [lints]
