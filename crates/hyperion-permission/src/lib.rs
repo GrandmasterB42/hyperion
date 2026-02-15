@@ -15,34 +15,35 @@ use hyperion::{
     simulation::{Uuid, command::get_command_packet},
     storage::LocalDb,
 };
-use num_derive::{FromPrimitive, ToPrimitive};
 use storage::PermissionStorage;
 use tracing::error;
 
 pub struct PermissionPlugin;
 
-#[derive(
-    Default,
-    Component,
-    FromPrimitive,
-    ToPrimitive,
-    Copy,
-    Clone,
-    Debug,
-    PartialEq,
-    ValueEnum,
-    Eq
-)]
-#[repr(C)]
+#[derive(Default, Component, Copy, Clone, Debug, PartialEq, ValueEnum, Eq)]
+#[repr(u8)]
 pub enum Group {
-    Banned,
+    Banned = 0,
     #[default]
     Normal,
     Moderator,
     Admin,
 }
 
-// todo:
+impl Group {
+    #[must_use]
+    pub fn from_u8(value: u8) -> Option<Self> {
+        match value {
+            0..=3 => Some(unsafe { std::mem::transmute::<u8, Self>(value) }),
+            _ => None,
+        }
+    }
+
+    #[must_use]
+    pub const fn to_u8(self) -> u8 {
+        self as u8
+    }
+}
 
 fn load_permissions(
     new_uuid: On<'_, '_, Add, Uuid>,

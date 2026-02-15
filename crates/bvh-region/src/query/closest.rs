@@ -2,7 +2,6 @@ use std::{cmp::Reverse, collections::BinaryHeap, fmt::Debug};
 
 use geometry::aabb::Aabb;
 use glam::Vec3;
-use num_traits::Zero;
 use ordered_float::NotNan;
 
 use crate::{Bvh, Node, utils::NodeOrd};
@@ -34,7 +33,7 @@ impl<T: Debug> Bvh<T> {
             .map(|node| {
                 Reverse(NodeOrd {
                     node,
-                    by: NotNan::zero(),
+                    by: NotNan::new(0.0).unwrap(),
                 })
             })
             .collect();

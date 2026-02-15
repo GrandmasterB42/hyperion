@@ -26,7 +26,6 @@ arrayvec.workspace = true
 fastrand.workspace = true
 geometry.workspace = true
 glam.workspace = true
-num-traits.workspace = true
 ordered-float.workspace = true
 plotters = { workspace = true, features = [
     "plotters-bitmap",
