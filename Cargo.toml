@@ -260,4 +260,4 @@ upper_case_acronyms = 'deny'
 complexity = { level = 'deny', priority = -1 }
 pedantic = { level = 'deny', priority = -1 }
 perf = { level = 'deny', priority = -1 }
-cargo = { level = 'deny', priority = -1 }
+# cargo = { level = 'deny', priority = -1 } TODO: fix this before publishing

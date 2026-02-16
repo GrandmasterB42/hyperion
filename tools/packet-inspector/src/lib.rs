@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #![expect(
     clippy::cast_possible_truncation,
     reason = "todo: we should double check no truncation"

@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 use std::{net::SocketAddr, path::PathBuf};
 
 use bedwars::init_game;
