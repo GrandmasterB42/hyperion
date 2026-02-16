@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #![allow(clippy::similar_names, reason = "todo: fix")]
 
 use std::{

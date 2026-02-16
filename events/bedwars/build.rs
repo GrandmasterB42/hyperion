@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 fn main() {
     // Get target architecture (e.g., x86_64, aarch64, etc.)
     let arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_else(|_| "unknown".to_string());

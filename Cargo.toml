@@ -183,6 +183,7 @@ heed = '0.21'
 bevy_app = '0.18'
 bevy_ecs = { version = '0.18', default-features = false, features = [
     'multi_threaded',
+    'trace',
 ] }
 bevy_platform = '0.18'
 bevy_tasks = '0.18'
@@ -234,6 +235,18 @@ tracing-appender = '0.2'
 #=============== Lints ==============#
 
 [workspace.lints]
+
+[workspace.lints.rust]
+missing_docs = 'warn'
+future_incompatible = { level = 'deny', priority = -1 }
+keyword_idents = { level = 'deny', priority = -1 }
+let_underscore = { level = 'deny', priority = -1 }
+nonstandard_style = { level = 'deny', priority = -1 }
+refining_impl_trait = { level = 'deny', priority = -1 }
+rust_2018_idioms = { level = 'deny', priority = -1 }
+rust_2024_compatibility = { level = 'deny', priority = -1 }
+variant_size_differences = { level = 'deny', priority = -1 }
+
 [workspace.lints.clippy]
 missing_errors_doc = 'allow'
 missing_panics_doc = 'allow'
@@ -244,56 +257,7 @@ too_long_first_doc_paragraph = 'allow'
 too_many_arguments = 'allow'
 type_complexity = 'allow'
 upper_case_acronyms = 'deny'
-
-[workspace.lints.clippy.complexity]
-level = 'deny'
-priority = -1
-
-[workspace.lints.clippy.nursery]
-level = 'deny'
-priority = -1
-
-[workspace.lints.clippy.pedantic]
-level = 'deny'
-priority = -1
-
-[workspace.lints.clippy.perf]
-level = 'deny'
-priority = -1
-
-[workspace.lints.clippy.style]
-level = 'deny'
-priority = -1
-
-[workspace.lints.clippy.suspicious]
-level = 'deny'
-priority = -1
-
-[workspace.lints.rust]
-[workspace.lints.rust.future_incompatible]
-level = 'deny'
-priority = -1
-
-[workspace.lints.rust.keyword_idents]
-level = 'deny'
-priority = -1
-
-[workspace.lints.rust.let_underscore]
-level = 'deny'
-priority = -1
-
-[workspace.lints.rust.nonstandard_style]
-level = 'deny'
-priority = -1
-
-[workspace.lints.rust.refining_impl_trait]
-level = 'deny'
-priority = -1
-
-[workspace.lints.rust.rust_2018_idioms]
-level = 'deny'
-priority = -1
-
-[workspace.lints.rust.rust_2024_compatibility]
-level = 'deny'
-priority = -1
+complexity = { level = 'deny', priority = -1 }
+pedantic = { level = 'deny', priority = -1 }
+perf = { level = 'deny', priority = -1 }
+cargo = { level = 'deny', priority = -1 }

@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![expect(
     clippy::significant_drop_tightening,
