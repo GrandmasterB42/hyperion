@@ -1,15 +1,19 @@
 use std::borrow::Cow;
 
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    message::MessageReader,
+    system::{Query, Res},
+};
 use hyperion::{
     egress::player_join::{PlayerListActions, PlayerListEntry, PlayerListS2c},
     net::{Compose, ConnectionId, DataBundle},
     simulation::event,
-    valence_ident::ident,
 };
 use hyperion_utils::EntityExt;
 use tracing::error;
 use valence_bytes::Utf8Bytes;
+use valence_ident::ident;
 use valence_protocol::{
     GameMode, VarInt,
     game_mode::OptGameMode,
@@ -25,7 +29,7 @@ impl Plugin for SkinPlugin {
 }
 
 fn on_set_skin(
-    mut events: EventReader<'_, '_, event::SetSkin>,
+    mut events: MessageReader<'_, '_, event::SetSkin>,
     compose: Res<'_, Compose>,
     query: Query<'_, '_, (&ConnectionId, &hyperion::simulation::Uuid)>,
 ) {

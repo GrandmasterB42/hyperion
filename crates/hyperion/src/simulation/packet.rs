@@ -1,19 +1,17 @@
 use std::cmp::Ordering;
 
-use bevy::prelude::*;
-use derive_more::{Deref, From, Into};
+use bevy_app::{App, Plugin};
+use bevy_ecs::{entity::Entity, message::Message};
 use hyperion_packet_macros::for_each_state;
 use hyperion_utils::EntityExt;
 
 use crate::net::ConnectionId;
 
-#[derive(Copy, Clone, Debug, Deref, Event)]
+#[derive(Copy, Clone, Debug, Message)]
 pub struct Packet<T> {
     sender: Entity,
     connection_id: ConnectionId,
-    packet_id: u64,
-
-    #[deref]
+    id: u64,
     body: T,
 }
 
@@ -22,7 +20,7 @@ impl<T> Packet<T> {
         Self {
             sender,
             connection_id,
-            packet_id,
+            id: packet_id,
             body,
         }
     }
@@ -45,18 +43,40 @@ impl<T> Packet<T> {
     }
 
     /// Unique monotonically-increasing packet id
-    pub const fn packet_id(&self) -> u64 {
-        self.packet_id
+    pub const fn id(&self) -> u64 {
+        self.id
+    }
+}
+
+impl<T> std::ops::Deref for Packet<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.body
     }
 }
 
 /// Packet ordered by the time it was received by the server
-#[derive(Copy, Clone, Debug, Deref, From, Into)]
+#[derive(Copy, Clone, Debug)]
 pub struct OrderedPacketRef<'a, T>(&'a Packet<T>);
+
+impl<T> std::ops::Deref for OrderedPacketRef<'_, T> {
+    type Target = Packet<T>;
+
+    fn deref(&self) -> &Self::Target {
+        self.0
+    }
+}
+
+impl<'a, T> From<&'a Packet<T>> for OrderedPacketRef<'a, T> {
+    fn from(packet: &'a Packet<T>) -> Self {
+        Self(packet)
+    }
+}
 
 impl<T, U> PartialOrd<OrderedPacketRef<'_, U>> for OrderedPacketRef<'_, T> {
     fn partial_cmp(&self, other: &OrderedPacketRef<'_, U>) -> Option<Ordering> {
-        self.packet_id().partial_cmp(&other.packet_id())
+        self.id().partial_cmp(&other.id())
     }
 }
 
@@ -86,7 +106,7 @@ impl Plugin for PacketPlugin {
             #{
                 #for_each_packet! {
                     #{
-                        app.add_event::<#state::#packet_name>();
+                        app.add_message::<#state::#packet_name>();
                     }
                 }
             }

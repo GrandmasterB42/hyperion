@@ -1,11 +1,12 @@
-use bevy::prelude::*;
-use derive_more::Deref;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    component::Component, entity::Entity, hierarchy::Children, resource::Resource, world::World,
+};
 use tracing::{error, warn};
 use valence_bytes::Utf8Bytes;
-pub use valence_protocol::packets::play::command_tree_s2c::Parser;
 use valence_protocol::{
     VarInt,
-    packets::play::command_tree_s2c::{Node, NodeData, Suggestion},
+    packets::play::command_tree_s2c::{Node, NodeData, Parser, Suggestion},
 };
 
 #[derive(Component)]
@@ -14,8 +15,16 @@ pub struct Command {
     has_permission: fn(world: &World, caller: Entity) -> bool,
 }
 
-#[derive(Resource, Deref)]
+#[derive(Resource)]
 pub struct RootCommand(Entity);
+
+impl std::ops::Deref for RootCommand {
+    type Target = Entity;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 impl Command {
     pub const ROOT: Self = Self {
@@ -144,7 +153,7 @@ impl Plugin for CommandPlugin {
 
 #[cfg(test)]
 mod tests {
-    use bevy::prelude::*;
+    use bevy_ecs::hierarchy::ChildOf;
 
     use super::{Command as HyperionCommand, *};
 

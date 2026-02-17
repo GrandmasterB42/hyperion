@@ -9,7 +9,7 @@ use std::{
     },
 };
 
-use bevy::prelude::*;
+use bevy_ecs::{entity::Entity, message::Messages, query::With, world::World};
 use hyperion_proto::ArchivedProxyToServerMessage;
 use hyperion_utils::EntityExt;
 use rustc_hash::FxHashMap;
@@ -86,7 +86,8 @@ async fn handle_proxy_messages(
 
         match result {
             ArchivedProxyToServerMessage::PlayerConnect(message) => {
-                let Ok(stream) = rkyv::deserialize::<u64, !>(&message.stream);
+                let Ok(stream) =
+                    rkyv::deserialize::<u64, std::convert::Infallible>(&message.stream);
 
                 let (sender, receiver) = packet_channel::channel(DEFAULT_FRAGMENT_SIZE);
                 if player_packet_sender.insert(stream, sender).is_some() {
@@ -112,7 +113,8 @@ async fn handle_proxy_messages(
                 });
             }
             ArchivedProxyToServerMessage::PlayerDisconnect(message) => {
-                let Ok(stream) = rkyv::deserialize::<u64, !>(&message.stream);
+                let Ok(stream) =
+                    rkyv::deserialize::<u64, std::convert::Infallible>(&message.stream);
 
                 if player_packet_sender.remove(&stream).is_none() {
                     error!(
@@ -131,7 +133,8 @@ async fn handle_proxy_messages(
                 });
             }
             ArchivedProxyToServerMessage::PlayerPackets(message) => {
-                let Ok(stream) = rkyv::deserialize::<u64, !>(&message.stream);
+                let Ok(stream) =
+                    rkyv::deserialize::<u64, std::convert::Infallible>(&message.stream);
 
                 let Some(sender) = player_packet_sender.get_mut(&stream) else {
                     error!(
@@ -193,8 +196,9 @@ async fn handle_proxy_messages(
                         })
                         .collect::<Vec<_>>();
 
-                    let mut events = world.resource_mut::<Events<RequestSubscribeChannelPackets>>();
-                    events.send_batch(channels);
+                    let mut messages =
+                        world.resource_mut::<Messages<RequestSubscribeChannelPackets>>();
+                    messages.write_batch(channels);
                 });
             }
         }

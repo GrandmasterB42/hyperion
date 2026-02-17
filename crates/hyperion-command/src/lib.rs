@@ -1,6 +1,4 @@
-#![feature(iter_intersperse)]
-
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
 
 mod component;
 mod system;

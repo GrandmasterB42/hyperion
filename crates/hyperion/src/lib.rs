@@ -1,60 +1,30 @@
 //! Hyperion
-
-#![feature(type_alias_impl_trait)]
-#![feature(io_error_more)]
-#![feature(trusted_len)]
 #![feature(allocator_api)]
 #![feature(read_buf)]
 #![feature(core_io_borrowed_buf)]
-#![feature(maybe_uninit_slice)]
-#![feature(duration_millis_float)]
-#![feature(iter_array_chunks)]
-#![feature(assert_matches)]
 #![feature(try_trait_v2)]
-#![feature(let_chains)]
-#![feature(ptr_metadata)]
-#![feature(stmt_expr_attributes)]
-#![feature(array_try_map)]
-#![feature(split_array)]
-#![feature(never_type)]
-#![feature(duration_constructors)]
-#![feature(array_chunks)]
-#![feature(portable_simd)]
 #![feature(trivial_bounds)]
-#![feature(pointer_is_aligned_to)]
-#![feature(thread_local)]
-
-pub const CHUNK_HEIGHT_SPAN: u32 = 384; // 512; // usually 384
 
 use std::{
     alloc::Allocator, fmt::Debug, io::Write, net::SocketAddr, path::Path, sync::Arc, time::Duration,
 };
 
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{entity::Entity, event::EntityEvent, resource::Resource};
+use bevy_time::{Fixed, Time};
 use egress::EgressPlugin;
-pub use glam;
 #[cfg(unix)]
 use libc::{RLIMIT_NOFILE, getrlimit, setrlimit};
 use libdeflater::CompressionLvl;
 use rustls_pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
 use storage::{LocalDb, SkinHandler};
 use tracing::{info, warn};
-pub use uuid;
-pub use valence_protocol as protocol;
-// todo: slowly move more and more things to arbitrary module
-// and then eventually do not re-export valence_protocol
-pub use valence_protocol;
 use valence_protocol::{CompressionThreshold, Encode, Packet};
-pub use valence_protocol::{
-    ItemKind, ItemStack, Particle,
-    block::{BlockKind, BlockState},
-};
 
 mod common;
 pub use common::*;
 use hyperion_crafting::CraftingRegistry;
 use hyperion_utils::HyperionUtilsPlugin;
-pub use valence_ident;
 
 use crate::{
     command_channel::{CommandChannel, CommandChannelPlugin},
@@ -72,6 +42,8 @@ pub mod net;
 pub mod simulation;
 pub mod spatial;
 pub mod storage;
+
+pub const CHUNK_HEIGHT_SPAN: u32 = 384; // 512; // usually 384
 
 pub trait PacketBundle {
     fn encode_including_ids(self, w: impl Write) -> anyhow::Result<()>;
@@ -96,7 +68,7 @@ pub fn adjust_file_descriptor_limits(recommended_min: u64) -> std::io::Result<()
         rlim_max: 0, // Initialize hard limit to 0
     };
 
-    if unsafe { getrlimit(RLIMIT_NOFILE, &mut limits) } == 0 {
+    if unsafe { getrlimit(RLIMIT_NOFILE, &raw mut limits) } == 0 {
         // Create a stack-allocated buffer...
 
         info!("current soft limit: {}", limits.rlim_cur);
@@ -117,7 +89,7 @@ pub fn adjust_file_descriptor_limits(recommended_min: u64) -> std::io::Result<()
 
     info!("setting soft limit to: {}", limits.rlim_cur);
 
-    if unsafe { setrlimit(RLIMIT_NOFILE, &limits) } != 0 {
+    if unsafe { setrlimit(RLIMIT_NOFILE, &raw const limits) } != 0 {
         error!("Failed to set the file handle limits");
         return Err(std::io::Error::last_os_error());
     }
@@ -183,7 +155,7 @@ impl From<SocketAddr> for Endpoint {
     }
 }
 
-#[derive(Event, Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(EntityEvent, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct InitializePlayerPosition(pub Entity);
 
 /// The central [`HyperionCore`] struct which owns and manages the entire server.
@@ -217,9 +189,9 @@ impl Plugin for HyperionCore {
         // IoTaskPool which are not used by Hyperion but are given 50% of the available cores.
         // Setting up ComputeTaskPool manually allows it to use 100% of the available cores.
         let mut init = false;
-        bevy::tasks::ComputeTaskPool::get_or_init(|| {
+        bevy_tasks::ComputeTaskPool::get_or_init(|| {
             init = true;
-            bevy::tasks::TaskPool::new()
+            bevy_tasks::TaskPool::new()
         });
         if !init {
             warn!("failed to initialize ComputeTaskPool because it was already initialized");
@@ -243,7 +215,6 @@ impl Plugin for HyperionCore {
         app.insert_resource(skins);
         app.insert_resource(MojangClient::new(&runtime, ApiProvider::MAT_DOES_DEV));
         app.insert_resource(Blocks::empty(&runtime));
-        app.add_event::<InitializePlayerPosition>();
 
         let global = Global::new(shared.clone());
 
@@ -267,8 +238,8 @@ impl Plugin for HyperionCore {
         app.insert_resource(StreamLookup::default());
 
         app.add_plugins((
-            bevy::time::TimePlugin,
-            bevy::app::ScheduleRunnerPlugin::run_loop(Duration::from_millis(10)),
+            bevy_time::TimePlugin,
+            bevy_app::ScheduleRunnerPlugin::run_loop(Duration::from_millis(10)),
             IngressPlugin,
             EgressPlugin,
             SimPlugin,

@@ -1,17 +1,16 @@
-[dependencies]
-quote.workspace = true
-syn.workspace = true
+[package]
+name = "hyperion-clap-macros"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
 
 [lib]
 proc-macro = true
 
+[dependencies]
+quote.workspace = true
+syn.workspace = true
+
 [lints]
 workspace = true
-
-[package]
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-edition.workspace = true
-name = "hyperion-clap-macros"
-publish = false
-readme = "README.md"
-version.workspace = true

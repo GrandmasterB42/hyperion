@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 
-use bevy::prelude::*;
-use derive_more::{Deref, DerefMut};
+use bevy_app::{App, Plugin};
+use bevy_ecs::{entity::Entity, resource::Resource, world::World};
 use hyperion::simulation::packet::play;
 use hyperion_utils::ApplyWorld;
 use indexmap::IndexMap;
@@ -51,8 +51,22 @@ impl CommandRegistryInner {
 ///
 /// This registry is locked by a [`Mutex`]. See the `execute_commands` system for justification.
 /// Consider accessing this resource using [`ResMut`] and [`Mutex::get_mut`].
-#[derive(Resource, Deref, DerefMut)]
+#[derive(Resource)]
 pub struct CommandRegistry(Mutex<CommandRegistryInner>);
+
+impl std::ops::Deref for CommandRegistry {
+    type Target = Mutex<CommandRegistryInner>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for CommandRegistry {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 pub struct CommandComponentPlugin;
 

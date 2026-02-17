@@ -13,7 +13,7 @@
 //! 7 -> VarInt (1)           TicksFrozenInPowderSnow(0)
 //! ```
 
-use bevy::prelude::*;
+use bevy_ecs::component::Component;
 use valence_protocol::{Encode, VarInt};
 use valence_text::Text;
 

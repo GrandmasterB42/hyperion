@@ -2,9 +2,7 @@ use std::{borrow::Cow, cell::RefCell, io::Write, sync::Arc};
 
 use anyhow::{Context, bail};
 use bytes::BytesMut;
-use derive_more::Constructor;
 use glam::{I16Vec2, IVec2};
-use hyperion_nerd_font::NERD_ROCKET;
 use itertools::Itertools;
 use libdeflater::{CompressionLvl, Compressor};
 use parse::ColumnData;
@@ -50,7 +48,7 @@ thread_local! {
   static STATE: RefCell<TasksState> = RefCell::new(TasksState::default());
 }
 
-struct Message {
+pub struct Message {
     position: I16Vec2,
     tx: tokio::sync::mpsc::UnboundedSender<Column>,
 }
@@ -62,9 +60,16 @@ struct ChunkLoader {
     runtime: AsyncRuntime,
 }
 
-#[derive(Constructor)]
 pub struct ChunkLoaderHandle {
     tx_load_chunk_requests: tokio::sync::mpsc::UnboundedSender<Message>,
+}
+
+impl ChunkLoaderHandle {
+    pub const fn new(tx_load_chunk_requests: tokio::sync::mpsc::UnboundedSender<Message>) -> Self {
+        Self {
+            tx_load_chunk_requests,
+        }
+    }
 }
 
 impl ChunkLoaderHandle {
@@ -161,7 +166,7 @@ impl ChunkLoader {
                 .unique()
                 .count();
 
-            trace!("{NERD_ROCKET} loaded chunk {position} with {unique_blocks} unique blocks");
+            trace!("loaded chunk {position} with {unique_blocks} unique blocks");
 
             tx_load_chunks.send(loaded_chunk).unwrap();
         });

@@ -1,8 +1,8 @@
-#![feature(thread_local)]
 use std::{cell::Cell, cmp::min, num::Wrapping};
 
-use bevy::prelude::*;
-use derive_more::{Deref, DerefMut};
+use bevy_ecs::{component::Component, entity::Entity};
+use thiserror::Error;
+use thread_local::ThreadLocal;
 use tracing::debug;
 use valence_generated::item::EquipmentSlot;
 use valence_protocol::{
@@ -130,22 +130,36 @@ impl ItemSlot {
 
 #[derive(Component, Clone, Debug)]
 pub struct OpenInventory {
-    pub entity: Entity,
+    pub inventory: Entity,
     pub client_changed: u64,
 }
 
 impl OpenInventory {
     #[must_use]
-    pub const fn new(entity: Entity) -> Self {
+    pub const fn new(inventory: Entity) -> Self {
         Self {
-            entity,
+            inventory,
             client_changed: 0,
         }
     }
 }
 
-#[derive(Component, Clone, PartialEq, Default, Debug, Deref, DerefMut)]
+#[derive(Component, Clone, PartialEq, Default, Debug)]
 pub struct CursorItem(pub ItemStack);
+
+impl std::ops::Deref for CursorItem {
+    type Target = ItemStack;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for CursorItem {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 #[derive(Debug)]
 pub struct AddItemResult {
@@ -159,11 +173,10 @@ impl Default for Inventory {
 }
 
 use hyperion_crafting::{Crafting2x2, CraftingRegistry};
-use snafu::prelude::*;
 
-#[derive(Debug, Snafu)]
+#[derive(Error, Debug)]
 pub enum InventoryAccessError {
-    #[snafu(display("Invalid slot index: {index}"))]
+    #[error("Invalid slot index: {index}")]
     InvalidSlot { index: u16 },
 }
 
@@ -418,12 +431,10 @@ impl PlayerInventory {
             stack.item
         });
 
-        let result = registry
+        registry
             .get_result_2x2(items)
             .cloned()
-            .unwrap_or(ItemStack::EMPTY);
-
-        result
+            .unwrap_or(ItemStack::EMPTY)
     }
 
     #[must_use]
@@ -523,16 +534,16 @@ pub const OFFHAND_SLOT: u16 = 45;
 ///
 /// We are skipping 0 because it is reserved for the player's inventory.
 pub fn non_zero_window_id() -> u8 {
-    #[thread_local]
-    static ID: Cell<u8> = Cell::new(0);
+    static ID: ThreadLocal<Cell<u8>> = ThreadLocal::new();
+    let cell = ID.get_or(|| Cell::new(0));
 
-    ID.set(ID.get().wrapping_add(1));
+    cell.set(cell.get().wrapping_add(1));
 
-    if ID.get() == 0 {
-        ID.set(1);
+    if cell.get() == 0 {
+        cell.set(1);
     }
 
-    ID.get()
+    cell.get()
 }
 
 pub trait ItemKindExt {

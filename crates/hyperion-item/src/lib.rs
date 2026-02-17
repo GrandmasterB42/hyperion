@@ -1,5 +1,10 @@
-use bevy::prelude::*;
-use derive_more::Deref;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    message::{Message, MessageReader, MessageWriter},
+    schedule::IntoScheduleConfigs,
+    system::Query,
+};
 use hyperion::{ingress, simulation::event::InteractEvent};
 use hyperion_inventory::PlayerInventory;
 use tracing::error;
@@ -10,18 +15,24 @@ pub mod builder;
 pub struct ItemPlugin;
 
 /// Event sent when an item with an NBT is clicked in the hotbar
-#[derive(Event, Deref)]
+#[derive(Message)]
 pub struct NbtInteractEvent {
     pub handler: Entity,
-
-    #[deref]
     pub event: InteractEvent,
 }
 
+impl std::ops::Deref for NbtInteractEvent {
+    type Target = InteractEvent;
+
+    fn deref(&self) -> &Self::Target {
+        &self.event
+    }
+}
+
 fn handle_interact(
-    mut events: EventReader<'_, '_, InteractEvent>,
+    mut events: MessageReader<'_, '_, InteractEvent>,
     query: Query<'_, '_, &PlayerInventory>,
-    mut event_writer: EventWriter<'_, NbtInteractEvent>,
+    mut event_writer: MessageWriter<'_, NbtInteractEvent>,
 ) {
     for event in events.read() {
         let inventory = match query.get(event.client) {
@@ -52,7 +63,7 @@ fn handle_interact(
 
         let id: u64 = bytemuck::cast(*id);
 
-        let Ok(handler) = Entity::try_from_bits(id) else {
+        let Some(handler) = Entity::try_from_bits(id) else {
             error!(
                 "failed to handle interact event: nbt handler field contains an invalid entity id \
                  {id}"
@@ -69,7 +80,7 @@ fn handle_interact(
 
 impl Plugin for ItemPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<NbtInteractEvent>();
         app.add_systems(FixedUpdate, handle_interact.after(ingress::decode::play));
+        app.add_message::<NbtInteractEvent>();
     }
 }

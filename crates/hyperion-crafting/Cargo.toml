@@ -1,17 +1,17 @@
+[package]
+name = "hyperion-crafting"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
 [dependencies]
-anyhow = { workspace = true }
-derive-build = { workspace = true }
-slotmap = { workspace = true }
-valence_protocol = { workspace = true }
-bevy = {workspace = true}
+valence_protocol.workspace = true
+
+bevy_ecs.workspace = true
+
+anyhow.workspace = true
+slotmap.workspace = true
 
 [lints]
 workspace = true
-
-[package]
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-edition.workspace = true
-name = "hyperion-crafting"
-publish = false
-readme = "README.md"
-version.workspace = true

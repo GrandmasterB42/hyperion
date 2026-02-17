@@ -1,14 +1,19 @@
-use bevy::prelude::*;
+use bevy_app::{App, FixedPreUpdate, Plugin};
+use bevy_ecs::{
+    component::Component,
+    entity::Entity,
+    query::With,
+    resource::Resource,
+    system::{Query, ResMut},
+};
 use geometry::{aabb::Aabb, ray::Ray};
+use glam::Vec3;
 use ordered_float::NotNan;
 use rayon::iter::Either;
 
-use super::{
-    glam::Vec3,
-    simulation::{
-        EntitySize, Position, aabb,
-        blocks::{Blocks, RayCollision},
-    },
+use super::simulation::{
+    EntitySize, Position, aabb,
+    blocks::{Blocks, RayCollision},
 };
 
 pub struct SpatialPlugin;
@@ -35,22 +40,25 @@ pub fn get_first_collision(
     let entity = entity.filter(|(entity, _)| owner.is_none_or(|owner| *entity != owner));
 
     // check which one is closest to the Ray don't forget to account for entity size
-    entity.map_or(block.map(Either::Right), |(entity, _)| {
-        let entity_aabb = get_aabb_func(query)(&entity);
+    entity.map_or_else(
+        || block.map(Either::Right),
+        |(entity, _)| {
+            let entity_aabb = get_aabb_func(query)(&entity);
 
-        #[allow(clippy::redundant_closure_for_method_calls)]
-        let distance_to_entity = entity_aabb
-            .intersect_ray(&ray)
-            .map_or(f32::MAX, |distance| distance.into_inner());
+            #[allow(clippy::redundant_closure_for_method_calls)]
+            let distance_to_entity = entity_aabb
+                .intersect_ray(&ray)
+                .map_or(f32::MAX, |distance| distance.into_inner());
 
-        block.map_or(Some(Either::Left(entity)), |block_collision| {
-            if distance_to_entity < block_collision.distance {
-                Some(Either::Left(entity))
-            } else {
-                Some(Either::Right(block_collision))
-            }
-        })
-    })
+            block.map_or(Some(Either::Left(entity)), |block_collision| {
+                if distance_to_entity < block_collision.distance {
+                    Some(Either::Left(entity))
+                } else {
+                    Some(Either::Right(block_collision))
+                }
+            })
+        },
+    )
 }
 
 fn get_aabb_func(

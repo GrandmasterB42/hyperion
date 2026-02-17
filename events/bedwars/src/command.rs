@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy_ecs::world::World;
 use hyperion_clap::MinecraftCommand;
 
 use crate::command::{

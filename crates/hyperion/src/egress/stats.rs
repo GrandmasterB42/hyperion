@@ -1,4 +1,9 @@
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    lifecycle::{Add, Remove},
+    observer::On,
+    system::{Res, ResMut},
+};
 
 use crate::{
     net::Compose,
@@ -15,21 +20,20 @@ impl Plugin for StatsPlugin {
     }
 }
 
-#[expect(clippy::missing_const_for_fn, reason = "false positive")]
 fn global_update(mut compose: ResMut<'_, Compose>) {
     let global = compose.global_mut();
 
     global.tick += 1;
 }
 
-pub fn player_join_world(_: Trigger<'_, OnAdd, packet_state::Play>, compose: Res<'_, Compose>) {
+pub fn player_join_world(_: On<'_, '_, Add, packet_state::Play>, compose: Res<'_, Compose>) {
     compose
         .global()
         .player_count
         .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 }
 
-pub fn player_leave_world(_: Trigger<'_, OnRemove, packet_state::Play>, compose: Res<'_, Compose>) {
+pub fn player_leave_world(_: On<'_, '_, Remove, packet_state::Play>, compose: Res<'_, Compose>) {
     compose
         .global()
         .player_count

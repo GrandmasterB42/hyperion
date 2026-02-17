@@ -1,14 +1,14 @@
-#![feature(assert_matches)]
 #![allow(
     clippy::print_stdout,
     reason = "the purpose of not having printing to stdout is so that tracing is used properly \
               for the core libraries. These are tests, so it doesn't matter"
 )]
 
-use std::{assert_matches::assert_matches, collections::HashSet};
+use std::collections::HashSet;
 
 use approx::assert_relative_eq;
-use bevy::{app::FixedMain, prelude::*};
+use bevy_app::{App, FixedMain};
+use bevy_ecs::system::{Query, Res};
 use geometry::{aabb::Aabb, ray::Ray};
 use glam::Vec3;
 use hyperion::{
@@ -69,7 +69,7 @@ fn spatial() {
             assert_relative_eq!(distance.into_inner(), 0.0);
 
             let ray = Ray::from_points(Vec3::new(12.0, 0.0, 0.0), Vec3::new(13.0, 1.0, 1.0));
-            assert_matches!(spatial.first_ray_collision(ray, query), None);
+            assert_eq!(spatial.first_ray_collision(ray, query), None);
         },
     );
     app.world_mut().run_system(system).unwrap();

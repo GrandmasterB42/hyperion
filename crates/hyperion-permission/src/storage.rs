@@ -1,7 +1,6 @@
-use bevy::prelude::*;
+use bevy_ecs::resource::Resource;
 use heed::{Database, Env, byteorder::NativeEndian, types};
 use hyperion::storage::LocalDb;
-use num_traits::{FromPrimitive, ToPrimitive};
 
 use crate::Group;
 
@@ -45,7 +44,7 @@ impl PermissionStorage {
     pub fn set(&self, uuid: uuid::Uuid, group: Group) -> anyhow::Result<()> {
         let uuid = uuid.as_u128();
         let mut wtxn = self.env.write_txn()?;
-        self.perms.put(&mut wtxn, &uuid, &group.to_u8().unwrap())?;
+        self.perms.put(&mut wtxn, &uuid, &group.to_u8())?;
         wtxn.commit()?;
         Ok(())
     }

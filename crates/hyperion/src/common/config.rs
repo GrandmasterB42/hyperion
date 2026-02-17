@@ -2,7 +2,7 @@
 
 use std::{fmt::Debug, fs::File, io::Read, path::Path};
 
-use bevy::prelude::*;
+use bevy_ecs::{component::Component, resource::Resource};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument, warn};
 
@@ -76,17 +76,17 @@ impl Config {
         info!("configuration file not found, using defaults");
 
         // make required folders
-        if let Some(parent) = path.as_ref().parent() {
-            if let Err(e) = std::fs::create_dir_all(parent) {
-                // this might happen on a read-only filesystem (i.e.,
-                // when running on a CI, profiling in Instruments, etc.)
-                warn!(
-                    "failed to create parent directories for {:?}: {}, using defaults",
-                    path.as_ref(),
-                    e
-                );
-                return Ok(Self::default());
-            }
+        if let Some(parent) = path.as_ref().parent()
+            && let Err(e) = std::fs::create_dir_all(parent)
+        {
+            // this might happen on a read-only filesystem (i.e.,
+            // when running on a CI, profiling in Instruments, etc.)
+            warn!(
+                "failed to create parent directories for {:?}: {}, using defaults",
+                path.as_ref(),
+                e
+            );
+            return Ok(Self::default());
         }
 
         // write default config to file

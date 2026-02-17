@@ -1,4 +1,10 @@
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    component::Component,
+    lifecycle::Insert,
+    observer::On,
+    system::{Query, Res},
+};
 use hyperion::{
     net::Compose,
     simulation::{Uuid, metadata::entity::EntityFlags},
@@ -25,11 +31,11 @@ impl Vanished {
 }
 
 fn update_vanish(
-    trigger: Trigger<'_, OnInsert, Vanished>,
+    just_vanished: On<'_, '_, Insert, Vanished>,
     compose: Res<'_, Compose>,
     mut query: Query<'_, '_, (&Vanished, &Uuid, &mut EntityFlags)>,
 ) {
-    let (vanished, uuid, mut flags) = match query.get_mut(trigger.target()) {
+    let (vanished, uuid, mut flags) = match query.get_mut(just_vanished.entity) {
         Ok(data) => data,
         Err(e) => {
             error!("failed to update vanish: query failed: {e}");

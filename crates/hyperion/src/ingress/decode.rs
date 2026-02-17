@@ -6,7 +6,12 @@
               casing"
 )]
 
-use bevy::{ecs::batching::BatchingStrategy, prelude::*};
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    batching::BatchingStrategy,
+    entity::Entity,
+    system::{Query, Res},
+};
 use paste::paste;
 use tracing::error;
 use valence_protocol::Packet as _;
@@ -22,7 +27,7 @@ mod __private {
         sync::atomic::{AtomicU64, Ordering},
     };
 
-    use bevy::prelude::*;
+    use bevy_ecs::resource::Resource;
     use thread_local::ThreadLocal;
     use tracing::warn;
 
@@ -62,7 +67,7 @@ mod buffers {
 }
 
 mod writers {
-    use bevy::{ecs::system::SystemParam, prelude::*};
+    use bevy_ecs::{message::MessageWriter, system::SystemParam};
 
     use crate::simulation::packet;
 
@@ -71,7 +76,7 @@ mod writers {
             #for_each_packet! {
                 #[derive(SystemParam)]
                 pub struct #state<'w> {
-                    #{pub #packet_name: EventWriter<'w, packet::#state::#packet_name>,}
+                    #{pub #packet_name: MessageWriter<'w, packet::#state::#packet_name>,}
                 }
             }
         }
@@ -117,7 +122,7 @@ hyperion_packet_macros::for_each_state! {
                 &PacketDecoder,
                 &mut packet_channel::Receiver,
             ),
-            paste! { With<packet_state::[< #state:camel >]> }
+            paste! { bevy_ecs::query::With<packet_state::[< #state:camel >]> }
             >,
             compose: Res<'_, Compose>,
             packet_id_generator: Res<'_, __private::PacketIdGenerator>,

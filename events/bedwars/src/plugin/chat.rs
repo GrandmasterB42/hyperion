@@ -1,14 +1,23 @@
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    component::Component,
+    lifecycle::Add,
+    message::MessageReader,
+    name::Name,
+    observer::On,
+    schedule::IntoScheduleConfigs,
+    system::{Commands, Query, Res},
+};
 use hyperion::{
     ingress,
     net::{Compose, ConnectionId},
     simulation::{Position, packet, packet_state},
-    valence_protocol::{
-        packets::play,
-        text::{Color, IntoText, Text},
-    },
 };
 use tracing::error;
+use valence_protocol::{
+    packets::play,
+    text::{Color, IntoText, Text},
+};
 
 use crate::Team;
 
@@ -21,16 +30,16 @@ pub struct ChatCooldown {
 }
 
 pub fn initialize_cooldown(
-    trigger: Trigger<'_, OnAdd, packet_state::Play>,
+    now_playing: On<'_, '_, Add, packet_state::Play>,
     mut commands: Commands<'_, '_>,
 ) {
     commands
-        .entity(trigger.target())
+        .entity(now_playing.entity)
         .insert(ChatCooldown::default());
 }
 
 pub fn handle_chat_messages(
-    mut packets: EventReader<'_, '_, packet::play::ChatMessage>,
+    mut packets: MessageReader<'_, '_, packet::play::ChatMessage>,
     compose: Res<'_, Compose>,
     mut query: Query<'_, '_, (&Name, &Position, &mut ChatCooldown, &ConnectionId, &Team)>,
 ) {
@@ -48,6 +57,7 @@ pub fn handle_chat_messages(
         // Check if player is still on cooldown
         if cooldown.expires > current_tick {
             let remaining_ticks = cooldown.expires - current_tick;
+            #[expect(clippy::cast_precision_loss)]
             let remaining_secs = remaining_ticks as f32 / 20.0;
 
             let cooldown_msg =

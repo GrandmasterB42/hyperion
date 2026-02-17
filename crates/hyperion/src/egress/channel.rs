@@ -1,4 +1,13 @@
-use bevy::{ecs::world::OnDespawn, prelude::*};
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    lifecycle::{Add, Despawn},
+    message::MessageReader,
+    observer::On,
+    query::With,
+    system::{Query, Res},
+    world::World,
+};
 use hyperion_proto::UpdateChannelPosition;
 use hyperion_utils::EntityExt;
 use tracing::error;
@@ -18,22 +27,22 @@ use crate::{
     },
 };
 
-fn add_channel(trigger: Trigger<'_, OnAdd, Channel>, compose: Res<'_, Compose>) {
+fn add_channel(added_channel: On<'_, '_, Add, Channel>, compose: Res<'_, Compose>) {
     let packet = play::EntitiesDestroyS2c {
-        entity_ids: vec![VarInt(trigger.target().minecraft_id())].into(),
+        entity_ids: vec![VarInt(added_channel.entity.minecraft_id())].into(),
     };
 
     let packet_buf = compose.io_buf().encode_packet(&packet, &compose).unwrap();
 
     compose
         .io_buf()
-        .add_channel(ChannelId::new(trigger.target().id()), &packet_buf);
+        .add_channel(ChannelId::new(added_channel.entity.id()), &packet_buf);
 }
 
-fn remove_channel(trigger: Trigger<'_, OnDespawn, Channel>, compose: Res<'_, Compose>) {
+fn remove_channel(removed_channel: On<'_, '_, Despawn, Channel>, compose: Res<'_, Compose>) {
     compose
         .io_buf()
-        .remove_channel(ChannelId::new(trigger.target().id()));
+        .remove_channel(ChannelId::new(removed_channel.entity.id()));
 }
 
 fn update_channel_positions(
@@ -56,7 +65,7 @@ fn update_channel_positions(
 }
 
 fn send_subscribe_channel_packets(
-    mut events: EventReader<'_, '_, RequestSubscribeChannelPackets>,
+    mut events: MessageReader<'_, '_, RequestSubscribeChannelPackets>,
     compose: Res<'_, Compose>,
     query: Query<
         '_,
@@ -87,55 +96,51 @@ fn send_subscribe_channel_packets(
         let mut packet_buf;
         let minecraft_id = event.0.minecraft_id();
 
-        match entity_kind {
-            EntityKind::Player => {
-                let spawn_packet = play::PlayerSpawnS2c {
-                    entity_id: VarInt(minecraft_id),
-                    player_uuid: **uuid,
-                    position: position.as_dvec3(),
-                    yaw: ByteAngle::from_degrees(**yaw),
-                    pitch: ByteAngle::from_degrees(**pitch),
-                };
-                packet_buf = compose
+        if entity_kind == EntityKind::Player {
+            let spawn_packet = play::PlayerSpawnS2c {
+                entity_id: VarInt(minecraft_id),
+                player_uuid: **uuid,
+                position: position.as_dvec3(),
+                yaw: ByteAngle::from_degrees(**yaw),
+                pitch: ByteAngle::from_degrees(**pitch),
+            };
+            packet_buf = compose
+                .io_buf()
+                .encode_packet(&spawn_packet, &compose)
+                .unwrap();
+
+            let show_all = show_all(minecraft_id);
+            packet_buf
+                .extend_from_slice(&compose.io_buf().encode_packet(&show_all, &compose).unwrap());
+        } else {
+            let velocity = velocity.to_packet_units();
+
+            let spawn_packet = play::EntitySpawnS2c {
+                entity_id: VarInt(minecraft_id),
+                object_uuid: uuid.0,
+                kind: VarInt(entity_kind as i32),
+                position: position.as_dvec3(),
+                pitch: ByteAngle::from_degrees(**pitch),
+                yaw: ByteAngle::from_degrees(**yaw),
+                head_yaw: ByteAngle::from_degrees(0.0), // todo:
+                data: VarInt::default(),                // todo:
+                velocity,
+            };
+            packet_buf = compose
+                .io_buf()
+                .encode_packet(&spawn_packet, &compose)
+                .unwrap();
+
+            let velocity_packet = play::EntityVelocityUpdateS2c {
+                entity_id: VarInt(minecraft_id),
+                velocity,
+            };
+            packet_buf.extend_from_slice(
+                &compose
                     .io_buf()
-                    .encode_packet(&spawn_packet, &compose)
-                    .unwrap();
-
-                let show_all = show_all(minecraft_id);
-                packet_buf.extend_from_slice(
-                    &compose.io_buf().encode_packet(&show_all, &compose).unwrap(),
-                );
-            }
-            _ => {
-                let velocity = velocity.to_packet_units();
-
-                let spawn_packet = play::EntitySpawnS2c {
-                    entity_id: VarInt(minecraft_id),
-                    object_uuid: uuid.0,
-                    kind: VarInt(entity_kind as i32),
-                    position: position.as_dvec3(),
-                    pitch: ByteAngle::from_degrees(**pitch),
-                    yaw: ByteAngle::from_degrees(**yaw),
-                    head_yaw: ByteAngle::from_degrees(0.0), // todo:
-                    data: VarInt::default(),                // todo:
-                    velocity,
-                };
-                packet_buf = compose
-                    .io_buf()
-                    .encode_packet(&spawn_packet, &compose)
-                    .unwrap();
-
-                let velocity_packet = play::EntityVelocityUpdateS2c {
-                    entity_id: VarInt(minecraft_id),
-                    velocity,
-                };
-                packet_buf.extend_from_slice(
-                    &compose
-                        .io_buf()
-                        .encode_packet(&velocity_packet, &compose)
-                        .unwrap(),
-                );
-            }
+                    .encode_packet(&velocity_packet, &compose)
+                    .unwrap(),
+            );
         }
 
         let mut metadata = MetadataChanges::default();

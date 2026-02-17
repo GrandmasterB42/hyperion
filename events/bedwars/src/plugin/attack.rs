@@ -1,9 +1,20 @@
 use std::borrow::Cow;
 
-use bevy::prelude::*;
-use derive_more::with_trait::Add;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    component::Component,
+    entity::Entity,
+    lifecycle::Add,
+    message::{MessageReader, MessageWriter},
+    name::Name,
+    observer::On,
+    schedule::IntoScheduleConfigs,
+    system::{Commands, ParamSet, Query, Res, ResMut},
+    world::World,
+};
+use glam::{DVec3, IVec3, Vec3};
 use hyperion::{
-    BlockKind, ingress,
+    ingress,
     net::{Compose, ConnectionId, agnostic},
     runtime::AsyncRuntime,
     simulation::{
@@ -15,8 +26,7 @@ use hyperion_inventory::PlayerInventory;
 use hyperion_utils::{EntityExt, Prev};
 use tracing::error;
 use valence_protocol::{
-    ItemKind, ItemStack, Particle, VarInt, ident,
-    math::{DVec3, Vec3},
+    BlockKind, ItemKind, ItemStack, Particle, VarInt, ident,
     packets::play::{
         DamageTiltS2c, DeathMessageS2c, EntityDamageS2c, GameMessageS2c, ParticleS2c,
         client_status_c2s::ClientStatusC2s, player_interact_entity_c2s::EntityInteraction,
@@ -35,12 +45,25 @@ pub struct ImmuneUntil {
 }
 
 // Used as a component only for commands, does not include armor or weapons
-#[derive(Component, Default, Copy, Clone, Debug, Add)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 pub struct CombatStats {
     pub armor: f32,
     pub armor_toughness: f32,
     pub damage: f32,
     pub protection: f32,
+}
+
+impl std::ops::Add for CombatStats {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            armor: self.armor + rhs.armor,
+            armor_toughness: self.armor_toughness + rhs.armor_toughness,
+            damage: self.damage + rhs.damage,
+            protection: self.protection + rhs.protection,
+        }
+    }
 }
 
 /// Checks if the entity is immune to attacks and updates the immunity timer if it is
@@ -74,19 +97,19 @@ fn total_combat_stats(
 }
 
 fn initialize_player(
-    trigger: Trigger<'_, OnAdd, packet_state::Play>,
+    now_playing: On<'_, '_, Add, packet_state::Play>,
     mut commands: Commands<'_, '_>,
 ) {
     commands
-        .entity(trigger.target())
+        .entity(now_playing.entity)
         .insert((ImmuneUntil::default(), CombatStats::default()));
 }
 
 fn handle_melee_attacks(
-    mut packets: EventReader<'_, '_, play::PlayerInteractEntity>,
+    mut packets: MessageReader<'_, '_, play::PlayerInteractEntity>,
     origin_query: Query<'_, '_, (&Position, &PlayerInventory, &CombatStats)>,
     target_query: Query<'_, '_, (&Prev<Position>, &Position)>,
-    mut world_and_writer: ParamSet<'_, '_, (&World, EventWriter<'_, event::AttackEntity>)>,
+    mut world_and_writer: ParamSet<'_, '_, (&World, MessageWriter<'_, event::AttackEntity>)>,
 ) {
     for packet in packets.read() {
         if packet.interact != EntityInteraction::Attack {
@@ -152,7 +175,7 @@ fn handle_melee_attacks(
 }
 
 fn handle_attacks(
-    mut events: EventReader<'_, '_, event::AttackEntity>,
+    mut events: MessageReader<'_, '_, event::AttackEntity>,
     compose: Res<'_, Compose>,
     mut origin_query: Query<'_, '_, (&Team, &Name, &ConnectionId)>,
     mut target_query: Query<
@@ -289,7 +312,7 @@ fn handle_attacks(
 }
 
 fn handle_respawn(
-    mut packets: EventReader<'_, '_, play::ClientStatus>,
+    mut packets: MessageReader<'_, '_, play::ClientStatus>,
     query: Query<'_, '_, &Team>,
     candidates_query: Query<'_, '_, (Entity, &Position, &Team)>,
     mut blocks: ResMut<'_, Blocks>,

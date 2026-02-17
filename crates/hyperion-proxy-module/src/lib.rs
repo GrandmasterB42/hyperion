@@ -1,6 +1,7 @@
 use std::{net::SocketAddr, path::Path};
 
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{event::Event, observer::On, system::Res};
 use hyperion::runtime::AsyncRuntime;
 use tokio::net::TcpListener;
 
@@ -23,14 +24,16 @@ impl Default for SetProxyAddress {
 
 impl Plugin for HyperionProxyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SetProxyAddress>();
         app.add_observer(update_proxy_address);
     }
 }
 
-fn update_proxy_address(trigger: Trigger<'_, SetProxyAddress>, runtime: Res<'_, AsyncRuntime>) {
-    let proxy = trigger.proxy.clone();
-    let server = trigger.server.clone();
+fn update_proxy_address(
+    set_proxy_adress: On<'_, '_, SetProxyAddress>,
+    runtime: Res<'_, AsyncRuntime>,
+) {
+    let proxy = set_proxy_adress.proxy.clone();
+    let server = set_proxy_adress.server.clone();
 
     runtime.spawn(async move {
         let listener = TcpListener::bind(&proxy).await.unwrap();
@@ -42,6 +45,7 @@ fn update_proxy_address(trigger: Trigger<'_, SetProxyAddress>, runtime: Res<'_, 
             .next()
             .unwrap();
 
+        // TODO: Why are the paths hardcoded?
         hyperion_proxy::run_proxy(
             listener,
             addr,

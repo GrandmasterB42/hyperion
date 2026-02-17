@@ -1,7 +1,11 @@
-use bevy::{ecs::system::SystemState, prelude::*};
+use bevy_ecs::{
+    entity::Entity,
+    system::{Query, Res, SystemState},
+    world::World,
+};
 use clap::Parser;
+use glam::Vec3;
 use hyperion::{
-    glam::Vec3,
     simulation::{EntitySize, Pitch, Position, Yaw, blocks::Blocks, entity_kind::EntityKind},
     spatial::{SpatialIndex, get_first_collision},
 };

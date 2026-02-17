@@ -5,7 +5,7 @@ use std::{
     fmt::Debug,
 };
 
-use bevy::prelude::*;
+use bevy_ecs::{component::Component, entity::Entity, resource::Resource};
 use byteorder::WriteBytesExt;
 use bytes::{Bytes, BytesMut};
 pub use decoder::PacketDecoder;

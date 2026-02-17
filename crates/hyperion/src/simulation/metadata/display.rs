@@ -17,7 +17,6 @@
 // 21	Float (3)	Height	0.0
 // 22	VarInt (1)	Glow color override	-1
 
-use bevy::prelude::*;
 use valence_protocol::VarInt;
 
 use super::Metadata;

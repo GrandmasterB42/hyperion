@@ -1,6 +1,16 @@
 use std::borrow::Cow;
 
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    lifecycle::Remove,
+    message::MessageReader,
+    name::Name,
+    observer::On,
+    resource::Resource,
+    schedule::IntoScheduleConfigs,
+    system::{Commands, Query, Res},
+    world::World,
+};
 use colored::Colorize;
 use hyperion_utils::EntityExt;
 use serde_json::json;
@@ -48,7 +58,7 @@ use crate::{
 pub mod decode;
 
 pub fn process_handshake(
-    mut packets: EventReader<'_, '_, packet::handshake::Handshake>,
+    mut packets: MessageReader<'_, '_, packet::handshake::Handshake>,
     mut commands: Commands<'_, '_>,
 ) {
     for packet in packets.read() {
@@ -85,7 +95,7 @@ impl Default for ServerPingResponse {
 }
 
 fn process_status_request(
-    mut packets: EventReader<'_, '_, packet::status::QueryRequest>,
+    mut packets: MessageReader<'_, '_, packet::status::QueryRequest>,
     ping_response_data: Res<'_, ServerPingResponse>,
     compose: Res<'_, Compose>,
 ) {
@@ -129,7 +139,7 @@ fn process_status_request(
 }
 
 fn process_status_ping(
-    mut packets: EventReader<'_, '_, packet::status::QueryPing>,
+    mut packets: MessageReader<'_, '_, packet::status::QueryPing>,
     compose: Res<'_, Compose>,
 ) {
     for packet in packets.read() {
@@ -142,7 +152,7 @@ fn process_status_ping(
     }
 }
 pub fn process_login_hello(
-    mut packets: EventReader<'_, '_, packet::login::LoginHello>,
+    mut packets: MessageReader<'_, '_, packet::login::LoginHello>,
     compose: Res<'_, Compose>,
     runtime: Res<'_, AsyncRuntime>,
     skins_collection: Res<'_, SkinHandler>,
@@ -221,13 +231,13 @@ pub fn process_login_hello(
             let mut entity = world.entity_mut(sender);
 
             // TODO: The more specific components (such as ChunkSendQueue) should be added in a
-            // separate system
+            // separate system, this might be a case for required components?
             entity.remove::<packet_state::Login>().insert((
-                Name::new(username.to_string()),
+                Name::new(username.clone()),
                 ActiveAnimation::NONE,
                 AiTargetable,
                 ImmuneStatus::default(),
-                Uuid::from(uuid),
+                Uuid(uuid),
                 ChunkPosition::null(),
                 ChunkSendQueue::default(),
                 Yaw::default(),
@@ -251,19 +261,18 @@ pub fn process_login_hello(
 fn offline_uuid(username: &str) -> uuid::Uuid {
     let digest = sha2::Sha256::digest(username);
     let digest: [u8; 32] = digest.into();
-    let (&digest, ..) = digest.split_array_ref::<16>();
 
+    // UUid expects 16 bytes
     // todo: I have no idea which way we should go (be or le)
-    let digest = u128::from_be_bytes(digest);
-    uuid::Uuid::from_u128(digest)
+    uuid::Uuid::from_slice(&digest[0..16]).unwrap()
 }
 
 fn remove_player_from_visibility(
-    trigger: Trigger<'_, OnRemove, packet_state::Play>,
+    not_playing: On<'_, '_, Remove, packet_state::Play>,
     query: Query<'_, '_, &Uuid>,
     compose: Res<'_, Compose>,
 ) {
-    let uuid = match query.get(trigger.target()) {
+    let uuid = match query.get(not_playing.entity) {
         Ok(uuid) => uuid,
         Err(e) => {
             error!("failed to send player remove packet: query failed: {e}");
@@ -272,7 +281,7 @@ fn remove_player_from_visibility(
     };
 
     let uuids = &[uuid.0];
-    let entity_ids = [VarInt(trigger.target().minecraft_id())];
+    let entity_ids = [VarInt(not_playing.entity.minecraft_id())];
 
     // destroy
     let pkt = EntitiesDestroyS2c {

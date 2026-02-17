@@ -59,6 +59,7 @@ impl PalettedContainer {
                 *self = Self::Indirect(indirect);
                 previous
             }
+            #[expect(clippy::single_match_else)]
             Self::Indirect(indirect) => match unsafe { indirect.set_unchecked(index, value) } {
                 Ok(previous) => previous,
                 Err(indirect::Full) => {

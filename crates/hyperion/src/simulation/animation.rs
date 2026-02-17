@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy_ecs::component::Component;
 use enumset::{EnumSet, EnumSetType};
 use valence_protocol::{VarInt, packets::play::EntityAnimationS2c};
 

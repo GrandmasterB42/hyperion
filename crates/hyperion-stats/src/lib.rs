@@ -1,5 +1,4 @@
 #![feature(portable_simd)]
-#![feature(array_chunks)]
 #![feature(iter_array_chunks)]
 
 use std::simd::{f64x4, num::SimdFloat};
@@ -41,10 +40,8 @@ impl ParallelStats {
             self.simd_update(chunk_start, chunk_end, &values[chunk_start..chunk_end]);
         }
 
-        if let Some(remainder) = chunks.into_remainder() {
-            for i in remainder {
-                self.update_single(i, values[i]);
-            }
+        for i in chunks.into_remainder() {
+            self.update_single(i, values[i]);
         }
     }
 
@@ -61,6 +58,7 @@ impl ParallelStats {
             *count += 1;
         }
 
+        #[expect(clippy::cast_precision_loss)]
         // Convert counts to f64x4 for SIMD division
         let counts_f64 = f64x4::from_array([
             counts_chunk[0] as f64,
@@ -90,6 +88,7 @@ impl ParallelStats {
 
     fn update_single(&mut self, idx: usize, value: f64) {
         self.counts[idx] += 1;
+        #[allow(clippy::cast_precision_loss)]
         let count = self.counts[idx] as f64;
 
         // Update min/max
@@ -120,6 +119,7 @@ impl ParallelStats {
     #[must_use]
     pub fn variance(&self, idx: usize) -> Option<f64> {
         if self.counts[idx] > 1 {
+            #[allow(clippy::cast_precision_loss)]
             Some(self.m2s[idx] / (self.counts[idx] - 1) as f64)
         } else {
             None
@@ -206,6 +206,7 @@ mod tests {
         let values = vec![1.0, 2.0, 3.0, 4.0, 5.0];
         stats.update(&values);
 
+        #[allow(clippy::cast_precision_loss)]
         for i in 0..5 {
             assert_eq!(stats.count(i), 1);
             assert_relative_eq!(stats.mean(i).unwrap(), (i + 1) as f64);

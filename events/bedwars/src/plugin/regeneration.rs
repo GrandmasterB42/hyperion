@@ -1,4 +1,10 @@
-use bevy::prelude::*;
+use bevy_app::{App, FixedPostUpdate, Plugin};
+use bevy_ecs::{
+    component::Component,
+    lifecycle::Add,
+    observer::On,
+    system::{Commands, Query, Res},
+};
 use hyperion::{
     net::Compose,
     simulation::{metadata::living_entity::Health, packet_state},
@@ -15,11 +21,11 @@ pub struct LastDamaged {
 }
 
 fn initialize_player(
-    trigger: Trigger<'_, OnAdd, packet_state::Play>,
+    now_playing: On<'_, '_, Add, packet_state::Play>,
     mut commands: Commands<'_, '_>,
 ) {
     commands
-        .entity(trigger.target())
+        .entity(now_playing.entity)
         .insert(LastDamaged::default());
 }
 
@@ -45,6 +51,7 @@ fn regenerate(
         let ramp_factor = 0.0001_f32; // Increase in regeneration per tick
         let max_regen = 0.1; // Maximum regeneration per tick
 
+        #[expect(clippy::cast_precision_loss)]
         let regen_rate = ramp_factor
             .mul_add(ticks_since_damage as f32, base_regen)
             .min(max_regen);

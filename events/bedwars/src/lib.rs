@@ -1,11 +1,8 @@
-#![feature(allocator_api)]
-#![feature(let_chains)]
-#![feature(stmt_expr_attributes)]
-#![feature(exact_size_is_empty)]
-
+#![allow(missing_docs)]
 use std::net::SocketAddr;
 
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{component::Component, lifecycle::Add, observer::On, system::Commands};
 use hyperion::{Crypto, Endpoint, HyperionCore, simulation::packet_state, spatial::Spatial};
 use hyperion_proxy_module::SetProxyAddress;
 use valence_text::IntoText;
@@ -99,15 +96,14 @@ impl From<Team> for valence_text::Text {
 }
 
 fn initialize_player(
-    trigger: Trigger<'_, OnAdd, packet_state::Play>,
+    now_playing: On<'_, '_, Add, packet_state::Play>,
     mut commands: Commands<'_, '_>,
 ) {
     commands
-        .entity(trigger.target())
+        .entity(now_playing.entity)
         .insert((Spatial, Team::Red));
 }
 
-#[derive(Component)]
 pub struct BedwarsPlugin;
 
 impl Plugin for BedwarsPlugin {

@@ -1,11 +1,7 @@
-#![feature(let_chains)]
-#![feature(sync_unsafe_cell)]
-
 use std::{
-    cell::SyncUnsafeCell,
     mem::{MaybeUninit, size_of},
     num::NonZeroU32,
-    ops::{Deref, Range},
+    ops::Range,
     sync::{
         Arc,
         atomic::{AtomicUsize, Ordering},
@@ -13,7 +9,8 @@ use std::{
 };
 
 use arc_swap::ArcSwapOption;
-use bevy::prelude::*;
+use bevy_ecs::component::Component;
+use bevy_platform::cell::SyncUnsafeCell;
 use more_asserts::debug_assert_le;
 use valence_protocol::MAX_PACKET_SIZE;
 
@@ -22,7 +19,7 @@ use valence_protocol::MAX_PACKET_SIZE;
 struct Fragment {
     /// Points to the next fragment, if available. Once this is set to `Some`, this fragment's `read_cursor` will never be
     /// updated and `next` will never be modified.
-    next: ArcSwapOption<Fragment>,
+    next: ArcSwapOption<Self>,
 
     /// Bytes `0..read_cursor` in the `data` field have been initialized, can be read, will never
     /// be modified again, and contain entire packets.
@@ -417,7 +414,6 @@ impl RawPacket {
         Self { fragment, range }
     }
 
-    #[expect(clippy::missing_const_for_fn, reason = "false positive")]
     #[must_use]
     pub fn fragment_id(&self) -> usize {
         self.fragment.id
@@ -440,7 +436,7 @@ impl RawPacket {
     }
 }
 
-impl Deref for RawPacket {
+impl std::ops::Deref for RawPacket {
     type Target = [u8];
 
     fn deref(&self) -> &[u8] {

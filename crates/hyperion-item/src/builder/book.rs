@@ -1,5 +1,4 @@
-use hyperion::{ItemKind, ItemStack};
-use valence_protocol::nbt;
+use valence_protocol::{ItemKind, ItemStack, nbt};
 
 use crate::builder::ItemBuilder;
 
@@ -34,10 +33,10 @@ impl BookBuilder {
         let page = page.into();
         let json = format!(r#"{{"text":"{page}"}}"#);
 
-        if let Some(nbt) = &mut self.item.nbt {
-            if let nbt::Value::List(nbt::List::String(pages)) = nbt.get_mut("pages").unwrap() {
-                pages.push(json);
-            }
+        if let Some(nbt) = &mut self.item.nbt
+            && let nbt::Value::List(nbt::List::String(pages)) = nbt.get_mut("pages").unwrap()
+        {
+            pages.push(json);
         }
 
         self

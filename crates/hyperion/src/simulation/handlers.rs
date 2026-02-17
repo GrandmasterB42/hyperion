@@ -1,5 +1,12 @@
-use bevy::prelude::*;
-use glam::DVec3;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    message::{MessageReader, MessageWriter},
+    schedule::IntoScheduleConfigs,
+    system::{Commands, ParamSet, Query, Res},
+    world::World,
+};
+use glam::{DVec3, IVec3, Vec3};
 use hyperion_inventory::PlayerInventory;
 use hyperion_utils::next_lowest;
 use tracing::{error, warn};
@@ -39,10 +46,10 @@ use crate::{
               manually."
 )]
 fn position_and_look_updates(
-    mut full_reader: EventReader<'_, '_, play::Full>,
-    mut position_reader: EventReader<'_, '_, play::PositionAndOnGround>,
-    mut look_reader: EventReader<'_, '_, play::LookAndOnGround>,
-    mut teleport_reader: EventReader<'_, '_, play::TeleportConfirm>,
+    mut full_reader: MessageReader<'_, '_, play::Full>,
+    mut position_reader: MessageReader<'_, '_, play::PositionAndOnGround>,
+    mut look_reader: MessageReader<'_, '_, play::LookAndOnGround>,
+    mut teleport_reader: MessageReader<'_, '_, play::TeleportConfirm>,
     mut queries: ParamSet<
         '_,
         '_,
@@ -289,6 +296,7 @@ fn has_block_collision(position: &Vec3, size: EntitySize, blocks: &Blocks) -> bo
     let shrunk = aabb(*position, size).shrink(0.01);
 
     let res = blocks.get_blocks(min, max, |pos, block| {
+        #[expect(clippy::cast_precision_loss)]
         let pos = Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32);
 
         for aabb in block.collision_shapes() {
@@ -307,7 +315,7 @@ fn has_block_collision(position: &Vec3, size: EntitySize, blocks: &Blocks) -> bo
 }
 
 fn hand_swing(
-    mut packets: EventReader<'_, '_, play::HandSwing>,
+    mut packets: MessageReader<'_, '_, play::HandSwing>,
     mut query: Query<'_, '_, &mut ActiveAnimation>,
 ) {
     for packet in packets.read() {
@@ -332,10 +340,10 @@ fn hand_swing(
 
 // i.e., shooting a bow, digging a block, etc
 fn player_action(
-    mut packets: EventReader<'_, '_, play::PlayerAction>,
-    mut start_destroy_writer: EventWriter<'_, event::StartDestroyBlock>,
-    mut stop_destroy_writer: EventWriter<'_, event::DestroyBlock>,
-    mut release_writer: EventWriter<'_, event::ReleaseUseItem>,
+    mut packets: MessageReader<'_, '_, play::PlayerAction>,
+    mut start_destroy_writer: MessageWriter<'_, event::StartDestroyBlock>,
+    mut stop_destroy_writer: MessageWriter<'_, event::DestroyBlock>,
+    mut release_writer: MessageWriter<'_, event::ReleaseUseItem>,
     mut commands: Commands<'_, '_>,
 ) {
     for packet in packets.read() {
@@ -378,7 +386,7 @@ fn player_action(
 
 // for sneaking/crouching/etc
 fn client_command(
-    mut packets: EventReader<'_, '_, play::ClientCommand>,
+    mut packets: MessageReader<'_, '_, play::ClientCommand>,
     mut query: Query<'_, '_, (&mut Pose, &mut EntitySize, &mut MovementTracking)>,
 ) {
     for packet in packets.read() {
@@ -422,11 +430,11 @@ fn client_command(
 /// - Using tools/items with special right-click actions (e.g. fishing rods, shields)
 /// - Activating items with duration effects (e.g. chorus fruit teleport)
 fn player_interact_item(
-    mut packets: EventReader<'_, '_, play::PlayerInteractItem>,
+    mut packets: MessageReader<'_, '_, play::PlayerInteractItem>,
     compose: Res<'_, Compose>,
     query: Query<'_, '_, &PlayerInventory>,
-    mut interact_event_writer: EventWriter<'_, event::InteractEvent>,
-    mut item_interact_writer: EventWriter<'_, event::ItemInteract>,
+    mut interact_event_writer: MessageWriter<'_, event::InteractEvent>,
+    mut item_interact_writer: MessageWriter<'_, event::ItemInteract>,
 ) {
     for packet in packets.read() {
         let inventory = match query.get(packet.sender()) {
@@ -467,7 +475,7 @@ fn player_interact_item(
 }
 
 fn player_interact_block(
-    mut packets: EventReader<'_, '_, play::PlayerInteractBlock>,
+    mut packets: MessageReader<'_, '_, play::PlayerInteractBlock>,
     mut query: Query<
         '_,
         '_,
@@ -479,8 +487,8 @@ fn player_interact_block(
         ),
     >,
     blocks: Res<'_, Blocks>,
-    mut toggle_door_writer: EventWriter<'_, event::ToggleDoor>,
-    mut place_block_writer: EventWriter<'_, event::PlaceBlock>,
+    mut toggle_door_writer: MessageWriter<'_, event::ToggleDoor>,
+    mut place_block_writer: MessageWriter<'_, event::PlaceBlock>,
 ) {
     for packet in packets.read() {
         // PlayerInteractBlock contains:
@@ -571,7 +579,7 @@ fn player_interact_block(
 }
 
 fn creative_inventory_action(
-    mut packets: EventReader<'_, '_, play::CreativeInventoryAction>,
+    mut packets: MessageReader<'_, '_, play::CreativeInventoryAction>,
     mut query: Query<'_, '_, &mut PlayerInventory>,
 ) {
     for packet in packets.read() {
@@ -597,7 +605,7 @@ fn creative_inventory_action(
 }
 
 fn player_abilities(
-    mut packets: EventReader<'_, '_, play::UpdatePlayerAbilities>,
+    mut packets: MessageReader<'_, '_, play::UpdatePlayerAbilities>,
     mut query: Query<'_, '_, &mut Flight>,
 ) {
     for packet in packets.read() {

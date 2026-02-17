@@ -3,9 +3,19 @@ use std::{
     hash::Hash,
 };
 
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    component::Component,
+    entity::Entity,
+    lifecycle::{Add, Insert, Remove},
+    message::Message,
+    name::Name,
+    observer::On,
+    resource::Resource,
+    system::{Commands, Query, Res, ResMut},
+    world::World,
+};
 use bytemuck::{Pod, Zeroable};
-use derive_more::{Add, Constructor, Deref, DerefMut, Display, From, Sub};
 use geometry::aabb::Aabb;
 use glam::{DVec3, I16Vec2, IVec3, Vec3};
 use rustc_hash::FxHashMap;
@@ -47,26 +57,88 @@ pub mod packet_state;
 pub mod skin;
 pub mod util;
 
-#[derive(Resource, Default, Debug, Deref, DerefMut)]
+#[derive(Resource, Default, Debug)]
 pub struct StreamLookup {
     /// The UUID of all players
     inner: FxHashMap<u64, Entity>,
 }
 
-#[derive(Component, Default, Debug, Deref, DerefMut)]
+impl std::ops::Deref for StreamLookup {
+    type Target = FxHashMap<u64, Entity>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl std::ops::DerefMut for StreamLookup {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+#[derive(Component, Default, Debug)]
 pub struct PlayerUuidLookup {
     /// The UUID of all players
     inner: HashMap<Uuid, Entity>,
 }
 
+impl std::ops::Deref for PlayerUuidLookup {
+    type Target = HashMap<Uuid, Entity>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl std::ops::DerefMut for PlayerUuidLookup {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
 /// Communicates with the proxy server.
-#[derive(Clone, Deref, DerefMut, From)]
+#[derive(Clone)]
 pub struct EgressComm {
     pub(crate) tx: tokio::sync::mpsc::UnboundedSender<bytes::Bytes>,
 }
 
-#[derive(Resource, Deref, DerefMut, From, Debug, Default)]
+impl From<tokio::sync::mpsc::UnboundedSender<bytes::Bytes>> for EgressComm {
+    fn from(tx: tokio::sync::mpsc::UnboundedSender<bytes::Bytes>) -> Self {
+        Self { tx }
+    }
+}
+
+impl std::ops::Deref for EgressComm {
+    type Target = tokio::sync::mpsc::UnboundedSender<bytes::Bytes>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.tx
+    }
+}
+
+impl std::ops::DerefMut for EgressComm {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.tx
+    }
+}
+
+#[derive(Resource, Debug, Default)]
 pub struct IgnMap(FxHashMap<String, Entity>);
+
+impl std::ops::Deref for IgnMap {
+    type Target = FxHashMap<String, Entity>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for IgnMap {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 #[derive(Component, Debug, Default)]
 pub struct RaycastTravel;
@@ -78,8 +150,7 @@ pub struct RaycastTravel;
 pub struct Player;
 
 #[derive(
-    Component, Debug, Deref, DerefMut, PartialEq, Eq, PartialOrd, Copy, Clone, Default, Pod,
-    Zeroable, From
+    Component, Debug, PartialEq, Eq, PartialOrd, Copy, Clone, Default, Pod, Zeroable
 )]
 #[repr(C)]
 pub struct Xp {
@@ -236,8 +307,22 @@ impl Xp {
 
 pub const FULL_HEALTH: f32 = 20.0;
 
-#[derive(Component, Debug, Default, Deref, DerefMut)]
+#[derive(Component, Debug, Default)]
 pub struct ConfirmBlockSequences(pub Vec<i32>);
+
+impl std::ops::Deref for ConfirmBlockSequences {
+    type Target = Vec<i32>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for ConfirmBlockSequences {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 #[derive(Component, Debug, Eq, PartialEq, Default)]
 #[expect(missing_docs)]
@@ -255,15 +340,21 @@ impl ImmuneStatus {
 }
 
 /// A UUID component. Generally speaking, this tends to be tied to entities with a [`Player`] component.
-#[derive(
-    Component, Copy, Clone, Debug, Deref, From, Hash, Eq, PartialEq, Display
-)]
+#[derive(Component, Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub struct Uuid(pub uuid::Uuid);
 
 impl Uuid {
     #[must_use]
     pub fn new_v4() -> Self {
         Self(uuid::Uuid::new_v4())
+    }
+}
+
+impl std::ops::Deref for Uuid {
+    type Target = uuid::Uuid;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -283,6 +374,7 @@ impl Default for RunningSpeed {
     }
 }
 
+// TODO: This might be a good fit for a relationship?
 #[derive(Component)]
 pub struct Owner {
     pub entity: Entity,
@@ -300,20 +392,7 @@ impl Owner {
 pub struct AiTargetable;
 
 /// The full pose of an entity. This is used for both [`Player`] and [`Npc`].
-#[derive(
-    Component,
-    Copy,
-    Clone,
-    Debug,
-    Serialize,
-    Deserialize,
-    Deref,
-    DerefMut,
-    From,
-    PartialEq,
-    Add,
-    Sub
-)]
+#[derive(Component, Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Position {
     /// The (x, y, z) position of the entity.
     /// Note we are using [`Vec3`] instead of [`glam::DVec3`] because *cache locality* is important.
@@ -330,25 +409,82 @@ impl Position {
     }
 }
 
-#[derive(
-    Component,
-    Copy,
-    Clone,
-    Debug,
-    Deref,
-    DerefMut,
-    Default,
-    Constructor,
-    PartialEq
-)]
+impl std::ops::Add for Position {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            position: self.position + rhs.position,
+        }
+    }
+}
+
+impl std::ops::Sub for Position {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            position: self.position - rhs.position,
+        }
+    }
+}
+
+impl From<Vec3> for Position {
+    fn from(value: Vec3) -> Self {
+        Self { position: value }
+    }
+}
+
+impl std::ops::Deref for Position {
+    type Target = Vec3;
+
+    fn deref(&self) -> &Self::Target {
+        &self.position
+    }
+}
+
+impl std::ops::DerefMut for Position {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.position
+    }
+}
+
+#[derive(Component, Copy, Clone, Debug, Default, PartialEq)]
 pub struct Yaw {
     yaw: f32,
+}
+
+impl Yaw {
+    #[must_use]
+    pub const fn new(yaw: f32) -> Self {
+        Self { yaw }
+    }
 }
 
 impl std::fmt::Display for Yaw {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let yaw = self.yaw;
         write!(f, "{yaw}")
+    }
+}
+
+impl std::ops::Deref for Yaw {
+    type Target = f32;
+
+    fn deref(&self) -> &Self::Target {
+        &self.yaw
+    }
+}
+
+#[derive(Component, Copy, Clone, Debug, Default, PartialEq)]
+pub struct Pitch {
+    pitch: f32,
+}
+
+impl Pitch {
+    #[must_use]
+    pub const fn new(pitch: f32) -> Self {
+        Self { pitch }
     }
 }
 
@@ -359,25 +495,18 @@ impl std::fmt::Display for Pitch {
     }
 }
 
-#[derive(
-    Component,
-    Copy,
-    Clone,
-    Debug,
-    Deref,
-    DerefMut,
-    Default,
-    Constructor,
-    PartialEq
-)]
-pub struct Pitch {
-    pitch: f32,
+impl std::ops::Deref for Pitch {
+    type Target = f32;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pitch
+    }
 }
 
 const PLAYER_WIDTH: f32 = 0.6;
 const PLAYER_HEIGHT: f32 = 1.8;
 
-#[derive(Component, Copy, Clone, Debug, Constructor, PartialEq)]
+#[derive(Component, Copy, Clone, Debug, PartialEq)]
 pub struct EntitySize {
     pub half_width: f32,
     pub height: f32,
@@ -544,14 +673,14 @@ pub struct Flight {
 }
 
 fn initialize_player(
-    trigger: Trigger<'_, OnAdd, packet_state::Play>,
+    now_playing: On<'_, '_, Add, packet_state::Play>,
     mut ign_map: ResMut<'_, IgnMap>,
     compose: Res<'_, Compose>,
     name_query: Query<'_, '_, &Name>,
     connection_id_query: Query<'_, '_, &ConnectionId>,
     mut commands: Commands<'_, '_>,
 ) {
-    commands.entity(trigger.target()).insert((
+    commands.entity(now_playing.entity).insert((
         ConfirmBlockSequences::default(),
         EntitySize::default(),
         Flight::default(),
@@ -559,12 +688,12 @@ fn initialize_player(
         hyperion_inventory::CursorItem::default(),
     ));
 
-    let Ok(name) = name_query.get(trigger.target()) else {
+    let Ok(name) = name_query.get(now_playing.entity) else {
         error!("failed to initialize player: missing Name component");
         return;
     };
 
-    if let Some(other) = ign_map.insert(name.to_string(), trigger.target()) {
+    if let Some(other) = ign_map.insert(name.to_string(), now_playing.entity) {
         // Another player with the same username is already connected to the server.
         // Disconnect the previous player with the same username.
         // There are some Minecraft accounts with the same username, but this is an extremely
@@ -590,11 +719,11 @@ fn initialize_player(
 }
 
 fn remove_player(
-    trigger: Trigger<'_, OnRemove, packet_state::Play>,
+    not_playing: On<'_, '_, Remove, packet_state::Play>,
     mut ign_map: ResMut<'_, IgnMap>,
     name_query: Query<'_, '_, &Name>,
 ) {
-    let name = match name_query.get(trigger.target()) {
+    let name = match name_query.get(not_playing.entity) {
         Ok(name) => name,
         Err(e) => {
             error!("failed to remove player: query failed: {e}");
@@ -604,7 +733,7 @@ fn remove_player(
 
     match ign_map.entry(name.to_string()) {
         Entry::Occupied(entry) => {
-            if *entry.get() == trigger.target() {
+            if *entry.get() == not_playing.entity {
                 // This entry points to the same entity that got disconnected
                 entry.remove();
             } else {
@@ -625,10 +754,10 @@ fn remove_player(
 }
 
 /// For every new entity without a UUID, give it one
-fn initialize_uuid(trigger: Trigger<'_, OnAdd, EntityKind>, mut commands: Commands<'_, '_>) {
-    let target = trigger.target();
+fn initialize_uuid(known_entitykind: On<'_, '_, Add, EntityKind>, mut commands: Commands<'_, '_>) {
+    let e = known_entitykind.entity;
     commands.queue(move |world: &mut World| {
-        let mut entity = world.entity_mut(target);
+        let mut entity = world.entity_mut(e);
 
         // This doesn't use insert_if_new to avoid the cost of generating a random uuid if it is not needed
         if entity.get::<Uuid>().is_none() {
@@ -638,11 +767,11 @@ fn initialize_uuid(trigger: Trigger<'_, OnAdd, EntityKind>, mut commands: Comman
 }
 
 fn send_pending_teleportation(
-    trigger: Trigger<'_, OnInsert, PendingTeleportation>,
+    now_teleporting: On<'_, '_, Insert, PendingTeleportation>,
     query: Query<'_, '_, (&PendingTeleportation, &Yaw, &Pitch, &ConnectionId)>,
     compose: Res<'_, Compose>,
 ) {
-    let (pending_teleportation, yaw, pitch, &connection) = match query.get(trigger.target()) {
+    let (pending_teleportation, yaw, pitch, &connection) = match query.get(now_teleporting.entity) {
         Ok(data) => data,
         Err(e) => {
             error!("failed to send pending teleportation: query failed: {e}");
@@ -662,11 +791,11 @@ fn send_pending_teleportation(
 }
 
 fn update_flight(
-    trigger: Trigger<'_, OnInsert, (FlyingSpeed, Flight)>,
+    now_flying: On<'_, '_, Insert, (FlyingSpeed, Flight)>,
     compose: Res<'_, Compose>,
     query: Query<'_, '_, (&ConnectionId, &Flight, &FlyingSpeed)>,
 ) {
-    let Ok((&connection_id, flight, flying_speed)) = query.get(trigger.target()) else {
+    let Ok((&connection_id, flight, flying_speed)) = query.get(now_flying.entity) else {
         return;
     };
 
@@ -699,32 +828,32 @@ impl Plugin for SimPlugin {
             MetadataPlugin,
         ));
 
-        app.add_event::<RequestSubscribeChannelPackets>();
-        app.add_event::<event::ItemDropEvent>();
-        app.add_event::<event::ItemInteract>();
-        app.add_event::<event::SetSkin>();
-        app.add_event::<event::AttackEntity>();
-        app.add_event::<event::StartDestroyBlock>();
-        app.add_event::<event::DestroyBlock>();
-        app.add_event::<event::PlaceBlock>();
-        app.add_event::<event::ToggleDoor>();
-        app.add_event::<event::SwingArm>();
-        app.add_event::<event::ReleaseUseItem>();
-        app.add_event::<event::PostureUpdate>();
-        app.add_event::<event::BlockInteract>();
-        app.add_event::<event::ProjectileEntityEvent>();
-        app.add_event::<event::ProjectileBlockEvent>();
-        app.add_event::<event::ClickSlotEvent>();
-        app.add_event::<event::DropItemStackEvent>();
-        app.add_event::<event::UpdateSelectedSlotEvent>();
-        app.add_event::<event::HitGroundEvent>();
-        app.add_event::<event::InteractEvent>();
+        app.add_message::<RequestSubscribeChannelPackets>();
+        app.add_message::<event::ItemDropEvent>();
+        app.add_message::<event::ItemInteract>();
+        app.add_message::<event::SetSkin>();
+        app.add_message::<event::AttackEntity>();
+        app.add_message::<event::StartDestroyBlock>();
+        app.add_message::<event::DestroyBlock>();
+        app.add_message::<event::PlaceBlock>();
+        app.add_message::<event::ToggleDoor>();
+        app.add_message::<event::SwingArm>();
+        app.add_message::<event::ReleaseUseItem>();
+        app.add_message::<event::PostureUpdate>();
+        app.add_message::<event::BlockInteract>();
+        app.add_message::<event::ProjectileEntityEvent>();
+        app.add_message::<event::ProjectileBlockEvent>();
+        app.add_message::<event::ClickSlotEvent>();
+        app.add_message::<event::DropItemStackEvent>();
+        app.add_message::<event::UpdateSelectedSlotEvent>();
+        app.add_message::<event::HitGroundEvent>();
+        app.add_message::<event::InteractEvent>();
     }
 }
 
 /// Event sent when the proxy requests packets to send to a player who has subscribed to a channel.
 /// This event stores the channel entity.
-#[derive(Event)]
+#[derive(Message)]
 pub struct RequestSubscribeChannelPackets(pub Entity);
 
 #[derive(Component)]

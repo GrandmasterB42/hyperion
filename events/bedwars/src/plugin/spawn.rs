@@ -1,13 +1,18 @@
-use bevy::prelude::*;
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    event::EntityEvent,
+    observer::On,
+    system::{Commands, Res, ResMut},
+};
+use glam::{I16Vec2, IVec2, IVec3, Vec3};
 use hyperion::{
     InitializePlayerPosition,
     runtime::AsyncRuntime,
     simulation::{Position, blocks::Blocks},
-    valence_protocol::{
-        BlockKind,
-        math::{IVec2, IVec3, Vec3},
-    },
 };
+use roaring::RoaringBitmap;
+use tracing::info;
+use valence_protocol::{BlockKind, BlockState};
 
 const RADIUS: i32 = 0;
 const SPAWN_MIN_Y: i16 = 3;
@@ -24,10 +29,6 @@ fn random_chunk_in_radius() -> I16Vec2 {
     let pos: IVec2 = position_in_radius() >> 4;
     pos.as_i16vec2()
 }
-
-use hyperion::{glam::I16Vec2, valence_protocol::BlockState};
-use roaring::RoaringBitmap;
-use tracing::info;
 
 pub fn avoid_blocks() -> RoaringBitmap {
     let mut blocks = RoaringBitmap::new();
@@ -46,14 +47,15 @@ impl Plugin for SpawnPlugin {
         let avoid_blocks = avoid_blocks();
 
         app.add_observer(
-            move |trigger: Trigger<'_, InitializePlayerPosition>,
+            move |init_position: On<'_, '_, InitializePlayerPosition>,
                   mut blocks: ResMut<'_, Blocks>,
                   runtime: Res<'_, AsyncRuntime>,
                   mut commands: Commands<'_, '_>| {
                 let position =
                     Position::from(find_spawn_position(&mut blocks, &runtime, &avoid_blocks));
-                let target = trigger.event().0;
-                commands.entity(target).insert(position);
+                commands
+                    .entity(init_position.event_target())
+                    .insert(position);
             },
         );
     }
@@ -111,7 +113,7 @@ pub fn is_valid_spawn_block(
         return false;
     };
 
-    if ground.collision_shapes().is_empty() {
+    if ground.collision_shapes().len() == 0 {
         return false;
     }
 
@@ -122,7 +124,7 @@ pub fn is_valid_spawn_block(
     for displacement in DISPLACEMENTS {
         let above = pos + displacement;
         if let Some(block) = blocks.get_block(above) {
-            if !block.collision_shapes().is_empty() {
+            if block.collision_shapes().len() != 0 {
                 return false;
             }
 

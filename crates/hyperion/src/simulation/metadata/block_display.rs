@@ -1,4 +1,3 @@
-use bevy::prelude::*;
 use valence_generated::block::BlockState;
 
 use super::Metadata;

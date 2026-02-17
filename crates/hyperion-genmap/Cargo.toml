@@ -1,15 +1,15 @@
 [package]
 name = "hyperion-genmap"
-version = "0.1.0"
-edition = "2021"
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-readme = "README.md"
+edition.workspace = true
+version.workspace = true
 publish = false
+readme = "README.md"
 
 [dependencies]
-bevy = { workspace = true }
-hyperion = { workspace = true }
-hyperion-utils = { workspace = true }
+hyperion.workspace = true
+hyperion-utils.workspace = true
+
+bevy_app.workspace = true
 
 [lints]
 workspace = true

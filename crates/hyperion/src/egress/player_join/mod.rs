@@ -1,7 +1,17 @@
 use std::{borrow::Cow, collections::BTreeSet};
 
 use anyhow::Context;
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    lifecycle::Add,
+    message::{Message, MessageReader, MessageWriter},
+    name::Name,
+    observer::On,
+    system::{Local, ParallelCommands, Query, Res},
+    world::{FromWorld, World},
+};
+use bytes::Bytes;
 use glam::DVec3;
 use hyperion_crafting::{Action, CraftingRegistry, RecipeBookState};
 use hyperion_utils::EntityExt;
@@ -32,29 +42,25 @@ use crate::{
     },
 };
 
-#[derive(Event)]
+#[derive(Message)]
 struct ProcessPlayerJoin(Entity);
 
 fn add_process_player_join(
-    trigger: Trigger<'_, OnAdd, PlayerSkin>,
-    mut events: EventWriter<'_, ProcessPlayerJoin>,
+    added_player_skin: On<'_, '_, Add, PlayerSkin>,
+    mut events: MessageWriter<'_, ProcessPlayerJoin>,
 ) {
-    events.write(ProcessPlayerJoin(trigger.target()));
+    events.write(ProcessPlayerJoin(added_player_skin.entity));
 }
 
 fn process_player_join(
-    mut events: EventReader<'_, '_, ProcessPlayerJoin>,
+    mut events: MessageReader<'_, '_, ProcessPlayerJoin>,
     compose: Res<'_, Compose>,
-    crafting_registry: Res<'_, CraftingRegistry>,
     config: Res<'_, Config>,
     target_query: Query<'_, '_, (&Uuid, &Name, &ConnectionId, &Position, &Yaw, &PlayerSkin)>,
     others_query: Query<'_, '_, (Entity, &Uuid, &Name)>,
     commands: ParallelCommands<'_, '_>,
+    common_response: Local<'_, CommonPlayerJoinResponses>,
 ) {
-    static CACHED_DATA: once_cell::sync::OnceCell<bytes::Bytes> = once_cell::sync::OnceCell::new();
-
-    let crafting_registry = &crafting_registry;
-
     events.par_read().for_each(|event| {
         let mut bundle = DataBundle::new(&compose);
 
@@ -120,30 +126,7 @@ fn process_player_join(
 
         bundle.add_packet(&pkt).unwrap();
 
-        let cached_data = CACHED_DATA
-            .get_or_init(|| {
-                let compression_level = compose.global().shared.compression_threshold;
-                let mut encoder = PacketEncoder::new();
-                encoder.set_compression(compression_level);
-
-                info!(
-                    "caching world data for new players with compression level \
-                     {compression_level:?}"
-                );
-
-                #[expect(
-                    clippy::unwrap_used,
-                    reason = "this is only called once on startup; it should be fine. we mostly \
-                              care about crashing during server execution"
-                )]
-                generate_cached_packet_bytes(&mut encoder, crafting_registry).unwrap();
-
-                let bytes = encoder.take();
-                bytes.freeze()
-            })
-            .clone();
-
-        bundle.add_raw(&cached_data);
+        bundle.add_raw(&common_response.cached_data);
 
         let text = play::GameMessageS2c {
             chat: format!("{name} joined the world").into_cow_text(),
@@ -282,94 +265,113 @@ fn process_player_join(
     });
 }
 
-fn send_sync_tags(encoder: &mut PacketEncoder) -> anyhow::Result<()> {
-    let bytes = include_bytes!("data/tags.json");
-
-    let groups = serde_json::from_slice(bytes)?;
-
-    let pkt = play::SynchronizeTagsS2c { groups };
-
-    encoder
-        .append_packet(&pkt)
-        .map_err(|e| anyhow::anyhow!(e))?;
-
-    Ok(())
+struct CommonPlayerJoinResponses {
+    pub cached_data: Bytes,
 }
 
-#[expect(
-    clippy::unwrap_used,
-    reason = "this is only called once on startup; it should be fine. we mostly care about \
-              crashing during server execution"
-)]
-fn generate_cached_packet_bytes(
-    encoder: &mut PacketEncoder,
-    crafting_registry: &CraftingRegistry,
-) -> anyhow::Result<()> {
-    send_sync_tags(encoder)?;
+impl CommonPlayerJoinResponses {
+    fn encode_sync_tags(encoder: &mut PacketEncoder) -> anyhow::Result<()> {
+        let bytes = include_bytes!("data/tags.json");
 
-    let mut buf: heapless::Vec<u8, 32> = heapless::Vec::new();
-    let brand = b"hyperion";
-    let brand_len = u8::try_from(brand.len()).context("brand length too long to fit in u8")?;
-    buf.push(brand_len).unwrap();
-    buf.extend_from_slice(brand).unwrap();
+        let groups = serde_json::from_slice(bytes)?;
 
-    let bytes = RawBytes::from(CowBytes::Borrowed(&buf));
+        let pkt = play::SynchronizeTagsS2c { groups };
 
-    let brand = play::CustomPayloadS2c {
-        channel: ident!("minecraft:brand"),
-        data: bytes.into(),
-    };
-
-    encoder
-        .append_packet(&brand)
-        .map_err(|e| anyhow::anyhow!(e))?;
-
-    encoder
-        .append_packet(&play::TeamS2c {
-            team_name: Utf8Bytes::from_static("no_tag").into(),
-            mode: Mode::CreateTeam {
-                team_display_name: Cow::default(),
-                friendly_flags: TeamFlags::default(),
-                name_tag_visibility: NameTagVisibility::Never,
-                collision_rule: CollisionRule::Always,
-                team_color: TeamColor::Black,
-                team_prefix: Cow::default(),
-                team_suffix: Cow::default(),
-                entities: vec![],
-            },
-        })
-        .map_err(|e| anyhow::anyhow!(e))?;
-
-    if let Some(pkt) = crafting_registry.packet() {
         encoder
             .append_packet(&pkt)
             .map_err(|e| anyhow::anyhow!(e))?;
+
+        Ok(())
     }
 
-    // unlock
-    let pkt = hyperion_crafting::UnlockRecipesS2c {
-        action: Action::Init,
-        crafting_recipe_book: RecipeBookState::FALSE,
-        smelting_recipe_book: RecipeBookState::FALSE,
-        blast_furnace_recipe_book: RecipeBookState::FALSE,
-        smoker_recipe_book: RecipeBookState::FALSE,
-        recipe_ids_1: vec!["hyperion:what".to_string()],
-        recipe_ids_2: vec!["hyperion:what".to_string()],
-    };
+    fn generate_cached_packet_bytes(
+        encoder: &mut PacketEncoder,
+        crafting_registry: &CraftingRegistry,
+    ) -> anyhow::Result<()> {
+        Self::encode_sync_tags(encoder)?;
 
-    encoder
-        .append_packet(&pkt)
-        .map_err(|e| anyhow::anyhow!(e))?;
+        let mut buf: heapless::Vec<u8, 32> = heapless::Vec::new();
+        let brand = b"hyperion";
+        let brand_len = u8::try_from(brand.len()).context("brand length too long to fit in u8")?;
+        buf.push(brand_len).unwrap();
+        buf.extend_from_slice(brand).unwrap();
 
-    Ok(())
+        let bytes = RawBytes::from(CowBytes::Borrowed(&buf));
+
+        let brand = play::CustomPayloadS2c {
+            channel: ident!("minecraft:brand"),
+            data: bytes.into(),
+        };
+
+        encoder
+            .append_packet(&brand)
+            .map_err(|e| anyhow::anyhow!(e))?;
+
+        encoder
+            .append_packet(&play::TeamS2c {
+                team_name: Utf8Bytes::from_static("no_tag").into(),
+                mode: Mode::CreateTeam {
+                    team_display_name: Cow::default(),
+                    friendly_flags: TeamFlags::default(),
+                    name_tag_visibility: NameTagVisibility::Never,
+                    collision_rule: CollisionRule::Always,
+                    team_color: TeamColor::Black,
+                    team_prefix: Cow::default(),
+                    team_suffix: Cow::default(),
+                    entities: vec![],
+                },
+            })
+            .map_err(|e| anyhow::anyhow!(e))?;
+
+        if let Some(pkt) = crafting_registry.packet() {
+            encoder
+                .append_packet(&pkt)
+                .map_err(|e| anyhow::anyhow!(e))?;
+        }
+
+        // unlock
+        let pkt = hyperion_crafting::UnlockRecipesS2c {
+            action: Action::Init,
+            crafting_recipe_book: RecipeBookState::FALSE,
+            smelting_recipe_book: RecipeBookState::FALSE,
+            blast_furnace_recipe_book: RecipeBookState::FALSE,
+            smoker_recipe_book: RecipeBookState::FALSE,
+            recipe_ids_1: vec!["hyperion:what".to_string()],
+            recipe_ids_2: vec!["hyperion:what".to_string()],
+        };
+
+        encoder
+            .append_packet(&pkt)
+            .map_err(|e| anyhow::anyhow!(e))?;
+
+        Ok(())
+    }
 }
 
-#[derive(Component)]
+impl FromWorld for CommonPlayerJoinResponses {
+    fn from_world(world: &mut World) -> Self {
+        let crafting_registry = world.get_resource::<CraftingRegistry>().unwrap();
+        let compose = world.get_resource::<Compose>().unwrap();
+
+        let compression_level = compose.global().shared.compression_threshold;
+        let mut encoder = PacketEncoder::new();
+        encoder.set_compression(compression_level);
+
+        info!("caching world data for players with compression level {compression_level:?}");
+
+        Self::generate_cached_packet_bytes(&mut encoder, crafting_registry).unwrap();
+
+        Self {
+            cached_data: encoder.take().freeze(),
+        }
+    }
+}
+
 pub struct PlayerJoinPlugin;
 
 impl Plugin for PlayerJoinPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ProcessPlayerJoin>();
+        app.add_message::<ProcessPlayerJoin>();
         app.add_observer(add_process_player_join);
         app.add_systems(FixedUpdate, process_player_join);
     }

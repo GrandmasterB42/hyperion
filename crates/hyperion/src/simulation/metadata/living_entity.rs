@@ -12,7 +12,6 @@
 
 use std::fmt::Display;
 
-use bevy::prelude::*;
 use valence_protocol::VarInt;
 
 use super::Metadata;

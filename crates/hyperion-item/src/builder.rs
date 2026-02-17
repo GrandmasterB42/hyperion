@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy_ecs::entity::Entity;
 use valence_protocol::{ItemKind, ItemStack, nbt, nbt::Value};
 
 mod book;
@@ -85,8 +85,8 @@ impl ItemBuilder {
     /// # Example
     /// ```
     /// // Create a red leather helmet
-    /// use hyperion::ItemKind;
     /// use hyperion_item::builder::{Color, ItemBuilder};
+    /// use valence_protocol::ItemKind;
     /// let item = ItemBuilder::new(ItemKind::LeatherHelmet)
     ///     .color(Color(255, 0, 0))
     ///     .build();

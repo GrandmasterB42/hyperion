@@ -1,11 +1,18 @@
-use bevy::{ecs::system::SystemState, prelude::*};
+use bevy_ecs::{
+    entity::Entity,
+    system::{Commands, Query, SystemState},
+    world::World,
+};
 use clap::Parser;
-use hyperion::{ItemKind, ItemStack, simulation::entity_kind::EntityKind};
+use hyperion::simulation::entity_kind::EntityKind;
 use hyperion_clap::{CommandPermission, MinecraftCommand};
 use hyperion_gui::Gui;
 use hyperion_inventory::Inventory;
 use tracing::debug;
-use valence_protocol::packets::play::{click_slot_c2s::ClickMode, open_screen_s2c::WindowType};
+use valence_protocol::{
+    ItemKind, ItemStack,
+    packets::play::{click_slot_c2s::ClickMode, open_screen_s2c::WindowType},
+};
 
 #[derive(Parser, CommandPermission, Debug)]
 #[command(name = "testgui")]

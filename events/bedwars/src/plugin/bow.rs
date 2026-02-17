@@ -1,9 +1,16 @@
 use std::time::{Duration, SystemTime};
 
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{
+    component::Component,
+    lifecycle::Add,
+    message::{MessageReader, MessageWriter},
+    observer::On,
+    schedule::IntoScheduleConfigs,
+    system::{Commands, Query},
+};
+use glam::Vec3;
 use hyperion::{
-    ItemKind, ItemStack,
-    glam::Vec3,
     net::Channel,
     simulation::{
         Owner, Pitch, Position, Uuid, Velocity, Yaw,
@@ -15,7 +22,7 @@ use hyperion::{
 };
 use hyperion_inventory::PlayerInventory;
 use tracing::{debug, error};
-use valence_protocol::ident;
+use valence_protocol::{ItemKind, ItemStack, ident};
 
 #[derive(Component)]
 pub struct LastFireTime {
@@ -66,16 +73,16 @@ impl BowCharging {
 }
 
 fn initialize_player(
-    trigger: Trigger<'_, OnAdd, packet_state::Play>,
+    now_playing: On<'_, '_, Add, packet_state::Play>,
     mut commands: Commands<'_, '_>,
 ) {
     commands
-        .entity(trigger.target())
+        .entity(now_playing.entity)
         .insert((LastFireTime::now(), BowCharging::default()));
 }
 
 fn handle_bow_use(
-    mut events: EventReader<'_, '_, event::ItemInteract>,
+    mut events: MessageReader<'_, '_, event::ItemInteract>,
     query: Query<'_, '_, &PlayerInventory>,
     mut commands: Commands<'_, '_>,
 ) {
@@ -100,7 +107,7 @@ fn handle_bow_use(
 }
 
 fn handle_bow_release(
-    mut events: EventReader<'_, '_, event::ReleaseUseItem>,
+    mut events: MessageReader<'_, '_, event::ReleaseUseItem>,
     mut query: Query<
         '_,
         '_,
@@ -194,11 +201,11 @@ fn handle_bow_release(
 }
 
 fn arrow_entity_hit(
-    mut events: EventReader<'_, '_, event::ProjectileEntityEvent>,
+    mut events: MessageReader<'_, '_, event::ProjectileEntityEvent>,
     arrow_query: Query<'_, '_, (&Velocity, &Owner)>,
     mut player_query: Query<'_, '_, &mut ArrowsInEntity>,
     mut commands: Commands<'_, '_>,
-    mut writer: EventWriter<'_, event::AttackEntity>,
+    mut writer: MessageWriter<'_, event::AttackEntity>,
 ) {
     for event in events.read() {
         let (velocity, owner) = match arrow_query.get(event.projectile) {
@@ -239,7 +246,7 @@ fn arrow_entity_hit(
 }
 
 fn arrow_block_hit(
-    mut events: EventReader<'_, '_, event::ProjectileBlockEvent>,
+    mut events: MessageReader<'_, '_, event::ProjectileBlockEvent>,
     mut query: Query<'_, '_, (&mut Position, &mut Velocity)>,
 ) {
     for event in events.read() {

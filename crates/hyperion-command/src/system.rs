@@ -1,11 +1,13 @@
 use std::{fmt::Write, sync::TryLockError};
 
-use bevy::prelude::*;
+use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_ecs::{message::MessageReader, schedule::IntoScheduleConfigs, system::Res, world::World};
 use hyperion::{
     ingress,
     net::{Compose, agnostic},
     simulation::packet::play,
 };
+use itertools::Itertools;
 use tracing::{debug, warn};
 
 use crate::component::CommandRegistry;
@@ -23,7 +25,7 @@ use crate::component::CommandRegistry;
     reason = "the mutex should not be contended and the lock guard lifetime cannot be tightened"
 )]
 fn execute_commands(
-    mut packets: EventReader<'_, '_, play::CommandExecution>,
+    mut packets: MessageReader<'_, '_, play::CommandExecution>,
     registry: Res<'_, CommandRegistry>,
     compose: Res<'_, Compose>,
     world: &World,
@@ -54,10 +56,7 @@ fn execute_commands(
             let mut msg = String::new();
             write!(&mut msg, "§cAvailable commands: §r[").unwrap();
 
-            for w in registry
-                .get_permitted(world, packet.sender())
-                .intersperse(", ")
-            {
+            for w in Itertools::intersperse(registry.get_permitted(world, packet.sender()), ", ") {
                 write!(&mut msg, "{w}").unwrap();
             }
 
@@ -99,7 +98,7 @@ fn apply_deferred_changes(world: &mut World) {
     reason = "the mutex should not be contended and the lock guard lifetime cannot be tightened"
 )]
 fn complete_commands(
-    mut packets: EventReader<'_, '_, play::RequestCommandCompletions>,
+    mut packets: MessageReader<'_, '_, play::RequestCommandCompletions>,
     registry: Res<'_, CommandRegistry>,
     world: &World,
 ) {

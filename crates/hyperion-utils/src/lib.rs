@@ -3,9 +3,12 @@ pub mod iterator;
 pub mod prev;
 use std::path::PathBuf;
 
-use bevy::{
-    ecs::system::{SystemParam, SystemState},
-    prelude::*,
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    entity::{Entity, EntityIndex},
+    resource::Resource,
+    system::{SystemParam, SystemState},
+    world::World,
 };
 pub use cached_save::cached_save;
 pub use prev::{Prev, track_prev};
@@ -18,17 +21,23 @@ pub trait EntityExt: Sized {
     fn from_minecraft_id(id: i32, world: &World) -> anyhow::Result<Self>;
 }
 
+// TODO: How does this fit into the picture? Why are we using the internal id?
 impl EntityExt for Entity {
     fn id(&self) -> u32 {
-        self.index()
+        self.index().index()
     }
 
     fn from_id(id: u32, world: &World) -> anyhow::Result<Self> {
-        // TODO: According to the docs, this should check if the returned entity is freed
-        world
-            .entities()
-            .resolve_from_id(id)
-            .ok_or_else(|| anyhow::anyhow!("minecraft id is invalid"))
+        let Some(id) = EntityIndex::from_raw_u32(id) else {
+            anyhow::bail!("minecraft id is should not be u32::MAX")
+        };
+
+        let entities = world.entities();
+        if !entities.is_index_spawned(id) {
+            anyhow::bail!("minecraft id is invalid")
+        }
+
+        Ok(world.entities().resolve_from_index(id))
     }
 
     fn minecraft_id(&self) -> i32 {

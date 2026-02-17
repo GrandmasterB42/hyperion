@@ -1,4 +1,10 @@
-use bevy::{ecs::batching::BatchingStrategy, prelude::*};
+use bevy_app::{App, FixedPostUpdate, Plugin};
+use bevy_ecs::{
+    batching::BatchingStrategy,
+    entity::Entity,
+    message::MessageWriter,
+    system::{ParallelCommands, ParamSet, Query, Res},
+};
 use glam::{IVec3, Vec3};
 use hyperion_utils::{EntityExt, Prev, track_prev};
 use itertools::Either;
@@ -105,7 +111,7 @@ fn sync_player_entity(
             &Flight,
         ),
     >,
-    mut event_writer: EventWriter<'_, HitGroundEvent>,
+    mut event_writer: MessageWriter<'_, HitGroundEvent>,
     commands: ParallelCommands<'_, '_>,
 ) {
     let events = boxcar::Vec::new();
@@ -304,8 +310,8 @@ fn update_projectile_positions(
             Query<'_, '_, (&Position, &EntitySize)>,
         ),
     >,
-    mut projectile_block_writer: EventWriter<'_, event::ProjectileBlockEvent>,
-    mut projectile_entity_writer: EventWriter<'_, event::ProjectileEntityEvent>,
+    mut projectile_block_writer: MessageWriter<'_, event::ProjectileBlockEvent>,
+    mut projectile_entity_writer: MessageWriter<'_, event::ProjectileEntityEvent>,
     index: Res<'_, SpatialIndex>,
     blocks: Res<'_, Blocks>,
 ) {

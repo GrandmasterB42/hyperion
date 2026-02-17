@@ -1,17 +1,19 @@
+[package]
+name = "hyperion-proxy-module"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
 [dependencies]
-bevy = { workspace = true }
-hyperion-proxy = { workspace = true }
-hyperion = { workspace = true }
-tracing = { workspace = true }
-tokio = { workspace = true , features = ["full"]}
+hyperion.workspace = true
+hyperion-proxy.workspace = true
+
+bevy_app.workspace = true
+bevy_ecs.workspace = true
+
+tokio.workspace = true
+tracing.workspace = true
 
 [lints]
 workspace = true
-
-[package]
-authors = ["Andrew Gazelka <andrew.gazelka@gmail.com>"]
-edition.workspace = true
-name = "hyperion-proxy-module"
-publish = false
-readme = "README.md"
-version.workspace = true
