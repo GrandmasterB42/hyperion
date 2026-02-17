@@ -97,7 +97,7 @@ ENV RUST_BACKTRACE=1 \
 # Hyperion Proxy Release
 FROM runtime-base AS hyperion-proxy
 COPY --from=build-release /app/build/hyperion-proxy /
-LABEL org.opencontainers.image.source="https://github.com/andrewgazelka/hyperion" \
+LABEL org.opencontainers.image.source="https://github.com/GrandmasterB42/hyperion" \
     org.opencontainers.image.description="Hyperion Proxy Server" \
     org.opencontainers.image.version="0.1.0"
 EXPOSE 25565
@@ -107,7 +107,7 @@ ENTRYPOINT ["/hyperion-proxy"]
 
 FROM runtime-base AS bedwars
 COPY --from=build-release /app/build/bedwars /
-LABEL org.opencontainers.image.source="https://github.com/andrewgazelka/hyperion" \
+LABEL org.opencontainers.image.source="https://github.com/GrandmasterB42/hyperion" \
     org.opencontainers.image.description="Hyperion Bedwars Event" \
     org.opencontainers.image.version="0.1.0"
 ENV BEDWARS_IP="0.0.0.0" \
@@ -117,7 +117,7 @@ ENTRYPOINT ["/bedwars"]
 
 FROM runtime-base AS rust-mc-bot
 COPY --from=build-release /app/build/rust-mc-bot /
-LABEL org.opencontainers.image.source="https://github.com/andrewgazelka/rust-mc-bot" \
+LABEL org.opencontainers.image.source="https://github.com/GrandmasterB42/rust-mc-bot" \
     org.opencontainers.image.description="Rust Minecraft Bot" \
     org.opencontainers.image.version="0.1.0"
 ENV BOT_SERVER="hyperion-proxy:25565" \
