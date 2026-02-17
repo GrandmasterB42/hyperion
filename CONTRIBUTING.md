@@ -7,6 +7,7 @@
 - [Running for Development](#running-for-development)
 - [Production Deployment](#production-deployment)
 - [Development Tools](#development-tools)
+- [Documentation](#documentation)
 - [Protocol Documentation](#protocol-documentation)
 - [Architecture](#architecture)
 
@@ -148,6 +149,13 @@ Copy `target/release/bedwars` to the game server and run:
 ### Tracy Profiler
 
 [Tracy](https://github.com/wolfpld/tracy) is a frame profiler. Hyperion has Tracy instrumentation for finding performance bottlenecks.
+
+## Documentation
+
+The project documentation is built with [VitePress](https://vitepress.dev/) and lives in the `docs/` directory.
+
+> [!NOTE]
+> The documentation has not been reworked after the fork
 
 ## Protocol Documentation
 

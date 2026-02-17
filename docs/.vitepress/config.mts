@@ -8,6 +8,7 @@ import footnote from 'markdown-it-footnote'
 const config = defineConfig({
     title: "Hyperion",
     description: "The most advanced Minecraft game engine built in Rust",
+    base: '/hyperion/',
     markdown: {
         math: true,
         config: (md) => {
