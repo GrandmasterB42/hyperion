@@ -201,7 +201,7 @@ fn write_transformer(packets: &[Packet]) -> anyhow::Result<()> {
     let generated = quote! {
         const NOT_AVAILABLE: &str = "Not yet implemented";
 
-        #[allow(clippy::match_wildcard_for_single_variants)]
+        #[allow(clippy::match_wildcard_for_single_variants, clippy::too_many_lines)]
         pub(crate) fn packet_to_string(packet: &ProxyPacket) -> Result<String, Box<dyn std::error::Error>> {
             let bytes = packet.data.as_ref().unwrap();
             let mut data = &bytes.clone()[..];
