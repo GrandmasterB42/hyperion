@@ -5,9 +5,18 @@ version.workspace = true
 publish = false
 readme = "README.md"
 
+[features]
+reflect = [
+    "dep:bevy_reflect",
+    "bevy_app/reflect_auto_register",
+    "bevy_ecs/reflect_auto_register",
+    "bevy_reflect/auto_register_inventory",
+]
+
 [dependencies]
 bevy_app.workspace = true
 bevy_ecs.workspace = true
+bevy_reflect = { workspace = true, optional = true }
 
 anyhow.workspace = true
 bytemuck.workspace = true

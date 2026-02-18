@@ -10,27 +10,38 @@ use valence_protocol::{
     nbt::Compound,
     packets::play::{click_slot_c2s::ClickMode, open_screen_s2c::WindowType},
 };
+#[cfg(feature = "reflect")]
+use {
+    bevy_ecs::reflect::ReflectComponent,
+    bevy_reflect::{Reflect, std_traits::ReflectDefault},
+};
 
 pub type PlayerInventory = Inventory;
 
 #[derive(Component, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component, Default))]
 pub struct Inventory {
     /// The slots in the inventory
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     slots: Box<[ItemSlot]>,
     /// Index to the slot held in the player's hand. This is guaranteed to be a valid index.
     hand_slot: u16,
     title: String,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     kind: WindowType,
     readonly: bool,
 }
 
 #[derive(Component, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component, Default))]
 pub struct InventoryState {
     window_id: u8,
     state_id: Wrapping<i32>,
     // i64 is the last tick
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     last_stack_clicked: (ItemStack, i64),
     last_button: (i8, i64),
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     last_mode: (ClickMode, i64),
 }
 
@@ -129,6 +140,7 @@ impl ItemSlot {
 }
 
 #[derive(Component, Clone, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct OpenInventory {
     pub inventory: Entity,
     pub client_changed: u64,
@@ -145,7 +157,8 @@ impl OpenInventory {
 }
 
 #[derive(Component, Clone, PartialEq, Default, Debug)]
-pub struct CursorItem(pub ItemStack);
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
+pub struct CursorItem(#[cfg_attr(feature = "reflect", reflect(ignore))] pub ItemStack);
 
 impl std::ops::Deref for CursorItem {
     type Target = ItemStack;

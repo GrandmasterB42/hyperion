@@ -11,6 +11,8 @@ use bevy_ecs::{
 use hyperion_utils::{Prev, track_prev};
 use tracing::error;
 use valence_protocol::{Encode, VarInt};
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 use crate::simulation::metadata::entity::{EntityFlags, Pose};
 
@@ -105,6 +107,7 @@ use super::entity_kind::EntityKind;
 use crate::simulation::metadata::r#type::MetadataType;
 
 #[derive(Debug, Default, Component, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 // index (u8), type (varint), value (varies)
 /// <https://wiki.vg/Entity_metadata>
 ///
@@ -126,6 +129,7 @@ macro_rules! define_metadata_component {
     ($index:literal, $name:ident -> $type:ty) => {
         #[derive(bevy_ecs::component::Component, Clone, PartialEq, Debug)]
         #[allow(clippy::derive_partial_eq_without_eq)]
+        // TODO: Do these need Reflect?
         pub struct $name {
             value: $type,
         }

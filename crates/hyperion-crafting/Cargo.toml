@@ -5,10 +5,18 @@ version.workspace = true
 publish = false
 readme = "README.md"
 
+[features]
+reflect = [
+    "dep:bevy_reflect",
+    "bevy_ecs/reflect_auto_register",
+    "bevy_reflect/auto_register_inventory",
+]
+
 [dependencies]
 valence_protocol.workspace = true
 
 bevy_ecs.workspace = true
+bevy_reflect = { workspace = true, optional = true }
 
 anyhow.workspace = true
 slotmap.workspace = true

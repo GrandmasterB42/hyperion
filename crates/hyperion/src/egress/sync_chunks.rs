@@ -13,6 +13,8 @@ use valence_protocol::{
     ChunkPos, VarInt,
     packets::play::{self},
 };
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 use crate::{
     config::Config,
@@ -25,7 +27,9 @@ use crate::{
 };
 
 #[derive(Component, Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ChunkSendQueue {
+    #[cfg_attr(feature = "reflect", reflect(ignore))] // bevy glam is newer sadly
     changes: Vec<I16Vec2>,
 }
 

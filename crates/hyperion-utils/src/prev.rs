@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 use bevy_app::{App, FixedPreUpdate};
 use bevy_ecs::{
@@ -27,7 +27,7 @@ fn initialize_previous<T: Component + Clone>(
 
 fn update_previous<T: Component + Clone>(mut query: Query<'_, '_, (&mut Prev<T>, &T)>) {
     for (mut prev, current) in &mut query {
-        prev.set(current.clone());
+        *prev = Prev(current.clone());
     }
 }
 
@@ -42,16 +42,16 @@ pub fn track_prev<T: Component + Clone>(app: &mut App) {
 #[derive(Component, Copy, Clone, PartialEq, Eq, Debug)]
 pub struct Prev<T>(T);
 
-impl<T> Prev<T> {
-    fn set(&mut self, new: T) {
-        self.0 = new;
-    }
-}
-
 impl<T> Deref for Prev<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl<T> DerefMut for Prev<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }

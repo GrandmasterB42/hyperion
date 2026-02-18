@@ -10,12 +10,15 @@ use hyperion::{
     simulation::{metadata::living_entity::Health, packet_state},
 };
 use hyperion_utils::Prev;
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 const MAX_HEALTH: f32 = 20.0;
 
 pub struct RegenerationPlugin;
 
 #[derive(Component, Default, Copy, Clone, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct LastDamaged {
     pub tick: i64,
 }

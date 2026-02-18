@@ -4,10 +4,13 @@ use bevy_app::{App, Plugin};
 use bevy_ecs::{event::Event, observer::On, system::Res};
 use hyperion::runtime::AsyncRuntime;
 use tokio::net::TcpListener;
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectEvent, bevy_reflect::Reflect};
 
 pub struct HyperionProxyPlugin;
 
 #[derive(Event)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Event))]
 pub struct SetProxyAddress {
     pub proxy: String,
     pub server: String,

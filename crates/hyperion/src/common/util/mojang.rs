@@ -1,6 +1,6 @@
 //! See [`MojangClient`].
 
-use std::{sync::Arc, time::Duration};
+use std::{ops::Deref, sync::Arc, time::Duration};
 
 use anyhow::{Context, bail};
 use bevy_ecs::resource::Resource;
@@ -11,11 +11,14 @@ use tokio::{
 };
 use tracing::warn;
 use uuid::Uuid;
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 
 use crate::AsyncRuntime;
 
 /// The API provider to use for Minecraft profile lookups
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "reflect", derive(Reflect))]
 pub struct ApiProvider {
     username_base_url: &'static str,
     uuid_base_url: &'static str,
@@ -61,16 +64,44 @@ impl ApiProvider {
 /// Can use either the official Mojang API or [matdoes/mowojang](https://matdoes.dev/minecraft-uuids) as a data source.
 /// This does not include caching, this should be done separately probably using [`crate::storage::LocalDb`].
 #[derive(Resource, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
+
 pub struct MojangClient {
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     req: reqwest::Client,
-    rate_limit: Arc<Semaphore>,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    rate_limit: RateLimiter,
     provider: ApiProvider,
+}
+
+// Wrapper to allow reflect(ignore) on a semaphore
+#[derive(Clone)]
+struct RateLimiter(Arc<Semaphore>);
+
+impl RateLimiter {
+    fn new(permits: usize) -> Self {
+        Self(Arc::new(Semaphore::new(permits)))
+    }
+}
+
+impl Default for RateLimiter {
+    fn default() -> Self {
+        Self(Arc::new(Semaphore::new(0)))
+    }
+}
+
+impl Deref for RateLimiter {
+    type Target = Arc<Semaphore>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 impl MojangClient {
     #[must_use]
     pub fn new(runtime: &AsyncRuntime, provider: ApiProvider) -> Self {
-        let rate_limit = Arc::new(Semaphore::new(provider.max_requests()));
+        let rate_limit = RateLimiter::new(provider.max_requests());
         let interval_duration = provider.interval();
 
         runtime.spawn({

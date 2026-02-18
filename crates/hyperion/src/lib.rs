@@ -20,6 +20,11 @@ use rustls_pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
 use storage::{LocalDb, SkinHandler};
 use tracing::{info, warn};
 use valence_protocol::{CompressionThreshold, Encode, Packet};
+#[cfg(feature = "reflect")]
+use {
+    bevy_ecs::reflect::{ReflectEvent, ReflectResource},
+    bevy_reflect::Reflect,
+};
 
 mod common;
 pub use common::*;
@@ -98,6 +103,7 @@ pub fn adjust_file_descriptor_limits(recommended_min: u64) -> std::io::Result<()
 }
 
 #[derive(Resource)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(opaque))]
 pub struct Crypto {
     /// The root certificate authority's certificate
     pub root_ca_cert: CertificateDer<'static>,
@@ -134,6 +140,7 @@ impl Clone for Crypto {
 }
 
 #[derive(Resource, Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct Endpoint(SocketAddr);
 
 impl From<SocketAddr> for Endpoint {
@@ -156,6 +163,7 @@ impl From<SocketAddr> for Endpoint {
 }
 
 #[derive(EntityEvent, Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Event))]
 pub struct InitializePlayerPosition(pub Entity);
 
 /// The central [`HyperionCore`] struct which owns and manages the entire server.

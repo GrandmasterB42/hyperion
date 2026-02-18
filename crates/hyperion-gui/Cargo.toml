@@ -3,6 +3,15 @@ name = "hyperion-gui"
 edition.workspace = true
 version.workspace = true
 
+[features]
+reflect = [
+    "dep:bevy_reflect",
+    "bevy_ecs/reflect_auto_register",
+    "bevy_reflect/auto_register_inventory",
+    "hyperion/reflect",
+    "hyperion-inventory/reflect",
+]
+
 [dependencies]
 hyperion.workspace = true
 hyperion-inventory.workspace = true
@@ -10,6 +19,7 @@ hyperion-inventory.workspace = true
 valence_protocol.workspace = true
 
 bevy_ecs.workspace = true
+bevy_reflect = { workspace = true, optional = true }
 
 serde.workspace = true
 

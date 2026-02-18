@@ -16,6 +16,8 @@
 use bevy_ecs::component::Component;
 use valence_protocol::{Encode, VarInt};
 use valence_text::Text;
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 use crate::{define_and_register_components, simulation::Metadata};
 
@@ -70,6 +72,7 @@ impl Default for TicksFrozenInPowderSnow {
 
 #[derive(Encode, Clone, Copy, Default, PartialEq, Eq, Debug)]
 #[derive(Component)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 #[repr(C)] // ideally this would be u8
 pub enum Pose {
     #[default]

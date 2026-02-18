@@ -58,7 +58,7 @@ async fn connect(addr: impl ToSocketAddrs + Debug + Clone) -> TcpStream {
 }
 
 #[derive(Debug, PartialEq)]
-enum ShutdownType {
+pub enum ShutdownType {
     Reconnect,
     Full,
 }
@@ -327,6 +327,6 @@ where
     }
 }
 
-trait HyperionListener: Listener<Io: Send, Addr: Debug> + 'static {}
+pub trait HyperionListener: Listener<Io: Send, Addr: Debug> + 'static {}
 
 impl<L: Listener<Io: Send, Addr: Debug> + 'static> HyperionListener for L {}

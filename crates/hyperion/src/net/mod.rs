@@ -16,6 +16,11 @@ use libdeflater::CompressionLvl;
 use rustc_hash::FxHashMap;
 use thread_local::ThreadLocal;
 use tracing::error;
+#[cfg(feature = "reflect")]
+use {
+    bevy_ecs::reflect::{ReflectComponent, ReflectResource},
+    bevy_reflect::Reflect,
+};
 
 use crate::{
     Global, PacketBundle, Scratch,
@@ -45,6 +50,7 @@ pub const MINECRAFT_VERSION: &str = "1.20.1";
 
 /// A unique identifier for a proxy to game server connection
 #[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ProxyId {
     /// The underlying unique identifier for the proxy connection.
     /// This value is guaranteed to be unique among all active connections.
@@ -83,6 +89,7 @@ impl ProxyId {
 /// Note: Connection IDs are managed internally by the networking system and should be obtained
 /// through the appropriate connection establishment handlers rather than created directly.
 #[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ConnectionId {
     /// The underlying unique identifier for this connection.
     /// This value is guaranteed to be unique among all active connections.
@@ -128,10 +135,12 @@ impl ConnectionId {
 
 /// A component marking an entity as a packet channel.
 #[derive(Component, Copy, Clone, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Channel;
 
 /// A unique identifier for a channel. The server is responsible for managing channel IDs.
 #[derive(Component, Copy, Clone, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ChannelId {
     /// The underlying unique identifier for this channel.
     channel_id: u32,
@@ -163,9 +172,13 @@ impl From<Entity> for ChannelId {
 
 /// A singleton that can be used to compose and encode packets.
 #[derive(Resource)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct Compose {
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     compression_lvl: CompressionLvl,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     compressor: ThreadLocal<RefCell<libdeflater::Compressor>>,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     scratch: ThreadLocal<RefCell<Scratch>>,
     global: Global,
     io_buf: IoBuf,
@@ -371,11 +384,15 @@ impl Compose {
 
 /// This is useful for the ECS, so we can use Single<&mut Broadcast> instead of having to use a marker struct
 #[derive(Component, Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct IoBuf {
     // system_on: ThreadLocal<Cell<u32>>,
     // broadcast_buffer: ThreadLocal<RefCell<BytesMut>>,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     temp_buffer: ThreadLocal<RefCell<BytesMut>>,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     idx: ThreadLocal<Cell<u16>>,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     egress_comms: FxHashMap<ProxyId, EgressComm>,
 }
 

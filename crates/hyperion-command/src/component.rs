@@ -5,6 +5,8 @@ use bevy_ecs::{entity::Entity, resource::Resource, world::World};
 use hyperion::simulation::packet::play;
 use hyperion_utils::ApplyWorld;
 use indexmap::IndexMap;
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 
 pub trait ExecutableCommand: ApplyWorld {
     /// Executes a command triggered by a player
@@ -17,6 +19,7 @@ pub struct CommandHandler {
     pub has_permissions: fn(&World, Entity) -> bool,
 }
 
+#[derive(Default)]
 pub struct CommandRegistryInner {
     pub(crate) commands: IndexMap<String, CommandHandler>,
 }
@@ -52,7 +55,10 @@ impl CommandRegistryInner {
 /// This registry is locked by a [`Mutex`]. See the `execute_commands` system for justification.
 /// Consider accessing this resource using [`ResMut`] and [`Mutex::get_mut`].
 #[derive(Resource)]
-pub struct CommandRegistry(Mutex<CommandRegistryInner>);
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
+pub struct CommandRegistry(
+    #[cfg_attr(feature = "reflect", reflect(ignore))] Mutex<CommandRegistryInner>,
+);
 
 impl std::ops::Deref for CommandRegistry {
     type Target = Mutex<CommandRegistryInner>;

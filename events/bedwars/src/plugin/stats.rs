@@ -8,11 +8,15 @@ use bevy_ecs::{
 use hyperion::net::Compose;
 use tracing::info_span;
 use valence_protocol::{packets::play, text::IntoText};
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 
 #[derive(Resource)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 struct UpdateStart(Instant);
 
 #[derive(Resource)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 struct TicksElapsed(u64);
 
 pub struct StatsPlugin;

@@ -10,6 +10,11 @@ use geometry::{aabb::Aabb, ray::Ray};
 use glam::Vec3;
 use ordered_float::NotNan;
 use rayon::iter::Either;
+#[cfg(feature = "reflect")]
+use {
+    bevy_ecs::reflect::{ReflectComponent, ReflectResource},
+    bevy_reflect::Reflect,
+};
 
 use super::simulation::{
     EntitySize, Position, aabb,
@@ -19,8 +24,10 @@ use super::simulation::{
 pub struct SpatialPlugin;
 
 #[derive(Resource, Debug, Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct SpatialIndex {
     /// The bounding boxes of all entities with the [`Spatial`] component
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     query: bvh_region::Bvh<Entity>,
 }
 
@@ -119,6 +126,7 @@ fn recalculate_spatial_index(
 
 /// If we want the entity to be spatially indexed, we need to add this component.
 #[derive(Component)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Spatial;
 
 impl Plugin for SpatialPlugin {

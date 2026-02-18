@@ -6,10 +6,14 @@ use packet_channel::RawPacket;
 use valence_protocol::{
     CompressionThreshold, Decode, DecodeBytes, MAX_PACKET_SIZE, Packet, VarInt,
 };
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 /// A buffer for saving bytes that are not yet decoded.
-#[derive(Default, Component)]
+#[derive(Component, Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct PacketDecoder {
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     threshold: CompressionThreshold,
 }
 

@@ -18,13 +18,16 @@ use valence_protocol::{
     packets::play,
     text::{Color, IntoText, Text},
 };
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 use crate::Team;
 
 const CHAT_COOLDOWN_SECONDS: i64 = 3; // 3 seconds
 const CHAT_COOLDOWN_TICKS: i64 = CHAT_COOLDOWN_SECONDS * 20; // Convert seconds to ticks
 
-#[derive(Default, Component)]
+#[derive(Component, Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ChatCooldown {
     pub expires: i64,
 }

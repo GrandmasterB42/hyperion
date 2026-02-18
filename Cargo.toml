@@ -186,6 +186,7 @@ bevy_ecs = { version = '0.18', default-features = false, features = [
     'trace',
 ] }
 bevy_platform = '0.18'
+bevy_reflect = '0.18'
 bevy_tasks = '0.18'
 bevy_time = '0.18'
 num_cpus = '1.16'
@@ -237,7 +238,7 @@ tracing-appender = '0.2'
 [workspace.lints]
 
 [workspace.lints.rust]
-missing_docs = 'warn'
+#missing_docs = 'warn'
 future_incompatible = { level = 'deny', priority = -1 }
 keyword_idents = { level = 'deny', priority = -1 }
 let_underscore = { level = 'deny', priority = -1 }

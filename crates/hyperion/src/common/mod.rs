@@ -5,6 +5,8 @@ use std::{
 };
 
 use bevy_ecs::component::Component;
+#[cfg(feature = "reflect")]
+use bevy_reflect::Reflect;
 use libdeflater::CompressionLvl;
 use valence_protocol::CompressionThreshold;
 
@@ -14,15 +16,19 @@ pub mod runtime;
 pub mod util;
 
 /// Shared data that is shared between the ECS framework and the IO thread.
+#[cfg_attr(feature = "reflect", derive(Reflect))]
 pub struct Shared {
     /// The compression level to use for the server. This is how long a packet needs to be before it is compressed.
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     pub compression_threshold: CompressionThreshold,
 
     /// The compression level to use for the server. This is the [`libdeflater`] compression level.
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     pub compression_level: CompressionLvl,
 }
 
 #[derive(Component)]
+#[cfg_attr(feature = "reflect", derive(Reflect))]
 pub struct Global {
     /// The current tick of the game. This is incremented every 50 ms.
     pub tick: i64,

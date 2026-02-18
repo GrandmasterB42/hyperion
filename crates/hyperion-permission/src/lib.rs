@@ -17,10 +17,13 @@ use hyperion::{
 };
 use storage::PermissionStorage;
 use tracing::error;
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 pub struct PermissionPlugin;
 
 #[derive(Default, Component, Copy, Clone, Debug, PartialEq, ValueEnum, Eq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 #[repr(u8)]
 pub enum Group {
     Banned = 0,

@@ -257,7 +257,7 @@ fn process_player_join(
                     was_on_ground: false,
                 },
                 PendingTeleportation::new(position),
-                packet_state::Play(()),
+                packet_state::Play,
             ));
         });
 

@@ -5,6 +5,16 @@ version.workspace = true
 publish = false
 readme = "README.md"
 
+[features]
+reflect = [
+    "bevy_app/reflect_auto_register",
+    "bevy_ecs/reflect_auto_register",
+    "hyperion/reflect",
+    "hyperion-command/reflect",
+    "hyperion-permission/reflect",
+    "hyperion-utils/reflect",
+]
+
 [dependencies]
 hyperion.workspace = true
 hyperion-clap-macros.workspace = true

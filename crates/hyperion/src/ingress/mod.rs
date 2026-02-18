@@ -25,6 +25,8 @@ use valence_protocol::{
         status::{QueryPongS2c, QueryResponseS2c},
     },
 };
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 
 use crate::{
     InitializePlayerPosition,
@@ -33,22 +35,8 @@ use crate::{
     net::{Compose, MINECRAFT_VERSION, PROTOCOL_VERSION, PacketDecoder},
     runtime::AsyncRuntime,
     simulation::{
-        AiTargetable,
-        ChunkPosition,
-        ImmuneStatus,
-        Pitch,
-        Uuid,
-        Velocity,
-        Xp,
-        Yaw,
-        animation::ActiveAnimation,
-        entity_kind::EntityKind,
-        packet,
-        // animation::ActiveAnimation,
-        // blocks::Blocks,
-        // handlers::PacketSwitchQuery,
-        // metadata::{MetadataPrefabs, entity::Pose},
-        packet_state,
+        AiTargetable, ChunkPosition, ImmuneStatus, Pitch, Player, Uuid, Velocity, Xp, Yaw,
+        animation::ActiveAnimation, entity_kind::EntityKind, packet, packet_state,
         skin::PlayerSkin,
     },
     storage::SkinHandler,
@@ -67,16 +55,17 @@ pub fn process_handshake(
         entity.remove::<packet_state::Handshake>();
         match packet.next_state {
             HandshakeNextState::Status => {
-                entity.insert(packet_state::Status(()));
+                entity.insert(packet_state::Status);
             }
             HandshakeNextState::Login => {
-                entity.insert(packet_state::Login(()));
+                entity.insert(packet_state::Login);
             }
         }
     }
 }
 
 #[derive(Resource)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct ServerPingResponse {
     pub description: String,
     pub max_players: u32,
@@ -233,6 +222,7 @@ pub fn process_login_hello(
             // TODO: The more specific components (such as ChunkSendQueue) should be added in a
             // separate system, this might be a case for required components?
             entity.remove::<packet_state::Login>().insert((
+                Player,
                 Name::new(username.clone()),
                 ActiveAnimation::NONE,
                 AiTargetable,
