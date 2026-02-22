@@ -383,8 +383,8 @@ impl Compose {
 }
 
 /// This is useful for the ECS, so we can use Single<&mut Broadcast> instead of having to use a marker struct
-#[derive(Component, Default)]
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
+#[derive(Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect))]
 pub struct IoBuf {
     // system_on: ThreadLocal<Cell<u32>>,
     // broadcast_buffer: ThreadLocal<RefCell<BytesMut>>,

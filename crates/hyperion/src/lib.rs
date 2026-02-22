@@ -48,6 +48,10 @@ pub mod simulation;
 pub mod spatial;
 pub mod storage;
 
+#[cfg(feature = "reflect")]
+#[expect(clippy::transmute_ptr_to_ptr, clippy::used_underscore_binding)]
+pub mod reflect;
+
 pub const CHUNK_HEIGHT_SPAN: u32 = 384; // 512; // usually 384
 
 pub trait PacketBundle {

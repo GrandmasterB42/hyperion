@@ -18,7 +18,7 @@ pub enum Kind {
 #[derive(Component)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ActiveAnimation {
-    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    #[cfg_attr(feature = "reflect", reflect(remote = crate::reflect::EnumSetKindRemote))]
     kind: EnumSet<Kind>,
 }
 

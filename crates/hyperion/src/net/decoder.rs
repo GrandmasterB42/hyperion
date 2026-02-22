@@ -13,7 +13,7 @@ use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 #[derive(Component, Default)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct PacketDecoder {
-    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    #[cfg_attr(feature = "reflect", reflect(remote = crate::reflect::CompressionThreshold))]
     threshold: CompressionThreshold,
 }
 

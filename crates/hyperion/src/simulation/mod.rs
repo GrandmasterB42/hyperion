@@ -418,7 +418,7 @@ pub struct Position {
     /// Note we are using [`Vec3`] instead of [`glam::DVec3`] because *cache locality* is important.
     /// However, the Notchian server uses double precision floating point numbers for the position.
     #[cfg_attr(feature = "reflect", reflect(ignore))]
-    position: Vec3,
+    position: Vec3, // TODO: Reflect this once glam is updated everywhere
 }
 
 impl Position {
@@ -565,7 +565,7 @@ impl Position {
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ChunkPosition {
     #[cfg_attr(feature = "reflect", reflect(ignore))]
-    pub position: I16Vec2,
+    pub position: I16Vec2, // TODO: Reflect this once glam is updated everywhere
 }
 
 const SANE_MAX_RADIUS: i16 = 128;
@@ -632,7 +632,7 @@ impl Position {
 /// - Later we can apply the reaction to the entity's [`Position`] to move the entity.
 #[derive(Component, Default, Debug, Copy, Clone, PartialEq)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
-pub struct Velocity(#[cfg_attr(feature = "reflect", reflect(ignore))] pub Vec3);
+pub struct Velocity(#[cfg_attr(feature = "reflect", reflect(ignore))] pub Vec3); // TODO: Reflect this once glam is updated everywhere
 
 impl Velocity {
     #[must_use]
@@ -651,6 +651,7 @@ impl Velocity {
 pub struct PendingTeleportation {
     pub teleport_id: i32,
     #[cfg_attr(feature = "reflect", reflect(ignore))]
+    // TODO: Reflect this once glam is updated everywhere
     pub destination: Vec3,
     pub ttl: u8,
 }
@@ -691,9 +692,11 @@ pub struct MovementTracking {
     pub fall_start_y: f32,
     pub last_tick_flying: bool,
     #[cfg_attr(feature = "reflect", reflect(ignore))]
+    // TODO: Reflect this once glam is updated everywhere
     pub last_tick_position: Vec3,
     pub received_movement_packets: u8,
     #[cfg_attr(feature = "reflect", reflect(ignore))]
+    // TODO: Reflect this once glam is updated everywhere
     pub server_velocity: DVec3,
     pub sprinting: bool,
     pub was_on_ground: bool,

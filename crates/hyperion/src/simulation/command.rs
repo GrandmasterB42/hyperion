@@ -11,25 +11,19 @@ use valence_protocol::{
 #[cfg(feature = "reflect")]
 use {
     bevy_ecs::reflect::{ReflectComponent, ReflectResource},
-    bevy_reflect::{Reflect, std_traits::ReflectDefault},
+    bevy_reflect::Reflect,
 };
 
 #[derive(Component)]
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component, Default))]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Command {
-    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    #[cfg_attr(feature = "reflect", reflect(remote = crate::reflect::NodeDataRemote))]
     data: NodeData,
-    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    #[cfg_attr(
+        feature = "reflect",
+        reflect(ignore, default = "crate::reflect::command_permission_default")
+    )]
     has_permission: fn(world: &World, caller: Entity) -> bool,
-}
-
-impl Default for Command {
-    fn default() -> Self {
-        Self {
-            data: NodeData::Root,
-            has_permission: |_: _, _: _| true,
-        }
-    }
 }
 
 #[derive(Resource)]

@@ -29,7 +29,8 @@ use crate::{
 #[derive(Component, Default)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ChunkSendQueue {
-    #[cfg_attr(feature = "reflect", reflect(ignore))] // bevy glam is newer sadly
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    // TODO: Should be reflectable once glam is updated everywhere
     changes: Vec<I16Vec2>,
 }
 

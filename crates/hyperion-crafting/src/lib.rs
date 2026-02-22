@@ -252,7 +252,6 @@ new_key_type! { struct SortedItemId; }
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct CraftingRegistry {
     // changes when the registry is updated
-    #[cfg_attr(feature = "reflect", reflect(ignore))]
     epoch: u64,
 
     #[cfg_attr(feature = "reflect", reflect(ignore))]

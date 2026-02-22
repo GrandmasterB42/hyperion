@@ -124,12 +124,12 @@ pub trait Metadata {
     fn to_type(self) -> Self::Type;
 }
 
+// TODO: These macros do not play nicely with reflection. What are they used for? Maybe attributes can be added as an extra argument?
 #[macro_export]
 macro_rules! define_metadata_component {
     ($index:literal, $name:ident -> $type:ty) => {
         #[derive(bevy_ecs::component::Component, Clone, PartialEq, Debug)]
         #[allow(clippy::derive_partial_eq_without_eq)]
-        // TODO: Do these need Reflect?
         pub struct $name {
             value: $type,
         }

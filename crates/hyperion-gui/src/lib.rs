@@ -32,6 +32,7 @@ pub enum ContainerType {
 pub struct Gui {
     entity: Entity,
     #[cfg_attr(feature = "reflect", reflect(ignore))]
+    // TODO: Maybe this should just be a static size array for faster lookup? How much more memory would that take? Maybe RLE with linear scan on smallvec?, would probably be faster than hashing a integer?
     items: HashMap<usize, fn(Entity, ClickMode)>,
     pub id: u64,
 }
