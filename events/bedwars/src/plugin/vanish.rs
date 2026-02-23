@@ -12,10 +12,13 @@ use hyperion::{
 use tracing::error;
 use valence_protocol::packets::play::{self, player_list_s2c::PlayerListActions};
 use valence_server::GameMode;
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 pub struct VanishPlugin;
 
-#[derive(Default, Component, Debug)]
+#[derive(Component, Default, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Vanished(bool);
 
 impl Vanished {

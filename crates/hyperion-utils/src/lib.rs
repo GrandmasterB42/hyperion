@@ -12,6 +12,8 @@ use bevy_ecs::{
 };
 pub use cached_save::cached_save;
 pub use prev::{Prev, track_prev};
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 
 pub trait EntityExt: Sized {
     fn id(&self) -> u32;
@@ -68,6 +70,7 @@ impl ApplyWorld for () {
 
 /// Represents application identification information used for caching and other system-level operations
 #[derive(Resource)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct AppId {
     /// The qualifier/category of the application (e.g. "com", "org", "hyperion")
     pub qualifier: String,

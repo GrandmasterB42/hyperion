@@ -3,9 +3,12 @@
 use std::sync::Arc;
 
 use bevy_ecs::resource::Resource;
+#[cfg(feature = "reflect")]
+use bevy_reflect::Reflect;
 
 /// Wrapper around [`tokio::runtime::Runtime`]
 #[derive(Resource, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(opaque))]
 pub struct AsyncRuntime {
     runtime: Arc<tokio::runtime::Runtime>,
 }

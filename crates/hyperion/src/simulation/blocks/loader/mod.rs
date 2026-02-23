@@ -70,9 +70,7 @@ impl ChunkLoaderHandle {
             tx_load_chunk_requests,
         }
     }
-}
 
-impl ChunkLoaderHandle {
     pub fn send(&self, position: I16Vec2, tx: tokio::sync::mpsc::UnboundedSender<Column>) {
         self.tx_load_chunk_requests
             .send(Message { position, tx })

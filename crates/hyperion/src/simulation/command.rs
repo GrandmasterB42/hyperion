@@ -8,14 +8,26 @@ use valence_protocol::{
     VarInt,
     packets::play::command_tree_s2c::{Node, NodeData, Parser, Suggestion},
 };
+#[cfg(feature = "reflect")]
+use {
+    bevy_ecs::reflect::{ReflectComponent, ReflectResource},
+    bevy_reflect::Reflect,
+};
 
 #[derive(Component)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Command {
+    #[cfg_attr(feature = "reflect", reflect(remote = crate::reflect::NodeDataRemote))]
     data: NodeData,
+    #[cfg_attr(
+        feature = "reflect",
+        reflect(ignore, default = "crate::reflect::command_permission_default")
+    )]
     has_permission: fn(world: &World, caller: Entity) -> bool,
 }
 
 #[derive(Resource)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct RootCommand(Entity);
 
 impl std::ops::Deref for RootCommand {

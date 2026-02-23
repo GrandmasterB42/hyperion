@@ -33,6 +33,8 @@ use valence_protocol::{
     },
     text::IntoText,
 };
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 use super::spawn::{avoid_blocks, find_spawn_position, is_valid_spawn_block};
 use crate::Team;
@@ -40,12 +42,14 @@ use crate::Team;
 pub struct AttackPlugin;
 
 #[derive(Component, Default, Copy, Clone, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ImmuneUntil {
     tick: i64,
 }
 
 // Used as a component only for commands, does not include armor or weapons
 #[derive(Component, Default, Copy, Clone, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct CombatStats {
     pub armor: f32,
     pub armor_toughness: f32,

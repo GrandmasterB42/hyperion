@@ -1,3 +1,4 @@
+#![expect(clippy::transmute_ptr_to_ptr)]
 use std::{cell::Cell, cmp::min, num::Wrapping};
 
 use bevy_ecs::{component::Component, entity::Entity};
@@ -10,29 +11,104 @@ use valence_protocol::{
     nbt::Compound,
     packets::play::{click_slot_c2s::ClickMode, open_screen_s2c::WindowType},
 };
+#[cfg(feature = "reflect")]
+use {
+    bevy_ecs::reflect::ReflectComponent,
+    bevy_reflect::{Reflect, reflect_remote, std_traits::ReflectDefault},
+};
+
+// TODO: Probably have a seperate Hyperion_remote_reflect?
+#[cfg(feature = "reflect")]
+#[reflect_remote(WindowType)]
+pub enum WindowTypeRemote {
+    Generic9x1,
+    Generic9x2,
+    Generic9x3,
+    Generic9x4,
+    Generic9x5,
+    Generic9x6,
+    Generic3x3,
+    Anvil,
+    Beacon,
+    BlastFurnace,
+    BrewingStand,
+    Crafting,
+    Enchantment,
+    Furnace,
+    Grindstone,
+    Hopper,
+    Lectern,
+    Loom,
+    Merchant,
+    ShulkerBox,
+    Smithing,
+    Smoker,
+    Cartography,
+    Stonecutter,
+}
+
+#[cfg(feature = "reflect")]
+#[reflect_remote(ClickMode)]
+pub enum ClickModeRemote {
+    Click,
+    ShiftClick,
+    Hotbar,
+    CreativeMiddleClick,
+    DropKey,
+    Drag,
+    DoubleClick,
+}
 
 pub type PlayerInventory = Inventory;
 
 #[derive(Component, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component, Default))]
 pub struct Inventory {
     /// The slots in the inventory
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    // TODO: ItemKind enum needs manual derive, all the code for remote reflection isn't worth it
     slots: Box<[ItemSlot]>,
     /// Index to the slot held in the player's hand. This is guaranteed to be a valid index.
     hand_slot: u16,
     title: String,
+    #[cfg_attr(feature = "reflect", reflect(remote = WindowTypeRemote))]
     kind: WindowType,
     readonly: bool,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "reflect", derive(Reflect))]
+pub struct LastMode {
+    #[cfg_attr(feature = "reflect", reflect(remote = ClickModeRemote))]
+    pub mode: ClickMode,
+    pub tick: i64,
+}
+
+impl Default for LastMode {
+    fn default() -> Self {
+        Self {
+            mode: ClickMode::Click,
+            tick: 0,
+        }
+    }
+}
+
 #[derive(Component, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component, Default))]
 pub struct InventoryState {
     window_id: u8,
+    #[cfg_attr(feature = "reflect", reflect(remote = WrappingI32Remote))]
     state_id: Wrapping<i32>,
     // i64 is the last tick
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     last_stack_clicked: (ItemStack, i64),
     last_button: (i8, i64),
-    last_mode: (ClickMode, i64),
+    last_mode: LastMode,
 }
+
+#[cfg(feature = "reflect")]
+#[reflect_remote(Wrapping<i32>)]
+pub struct WrappingI32Remote(pub i32);
 
 impl Default for InventoryState {
     fn default() -> Self {
@@ -41,7 +117,7 @@ impl Default for InventoryState {
             state_id: Wrapping(0),
             last_stack_clicked: (ItemStack::EMPTY, 0),
             last_button: (0, 0),
-            last_mode: (ClickMode::Click, 0),
+            last_mode: LastMode::default(),
         }
     }
 }
@@ -90,13 +166,13 @@ impl InventoryState {
     }
 
     #[must_use]
-    pub const fn last_mode(&self) -> (ClickMode, i64) {
+    pub const fn last_mode(&self) -> LastMode {
         self.last_mode
     }
 
     pub const fn set_last_mode(&mut self, mode: ClickMode, tick: i64) {
-        self.last_mode.0 = mode;
-        self.last_mode.1 = tick;
+        self.last_mode.mode = mode;
+        self.last_mode.tick = tick;
     }
 }
 
@@ -129,6 +205,7 @@ impl ItemSlot {
 }
 
 #[derive(Component, Clone, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct OpenInventory {
     pub inventory: Entity,
     pub client_changed: u64,
@@ -145,7 +222,8 @@ impl OpenInventory {
 }
 
 #[derive(Component, Clone, PartialEq, Default, Debug)]
-pub struct CursorItem(pub ItemStack);
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
+pub struct CursorItem(#[cfg_attr(feature = "reflect", reflect(ignore))] pub ItemStack);
 
 impl std::ops::Deref for CursorItem {
     type Target = ItemStack;

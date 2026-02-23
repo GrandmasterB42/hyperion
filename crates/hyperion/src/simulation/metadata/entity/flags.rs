@@ -1,9 +1,12 @@
 use bevy_ecs::component::Component;
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 use crate::simulation::metadata::Metadata;
 
 // todo: can be u8
 #[derive(Component, PartialEq, Eq, Copy, Clone, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct EntityFlags {
     value: u8,
 }

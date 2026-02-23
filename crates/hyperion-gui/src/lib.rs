@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use valence_protocol::packets::play::{
     click_slot_c2s::ClickMode, close_screen_s2c::CloseScreenS2c,
 };
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct InventoryItem {
@@ -26,8 +28,11 @@ pub enum ContainerType {
 }
 
 #[derive(Component, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Gui {
     entity: Entity,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    // TODO: Maybe this should just be a static size array for faster lookup? How much more memory would that take? Maybe RLE with linear scan on smallvec?, would probably be faster than hashing a integer?
     items: HashMap<usize, fn(Entity, ClickMode)>,
     pub id: u64,
 }

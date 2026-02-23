@@ -30,8 +30,11 @@ mod __private {
     use bevy_ecs::resource::Resource;
     use thread_local::ThreadLocal;
     use tracing::warn;
+    #[cfg(feature = "reflect")]
+    use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 
     #[derive(Default, Resource)]
+    #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
     pub struct PacketIdGenerator(AtomicU64);
 
     impl PacketIdGenerator {
@@ -48,7 +51,11 @@ mod __private {
     }
 
     #[derive(Default, Resource)]
-    pub struct Decompressor(pub ThreadLocal<RefCell<libdeflater::Decompressor>>);
+    #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
+    pub struct Decompressor(
+        #[cfg_attr(feature = "reflect", reflect(ignore))]
+        pub  ThreadLocal<RefCell<libdeflater::Decompressor>>,
+    );
 }
 
 mod buffers {

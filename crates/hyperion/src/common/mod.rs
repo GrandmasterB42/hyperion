@@ -4,7 +4,8 @@ use std::{
     time::Duration,
 };
 
-use bevy_ecs::component::Component;
+#[cfg(feature = "reflect")]
+use bevy_reflect::Reflect;
 use libdeflater::CompressionLvl;
 use valence_protocol::CompressionThreshold;
 
@@ -14,15 +15,18 @@ pub mod runtime;
 pub mod util;
 
 /// Shared data that is shared between the ECS framework and the IO thread.
+#[cfg_attr(feature = "reflect", derive(Reflect))]
 pub struct Shared {
     /// The compression level to use for the server. This is how long a packet needs to be before it is compressed.
+    #[cfg_attr(feature = "reflect", reflect(remote = crate::reflect::CompressionThreshold))]
     pub compression_threshold: CompressionThreshold,
 
     /// The compression level to use for the server. This is the [`libdeflater`] compression level.
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     pub compression_level: CompressionLvl,
 }
 
-#[derive(Component)]
+#[cfg_attr(feature = "reflect", derive(Reflect))]
 pub struct Global {
     /// The current tick of the game. This is incremented every 50 ms.
     pub tick: i64,
@@ -33,6 +37,7 @@ pub struct Global {
     pub max_hurt_resistant_time: u16,
 
     /// Data shared between the IO thread and the ECS framework.
+    #[cfg_attr(feature = "reflect", reflect(ignore, default = "dummy_reflect_shared"))]
     pub shared: Arc<Shared>,
 
     /// The amount of time from the last packet a player has sent before the server will kick them.
@@ -41,7 +46,18 @@ pub struct Global {
     /// The amount of time the last tick took in milliseconds.
     pub ms_last_tick: f32,
 
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     pub player_count: AtomicUsize,
+}
+
+// Note: Caution! The Arc and AtomicUsize did not throw errors for me, it just didn't work
+
+#[cfg(feature = "reflect")]
+fn dummy_reflect_shared() -> Arc<Shared> {
+    Arc::new(Shared {
+        compression_threshold: CompressionThreshold::default(),
+        compression_level: CompressionLvl::default(),
+    })
 }
 
 impl Global {

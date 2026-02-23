@@ -3,6 +3,8 @@ use std::{collections::HashMap, io::Write};
 use bevy_ecs::resource::Resource;
 use slotmap::{SecondaryMap, SlotMap, new_key_type};
 use valence_protocol::{Encode, ItemKind, ItemStack, Packet};
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 
 /// Represents a packet sent from the server to the client to synchronize recipes.
 #[derive(Clone, Debug, Encode, Packet)]
@@ -247,12 +249,16 @@ impl FromIterator<ItemKind> for SortedItemList {
 new_key_type! { struct SortedItemId; }
 
 #[derive(Resource)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct CraftingRegistry {
     // changes when the registry is updated
     epoch: u64,
 
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     shapeless_lookup: HashMap<SortedItemList, SortedItemId>,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     shapeless: SlotMap<SortedItemId, CraftingShapelessData>,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     shapeless_ids: SecondaryMap<SortedItemId, String>,
 }
 

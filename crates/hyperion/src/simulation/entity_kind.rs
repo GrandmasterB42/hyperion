@@ -1,6 +1,9 @@
 use bevy_ecs::component::Component;
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 #[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 #[repr(C)]
 pub enum EntityKind {
     Allay = 0,

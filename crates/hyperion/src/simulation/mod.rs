@@ -30,6 +30,11 @@ use valence_protocol::{
     },
 };
 use valence_text::IntoText;
+#[cfg(feature = "reflect")]
+use {
+    bevy_ecs::reflect::{ReflectComponent, ReflectResource},
+    bevy_reflect::Reflect,
+};
 
 use crate::{
     Global,
@@ -58,8 +63,10 @@ pub mod skin;
 pub mod util;
 
 #[derive(Resource, Default, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct StreamLookup {
     /// The UUID of all players
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     inner: FxHashMap<u64, Entity>,
 }
 
@@ -78,6 +85,7 @@ impl std::ops::DerefMut for StreamLookup {
 }
 
 #[derive(Component, Default, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct PlayerUuidLookup {
     /// The UUID of all players
     inner: HashMap<Uuid, Entity>,
@@ -124,7 +132,8 @@ impl std::ops::DerefMut for EgressComm {
 }
 
 #[derive(Resource, Debug, Default)]
-pub struct IgnMap(FxHashMap<String, Entity>);
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
+pub struct IgnMap(#[cfg_attr(feature = "reflect", reflect(ignore))] FxHashMap<String, Entity>);
 
 impl std::ops::Deref for IgnMap {
     type Target = FxHashMap<String, Entity>;
@@ -141,17 +150,20 @@ impl std::ops::DerefMut for IgnMap {
 }
 
 #[derive(Component, Debug, Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct RaycastTravel;
 
 /// A component that represents a Player. In the future, this should be broken up into multiple components.
 ///
 /// Why should it be broken up? The more things are broken up, the more we can take advantage of Rust borrowing rules.
 #[derive(Component, Debug, Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Player;
 
 #[derive(
     Component, Debug, PartialEq, Eq, PartialOrd, Copy, Clone, Default, Pod, Zeroable
 )]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 #[repr(C)]
 pub struct Xp {
     pub amount: u16,
@@ -308,6 +320,7 @@ impl Xp {
 pub const FULL_HEALTH: f32 = 20.0;
 
 #[derive(Component, Debug, Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ConfirmBlockSequences(pub Vec<i32>);
 
 impl std::ops::Deref for ConfirmBlockSequences {
@@ -325,6 +338,7 @@ impl std::ops::DerefMut for ConfirmBlockSequences {
 }
 
 #[derive(Component, Debug, Eq, PartialEq, Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 #[expect(missing_docs)]
 pub struct ImmuneStatus {
     /// The tick until the player is immune to player attacks.
@@ -341,6 +355,7 @@ impl ImmuneStatus {
 
 /// A UUID component. Generally speaking, this tends to be tied to entities with a [`Player`] component.
 #[derive(Component, Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Uuid(pub uuid::Uuid);
 
 impl Uuid {
@@ -362,10 +377,12 @@ impl std::ops::Deref for Uuid {
 ///
 /// Example: zombie, skeleton, etc.
 #[derive(Component, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Npc;
 
 /// The running multiplier of the entity. This defaults to 1.0.
 #[derive(Component, Debug, Copy, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct RunningSpeed(pub f32);
 
 impl Default for RunningSpeed {
@@ -376,6 +393,7 @@ impl Default for RunningSpeed {
 
 // TODO: This might be a good fit for a relationship?
 #[derive(Component)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Owner {
     pub entity: Entity,
 }
@@ -389,15 +407,18 @@ impl Owner {
 
 /// If the entity can be targeted by non-player entities.
 #[derive(Component)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct AiTargetable;
 
 /// The full pose of an entity. This is used for both [`Player`] and [`Npc`].
 #[derive(Component, Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Position {
     /// The (x, y, z) position of the entity.
     /// Note we are using [`Vec3`] instead of [`glam::DVec3`] because *cache locality* is important.
     /// However, the Notchian server uses double precision floating point numbers for the position.
-    position: Vec3,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    position: Vec3, // TODO: Reflect this once glam is updated everywhere
 }
 
 impl Position {
@@ -450,6 +471,7 @@ impl std::ops::DerefMut for Position {
 }
 
 #[derive(Component, Copy, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Yaw {
     yaw: f32,
 }
@@ -477,6 +499,7 @@ impl std::ops::Deref for Yaw {
 }
 
 #[derive(Component, Copy, Clone, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Pitch {
     pitch: f32,
 }
@@ -507,6 +530,7 @@ const PLAYER_WIDTH: f32 = 0.6;
 const PLAYER_HEIGHT: f32 = 1.8;
 
 #[derive(Component, Copy, Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct EntitySize {
     pub half_width: f32,
     pub height: f32,
@@ -538,8 +562,10 @@ impl Position {
 }
 
 #[derive(Component, Debug, Copy, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ChunkPosition {
-    pub position: I16Vec2,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    pub position: I16Vec2, // TODO: Reflect this once glam is updated everywhere
 }
 
 const SANE_MAX_RADIUS: i16 = 128;
@@ -605,7 +631,8 @@ impl Position {
 /// - Therefore, we have an [`Velocity`] component which is used to store the reaction of an entity to collisions.
 /// - Later we can apply the reaction to the entity's [`Position`] to move the entity.
 #[derive(Component, Default, Debug, Copy, Clone, PartialEq)]
-pub struct Velocity(pub Vec3);
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
+pub struct Velocity(#[cfg_attr(feature = "reflect", reflect(ignore))] pub Vec3); // TODO: Reflect this once glam is updated everywhere
 
 impl Velocity {
     #[must_use]
@@ -620,8 +647,11 @@ impl Velocity {
 }
 
 #[derive(Component, Default, Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct PendingTeleportation {
     pub teleport_id: i32,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    // TODO: Reflect this once glam is updated everywhere
     pub destination: Vec3,
     pub ttl: u8,
 }
@@ -638,6 +668,7 @@ impl PendingTeleportation {
 }
 
 #[derive(Component, Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct FlyingSpeed {
     pub speed: f32,
 }
@@ -656,17 +687,23 @@ impl Default for FlyingSpeed {
 }
 
 #[derive(Component, Default, Debug, Copy, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct MovementTracking {
     pub fall_start_y: f32,
     pub last_tick_flying: bool,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    // TODO: Reflect this once glam is updated everywhere
     pub last_tick_position: Vec3,
     pub received_movement_packets: u8,
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
+    // TODO: Reflect this once glam is updated everywhere
     pub server_velocity: DVec3,
     pub sprinting: bool,
     pub was_on_ground: bool,
 }
 
 #[derive(Component, Default, Debug, Copy, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Flight {
     pub allow: bool,
     pub is_flying: bool,
@@ -857,6 +894,7 @@ impl Plugin for SimPlugin {
 pub struct RequestSubscribeChannelPackets(pub Entity);
 
 #[derive(Component)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Visible;
 
 #[must_use]

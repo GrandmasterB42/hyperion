@@ -1,6 +1,8 @@
 use bevy_ecs::component::Component;
 use enumset::{EnumSet, EnumSetType};
 use valence_protocol::{VarInt, packets::play::EntityAnimationS2c};
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 #[derive(EnumSetType)]
 #[repr(u8)]
@@ -14,7 +16,9 @@ pub enum Kind {
 }
 
 #[derive(Component)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct ActiveAnimation {
+    #[cfg_attr(feature = "reflect", reflect(remote = crate::reflect::EnumSetKindRemote))]
     kind: EnumSet<Kind>,
 }
 

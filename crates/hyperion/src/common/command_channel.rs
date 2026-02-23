@@ -15,6 +15,8 @@ use bevy_ecs::{
     system::Command,
     world::World,
 };
+#[cfg(feature = "reflect")]
+use bevy_reflect::Reflect;
 use tracing::error;
 
 struct CommandMeta {
@@ -42,6 +44,7 @@ struct Inner {
 
 /// Densely and efficiently stores a multiple-producer single-consumer channel of heterogenous types implementing [`Command`].
 #[derive(Resource, Default, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(opaque))]
 pub struct CommandChannel {
     // TODO: Replace this Mutex with a lock-free alternative
     inner: Arc<Mutex<Inner>>,

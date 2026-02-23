@@ -2,12 +2,15 @@
 
 use std::{fmt::Debug, fs::File, io::Read, path::Path};
 
-use bevy_ecs::{component::Component, resource::Resource};
+use bevy_ecs::resource::Resource;
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument, warn};
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 
 /// The configuration for the server representing a `toml` file.
 #[derive(Serialize, Deserialize, Debug, Resource)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct Config {
     pub border_diameter: Option<f64>,
     pub max_players: i32,
@@ -17,7 +20,8 @@ pub struct Config {
     pub spawn: Spawn,
 }
 
-#[derive(Serialize, Deserialize, Debug, Component)]
+#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect))]
 pub struct Spawn {
     pub kind: Radius,
     pub radius: i32,
@@ -27,6 +31,7 @@ pub struct Spawn {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[cfg_attr(feature = "reflect", derive(Reflect))]
 pub enum Radius {
     Chebyshev,
     Euclidean,

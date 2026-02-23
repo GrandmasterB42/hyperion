@@ -5,6 +5,22 @@ version.workspace = true
 publish = false
 readme = "README.md"
 
+[features]
+reflect = [
+    "dep:bevy_reflect",
+    "bevy_app/reflect_auto_register",
+    "bevy_ecs/reflect_auto_register",
+    "bevy_reflect/auto_register_inventory",
+    "hyperion/reflect",
+    "hyperion-clap/reflect",
+    "hyperion-gui/reflect",
+    "hyperion-inventory/reflect",
+    "hyperion-item/reflect",
+    "hyperion-permission/reflect",
+    "hyperion-proxy-module/reflect",
+    "hyperion-utils/reflect",
+]
+
 [dependencies]
 hyperion.workspace = true
 hyperion-clap.workspace = true
@@ -24,6 +40,12 @@ valence_text.workspace = true
 
 bevy_app.workspace = true
 bevy_ecs.workspace = true
+# this is definitely only a dependency that would be used by projects built on top of hyperion
+bevy_reflect = { workspace = true, optional = true }
+bevy_remote = { version = '0.18', default-features = false, features = [
+    'http',
+] }
+bevy_tasks.workspace = true
 
 anyhow.workspace = true
 clap.workspace = true

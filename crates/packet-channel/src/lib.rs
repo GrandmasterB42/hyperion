@@ -13,9 +13,12 @@ use bevy_ecs::component::Component;
 use bevy_platform::cell::SyncUnsafeCell;
 use more_asserts::debug_assert_le;
 use valence_protocol::MAX_PACKET_SIZE;
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 /// Reference counted fragment. Fragments are a fixed-size block of data which may contain one or
 /// more packets.
+#[derive(Default)]
 struct Fragment {
     /// Points to the next fragment, if available. Once this is set to `Some`, this fragment's `read_cursor` will never be
     /// updated and `next` will never be modified.
@@ -331,8 +334,10 @@ impl Sender {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Receiver {
+    #[cfg_attr(feature = "reflect", reflect(ignore))]
     current: Arc<Fragment>,
     read_cursor: usize,
 }

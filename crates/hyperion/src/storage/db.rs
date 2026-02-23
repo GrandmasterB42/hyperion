@@ -3,6 +3,8 @@
 use std::path::Path;
 
 use bevy_ecs::resource::Resource;
+#[cfg(feature = "reflect")]
+use bevy_reflect::Reflect;
 use byteorder::NativeEndian;
 use heed::{Database, Env, EnvOpenOptions, types};
 use uuid::Uuid;
@@ -11,6 +13,7 @@ use crate::simulation::skin::{ArchivedPlayerSkin, PlayerSkin};
 
 /// A wrapper around a `Heed` database
 #[derive(Resource, Debug, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(opaque))]
 pub struct LocalDb {
     env: Env,
 }
@@ -43,6 +46,7 @@ impl std::ops::Deref for LocalDb {
 
 /// A handler for player skin operations
 #[derive(Resource, Debug, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(opaque))]
 pub struct SkinHandler {
     env: Env,
     skins: Database<types::U128<NativeEndian>, types::Bytes>,

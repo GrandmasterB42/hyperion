@@ -101,7 +101,7 @@ async fn handle_proxy_messages(
                     let player = world
                         .spawn((
                             ConnectionId::new(stream, proxy_id),
-                            packet_state::Handshake(()),
+                            packet_state::Handshake,
                             PacketDecoder::default(),
                             receiver,
                         ))

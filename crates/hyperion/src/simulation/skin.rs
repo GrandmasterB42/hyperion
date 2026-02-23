@@ -4,6 +4,8 @@ use base64::{Engine as _, engine::general_purpose};
 use bevy_ecs::component::Component;
 use rkyv::Archive;
 use tracing::info;
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 use crate::{storage::SkinHandler, util::mojang::MojangClient};
 
@@ -18,6 +20,7 @@ use crate::{storage::SkinHandler, util::mojang::MojangClient};
     serde::Serialize,
     serde::Deserialize
 )]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct PlayerSkin {
     /// The textures of the player skin, usually obtained from the [`MojangClient`] as a base64 string.
     pub textures: String,

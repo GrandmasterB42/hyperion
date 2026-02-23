@@ -11,6 +11,8 @@ use bevy_ecs::{
 use hyperion_utils::{Prev, track_prev};
 use tracing::error;
 use valence_protocol::{Encode, VarInt};
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 use crate::simulation::metadata::entity::{EntityFlags, Pose};
 
@@ -105,6 +107,7 @@ use super::entity_kind::EntityKind;
 use crate::simulation::metadata::r#type::MetadataType;
 
 #[derive(Debug, Default, Component, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 // index (u8), type (varint), value (varies)
 /// <https://wiki.vg/Entity_metadata>
 ///
@@ -121,6 +124,7 @@ pub trait Metadata {
     fn to_type(self) -> Self::Type;
 }
 
+// TODO: These macros do not play nicely with reflection. What are they used for? Maybe attributes can be added as an extra argument?
 #[macro_export]
 macro_rules! define_metadata_component {
     ($index:literal, $name:ident -> $type:ty) => {
