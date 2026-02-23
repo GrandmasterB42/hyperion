@@ -16,6 +16,7 @@ reflect = [
     "hyperion-inventory/reflect",
     "hyperion-utils/reflect",
 ]
+ecs_debug = ["bevy_ecs/trace", "bevy_ecs/debug"]
 
 [[bench]]
 harness = false
