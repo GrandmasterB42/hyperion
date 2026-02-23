@@ -20,6 +20,8 @@ reflect = [
     "hyperion-proxy-module/reflect",
     "hyperion-utils/reflect",
 ]
+# This incurs about a 0.2-0.3ms cost on my system - should more crates have this feature?
+debug = ["hyperion/ecs_debug"]
 
 [dependencies]
 hyperion.workspace = true

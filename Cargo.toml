@@ -183,7 +183,6 @@ heed = '0.21'
 bevy_app = '0.18'
 bevy_ecs = { version = '0.18', default-features = false, features = [
     'multi_threaded',
-    'trace',
 ] }
 bevy_platform = '0.18'
 bevy_reflect = '0.18'
