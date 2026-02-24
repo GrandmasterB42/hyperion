@@ -10,7 +10,7 @@ use bevy_ecs::{
 use clap::{Arg as ClapArg, Parser, ValueEnum, ValueHint, error::ErrorKind};
 use hyperion::{
     net::{Compose, ConnectionId, DataBundle, agnostic},
-    simulation::{IgnMap, command::RootCommand, packet::play},
+    simulation::{PlayerNameLookup, command::RootCommand, packet::play},
 };
 pub use hyperion_clap_macros::CommandPermission;
 pub use hyperion_command;
@@ -305,7 +305,7 @@ impl MinecraftCommand for PermissionCommand {
     fn execute(self, world: &World, state: &mut Self::State, caller: Entity) {
         let mut commands = state.get(world);
         let compose = world.resource::<Compose>();
-        let ign_map = world.resource::<IgnMap>();
+        let name_map = world.resource::<PlayerNameLookup>();
         let Some(&connection_id) = world.entity(caller).get::<ConnectionId>() else {
             error!("permission command failed: caller is missing ConnectionId component");
             return;
@@ -313,7 +313,7 @@ impl MinecraftCommand for PermissionCommand {
         match self {
             Self::Set(cmd) => {
                 // Handle setting permissions
-                let Some(&entity) = ign_map.get(cmd.player.as_str()) else {
+                let Some(&entity) = name_map.get(cmd.player.as_str()) else {
                     let msg = format!("§c{} not found", cmd.player);
                     let chat = hyperion::net::agnostic::chat(msg);
                     compose.unicast(&chat, connection_id).unwrap();
@@ -330,7 +330,7 @@ impl MinecraftCommand for PermissionCommand {
                 compose.unicast(&chat, connection_id).unwrap();
             }
             Self::Get(cmd) => {
-                let Some(&entity) = ign_map.get(cmd.player.as_str()) else {
+                let Some(&entity) = name_map.get(cmd.player.as_str()) else {
                     let msg = format!("§c{} not found", cmd.player);
                     let chat = hyperion::net::agnostic::chat(msg);
                     compose.unicast(&chat, connection_id).unwrap();

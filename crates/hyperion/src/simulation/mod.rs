@@ -1,6 +1,6 @@
 use std::{
     collections::{HashMap, hash_map::Entry},
-    hash::Hash,
+    hash::{BuildHasherDefault, Hash, Hasher},
 };
 
 use bevy_app::{App, Plugin};
@@ -62,6 +62,7 @@ pub mod packet_state;
 pub mod skin;
 pub mod util;
 
+// TODO: This resource looks like it is maintained, but where could it be useful?
 #[derive(Resource, Default, Debug)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct StreamLookup {
@@ -84,24 +85,50 @@ impl std::ops::DerefMut for StreamLookup {
     }
 }
 
-#[derive(Component, Default, Debug)]
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
-pub struct PlayerUuidLookup {
+// TODO: This might be better of with something like a BTreeMap, maybe test performance?
+// Uuids should be reasonably unique and can not directly be chosen for a DoS attack, so it's fine to use the Uuid as the hashed value
+#[derive(Resource, Default, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
+pub struct PlayerUuidLookup(
     /// The UUID of all players
-    inner: HashMap<Uuid, Entity>,
+    UuidHashMap<Entity>,
+);
+
+#[cfg_attr(feature = "reflect", derive(Reflect))]
+#[derive(Default)]
+pub struct UuidHasher(u64);
+
+impl Hasher for UuidHasher {
+    fn finish(&self) -> u64 {
+        self.0
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        // This seems to happen in chunks of 8. TODO: That might not always be the case -> this needs to be more robust
+        debug_assert!(
+            bytes.len() >= 8,
+            "UuidHasher only supports writing in chunks of 8 bytes"
+        );
+        self.0 = self
+            .0
+            .wrapping_add(u64::from_le_bytes(bytes[0..8].try_into().unwrap()));
+    }
 }
 
+type UuidHashBuilder = BuildHasherDefault<UuidHasher>;
+pub type UuidHashMap<V> = HashMap<Uuid, V, UuidHashBuilder>;
+
 impl std::ops::Deref for PlayerUuidLookup {
-    type Target = HashMap<Uuid, Entity>;
+    type Target = UuidHashMap<Entity>;
 
     fn deref(&self) -> &Self::Target {
-        &self.inner
+        &self.0
     }
 }
 
 impl std::ops::DerefMut for PlayerUuidLookup {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
+        &mut self.0
     }
 }
 
@@ -131,11 +158,14 @@ impl std::ops::DerefMut for EgressComm {
     }
 }
 
+// TODO: Player names are also reasonably unique and could probably be trivially be hashed in a simpler way?
 #[derive(Resource, Debug, Default)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
-pub struct IgnMap(#[cfg_attr(feature = "reflect", reflect(ignore))] FxHashMap<String, Entity>);
+pub struct PlayerNameLookup(
+    #[cfg_attr(feature = "reflect", reflect(ignore))] FxHashMap<String, Entity>,
+);
 
-impl std::ops::Deref for IgnMap {
+impl std::ops::Deref for PlayerNameLookup {
     type Target = FxHashMap<String, Entity>;
 
     fn deref(&self) -> &Self::Target {
@@ -143,7 +173,7 @@ impl std::ops::Deref for IgnMap {
     }
 }
 
-impl std::ops::DerefMut for IgnMap {
+impl std::ops::DerefMut for PlayerNameLookup {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
@@ -711,9 +741,10 @@ pub struct Flight {
 
 fn initialize_player(
     now_playing: On<'_, '_, Add, packet_state::Play>,
-    mut ign_map: ResMut<'_, IgnMap>,
+    mut name_map: ResMut<'_, PlayerNameLookup>,
+    mut uuid_map: ResMut<'_, PlayerUuidLookup>,
     compose: Res<'_, Compose>,
-    name_query: Query<'_, '_, &Name>,
+    name_query: Query<'_, '_, (&Name, &Uuid)>,
     connection_id_query: Query<'_, '_, &ConnectionId>,
     mut commands: Commands<'_, '_>,
 ) {
@@ -725,13 +756,16 @@ fn initialize_player(
         hyperion_inventory::CursorItem::default(),
     ));
 
-    let Ok(name) = name_query.get(now_playing.entity) else {
-        error!("failed to initialize player: missing Name component");
+    let Ok((name, uuid)) = name_query.get(now_playing.entity) else {
+        error!("failed to initialize player: missing Name or Uuid component");
         return;
     };
 
-    if let Some(other) = ign_map.insert(name.to_string(), now_playing.entity) {
-        // Another player with the same username is already connected to the server.
+    let other_name = name_map.insert(name.to_string(), now_playing.entity);
+    let other_uuid = uuid_map.insert(*uuid, now_playing.entity);
+
+    if let Some(other) = other_name.or(other_uuid) {
+        // Another player with the same username or uuid is already connected to the server.
         // Disconnect the previous player with the same username.
         // There are some Minecraft accounts with the same username, but this is an extremely
         // rare edge case which is not worth handling.
@@ -757,7 +791,7 @@ fn initialize_player(
 
 fn remove_player(
     not_playing: On<'_, '_, Remove, packet_state::Play>,
-    mut ign_map: ResMut<'_, IgnMap>,
+    mut ign_map: ResMut<'_, PlayerNameLookup>,
     name_query: Query<'_, '_, &Name>,
 ) {
     let name = match name_query.get(not_playing.entity) {

@@ -36,7 +36,7 @@ use crate::{
     ingress::IngressPlugin,
     net::{Compose, ConnectionId, IoBuf, MAX_PACKET_SIZE, PacketDecoder, proxy::init_proxy_comms},
     runtime::AsyncRuntime,
-    simulation::{IgnMap, SimPlugin, StreamLookup, blocks::Blocks},
+    simulation::{PlayerNameLookup, PlayerUuidLookup, SimPlugin, StreamLookup, blocks::Blocks},
     spatial::SpatialPlugin,
     util::mojang::{ApiProvider, MojangClient},
 };
@@ -259,7 +259,8 @@ impl Plugin for HyperionCore {
             HyperionUtilsPlugin,
         ));
 
-        app.insert_resource(IgnMap::default());
+        app.init_resource::<PlayerNameLookup>();
+        app.init_resource::<PlayerUuidLookup>();
         // Minecraft is 20 TPS
         app.insert_resource(Time::<Fixed>::from_hz(20.0));
     }
