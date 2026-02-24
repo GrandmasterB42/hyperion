@@ -11,6 +11,7 @@ use bevy_ecs::{
     message::Message,
     name::Name,
     observer::On,
+    query::With,
     resource::Resource,
     system::{Commands, Query, Res, ResMut},
     world::World,
@@ -158,15 +159,33 @@ impl std::ops::DerefMut for EgressComm {
     }
 }
 
-// TODO: Player names are also reasonably unique and could probably be trivially be hashed in a simpler way?
+// Assuming the player names are reasonably unique, using the characters as the Hashmap Key should be fine?
 #[derive(Resource, Debug, Default)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
-pub struct PlayerNameLookup(
-    #[cfg_attr(feature = "reflect", reflect(ignore))] FxHashMap<String, Entity>,
-);
+pub struct PlayerNameLookup(PlayerNameHashMap<Entity>);
+
+#[cfg_attr(feature = "reflect", derive(Reflect))]
+#[derive(Default)]
+pub struct PlayerNameHasher(u64);
+
+impl Hasher for PlayerNameHasher {
+    fn finish(&self) -> u64 {
+        self.0
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        // TODO: This "Hashing" is pretty stupid. I probably need to benchmark this or just use another datastructure for both this and the uuidlookup
+        for byte in bytes {
+            self.0 = self.0.wrapping_add(u64::from(*byte) * 7_456_393);
+        }
+    }
+}
+
+type PlayerNameHashBuilder = BuildHasherDefault<PlayerNameHasher>;
+pub type PlayerNameHashMap<V> = HashMap<String, V, PlayerNameHashBuilder>;
 
 impl std::ops::Deref for PlayerNameLookup {
-    type Target = FxHashMap<String, Entity>;
+    type Target = PlayerNameHashMap<Entity>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -183,6 +202,7 @@ impl std::ops::DerefMut for PlayerNameLookup {
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct RaycastTravel;
 
+// TODO: This should probably require the other components
 /// A component that represents a Player. In the future, this should be broken up into multiple components.
 ///
 /// Why should it be broken up? The more things are broken up, the more we can take advantage of Rust borrowing rules.
@@ -744,7 +764,7 @@ fn initialize_player(
     mut name_map: ResMut<'_, PlayerNameLookup>,
     mut uuid_map: ResMut<'_, PlayerUuidLookup>,
     compose: Res<'_, Compose>,
-    name_query: Query<'_, '_, (&Name, &Uuid)>,
+    name_query: Query<'_, '_, (&Name, &Uuid), With<Player>>,
     connection_id_query: Query<'_, '_, &ConnectionId>,
     mut commands: Commands<'_, '_>,
 ) {
@@ -791,10 +811,11 @@ fn initialize_player(
 
 fn remove_player(
     not_playing: On<'_, '_, Remove, packet_state::Play>,
-    mut ign_map: ResMut<'_, PlayerNameLookup>,
-    name_query: Query<'_, '_, &Name>,
+    mut name_map: ResMut<'_, PlayerNameLookup>,
+    mut uuid_map: ResMut<'_, PlayerUuidLookup>,
+    player_query: Query<'_, '_, (&Name, &Uuid), With<Player>>,
 ) {
-    let name = match name_query.get(not_playing.entity) {
+    let (name, uuid) = match player_query.get(not_playing.entity) {
         Ok(name) => name,
         Err(e) => {
             error!("failed to remove player: query failed: {e}");
@@ -802,23 +823,46 @@ fn remove_player(
         }
     };
 
-    match ign_map.entry(name.to_string()) {
+    match name_map.entry(name.to_string()) {
         Entry::Occupied(entry) => {
             if *entry.get() == not_playing.entity {
                 // This entry points to the same entity that got disconnected
                 entry.remove();
             } else {
                 info!(
-                    "skipped removing player '{name}' from ign map on disconnect: a different \
-                     entity with the same name is in the ign map (this could happen if the same \
+                    "skipped removing player '{name}' from name map on disconnect: a different \
+                     entity with the same name is in the name map (this could happen if the same \
                      player joined twice, causing the first player to be kicked"
                 );
             }
         }
         Entry::Vacant(_) => {
             error!(
-                "failed to remove player '{name}' from ign map on disconnect: player is not in \
-                 ign map"
+                "failed to remove player '{name}' from name map on disconnect: player is not in \
+                 name map"
+            );
+        }
+    }
+
+    match uuid_map.entry(*uuid) {
+        Entry::Occupied(entry) => {
+            if *entry.get() == not_playing.entity {
+                // This entry points to the same entity that got disconnected
+                entry.remove();
+            } else {
+                info!(
+                    "skipped removing player with uuid '{}' from uuid map on disconnect: a \
+                     different entity with the same uuid is in the uuid map (this could happen if \
+                     the same player joined twice, causing the first player to be kicked",
+                    uuid.as_hyphenated()
+                );
+            }
+        }
+        Entry::Vacant(_) => {
+            error!(
+                "failed to remove player with uuid '{}' from uuid map on disconnect: player is \
+                 not in uuid map",
+                uuid.as_hyphenated()
             );
         }
     }
