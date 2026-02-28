@@ -11,8 +11,6 @@ use valence_protocol::{Hand, nbt};
 
 pub mod builder;
 
-pub struct ItemPlugin;
-
 #[derive(Message, Clone, Debug)]
 pub struct ItemInteractEvent {
     pub entity: Entity,
@@ -83,6 +81,8 @@ fn handle_interact(
         });
     }
 }
+
+pub struct ItemPlugin;
 
 impl Plugin for ItemPlugin {
     fn build(&self, app: &mut App) {

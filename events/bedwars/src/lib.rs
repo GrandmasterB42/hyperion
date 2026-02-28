@@ -125,10 +125,9 @@ impl Plugin for BedwarsPlugin {
                 StatsPlugin,
                 VanishPlugin,
             ),
+            hyperion::permission::PermissionPlugin,
             hyperion::clap::ClapCommandPlugin,
             hyperion::world::GenMapPlugin,
-            hyperion::item::ItemPlugin,
-            hyperion::permission::PermissionPlugin,
         ));
         app.add_observer(initialize_player);
 

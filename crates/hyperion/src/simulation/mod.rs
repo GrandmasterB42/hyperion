@@ -8,6 +8,7 @@ use bevy_ecs::{
 use glam::{DVec3, Vec3};
 use hyperion_command::CommandPlugin;
 use hyperion_entity::{Flight, FlyingSpeed, PendingTeleportation, Pitch, Yaw};
+use hyperion_item::ItemPlugin;
 use hyperion_net::{Compose, packet::PacketPlugin, proxy::RequestSubscribeChannelPackets};
 use hyperion_proxy_proto::ConnectionId;
 use tracing::error;
@@ -107,8 +108,9 @@ impl Plugin for SimPlugin {
 
         app.add_plugins((
             CommandPlugin,
-            HandlersPlugin,
             PacketPlugin,
+            ItemPlugin,
+            HandlersPlugin,
             InventoryPlugin,
             MetadataPlugin,
         ));
