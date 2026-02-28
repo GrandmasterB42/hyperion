@@ -14,7 +14,11 @@ use bevy_ecs::{
 use bytes::Bytes;
 use glam::DVec3;
 use hyperion_crafting::{Action, CraftingRegistry, RecipeBookState};
+use hyperion_entity::{PendingTeleportation, Position, Uuid, Yaw};
+use hyperion_net::{Compose, DataBundle, packet_state};
+use hyperion_proxy_proto::{Channel, ConnectionId};
 use hyperion_utils::EntityExt;
+use hyperion_world::registry::registry_codec_raw;
 use tracing::{error, info};
 use valence_bytes::{CowBytes, CowUtf8Bytes, Utf8Bytes};
 use valence_protocol::{
@@ -29,18 +33,12 @@ use valence_protocol::{
 use valence_registry::{BiomeRegistry, RegistryCodec};
 use valence_text::IntoText;
 
-use crate::simulation::{MovementTracking, packet_state};
+use crate::simulation::MovementTracking;
 
 mod list;
 pub use list::*;
 
-use crate::{
-    config::Config,
-    net::{Channel, Compose, ConnectionId, DataBundle},
-    simulation::{
-        PendingTeleportation, Position, Uuid, Yaw, skin::PlayerSkin, util::registry_codec_raw,
-    },
-};
+use crate::{config::Config, simulation::skin::PlayerSkin};
 
 #[derive(Message)]
 struct ProcessPlayerJoin(Entity);

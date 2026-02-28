@@ -4,11 +4,8 @@ use bevy_ecs::{
     observer::On,
     system::{Res, ResMut},
 };
-
-use crate::{
-    net::Compose,
-    simulation::{blocks::Blocks, packet_state},
-};
+use hyperion_net::{Compose, packet_state};
+use hyperion_world::Blocks;
 
 pub struct StatsPlugin;
 

@@ -6,10 +6,10 @@ use bevy_ecs::{
     system::{Commands, Query, Res},
 };
 use hyperion::{
-    net::Compose,
-    simulation::{metadata::living_entity::Health, packet_state},
+    net::{Compose, packet_state},
+    simulation::metadata::living_entity::Health,
+    utils::Prev,
 };
-use hyperion_utils::Prev;
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 

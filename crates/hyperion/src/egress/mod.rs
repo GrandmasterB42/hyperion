@@ -1,16 +1,18 @@
 use bevy_app::{App, Plugin, PostUpdate};
 use bevy_ecs::system::{Query, Res, ResMut};
+use hyperion_entity::Position;
+use hyperion_net::Compose;
+use hyperion_proxy_proto::{
+    ConnectionId,
+    packets::{
+        intermediate::{IntermediateServerToProxyMessage, UpdatePlayerPositions},
+        shared::ChunkPosition,
+    },
+};
 use tracing::error;
 use valence_protocol::{VarInt, packets::play::PlayerActionResponseS2c};
 
-use crate::{
-    Blocks,
-    net::{
-        Compose, ConnectionId,
-        intermediate::{IntermediateServerToProxyMessage, UpdatePlayerPositions},
-    },
-    simulation::Position,
-};
+use crate::Blocks;
 mod channel;
 pub mod metadata;
 pub mod player_join;
@@ -34,7 +36,7 @@ fn send_chunk_positions(
 
     for (&io, pos) in query.iter() {
         stream.push(io);
-        positions.push(hyperion_proto::ChunkPosition::from(pos.to_chunk()));
+        positions.push(ChunkPosition::from(pos.to_chunk()));
     }
 
     let packet = UpdatePlayerPositions { stream, positions };

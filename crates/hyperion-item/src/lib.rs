@@ -5,24 +5,30 @@ use bevy_ecs::{
     schedule::IntoScheduleConfigs,
     system::Query,
 };
-use hyperion::{ingress, simulation::event::InteractEvent};
 use hyperion_inventory::PlayerInventory;
 use tracing::error;
-use valence_protocol::nbt;
+use valence_protocol::{Hand, nbt};
 
 pub mod builder;
 
 pub struct ItemPlugin;
 
+#[derive(Message, Clone, Debug)]
+pub struct ItemInteractEvent {
+    pub entity: Entity,
+    pub hand: Hand,
+    pub sequence: i32,
+}
+
 /// Event sent when an item with an NBT is clicked in the hotbar
 #[derive(Message)]
 pub struct NbtInteractEvent {
     pub handler: Entity,
-    pub event: InteractEvent,
+    pub event: ItemInteractEvent,
 }
 
 impl std::ops::Deref for NbtInteractEvent {
-    type Target = InteractEvent;
+    type Target = ItemInteractEvent;
 
     fn deref(&self) -> &Self::Target {
         &self.event
@@ -30,12 +36,12 @@ impl std::ops::Deref for NbtInteractEvent {
 }
 
 fn handle_interact(
-    mut events: MessageReader<'_, '_, InteractEvent>,
+    mut events: MessageReader<'_, '_, ItemInteractEvent>,
     query: Query<'_, '_, &PlayerInventory>,
     mut event_writer: MessageWriter<'_, NbtInteractEvent>,
 ) {
     for event in events.read() {
-        let inventory = match query.get(event.client) {
+        let inventory = match query.get(event.entity) {
             Ok(inventory) => inventory,
             Err(e) => {
                 error!("failed to handle interact event: query failed: {e}");
@@ -80,7 +86,11 @@ fn handle_interact(
 
 impl Plugin for ItemPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(FixedUpdate, handle_interact.after(ingress::decode::play));
-        app.add_message::<NbtInteractEvent>();
+        app.add_systems(
+            FixedUpdate,
+            handle_interact.after(hyperion_net::decode::play),
+        );
+        app.add_message::<NbtInteractEvent>()
+            .add_message::<ItemInteractEvent>();
     }
 }

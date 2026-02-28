@@ -8,12 +8,11 @@ reflect = [
     "dep:bevy_reflect",
     "bevy_ecs/reflect_auto_register",
     "bevy_reflect/auto_register_inventory",
-    "hyperion/reflect",
     "hyperion-inventory/reflect",
 ]
 
 [dependencies]
-hyperion.workspace = true
+hyperion-entity.workspace = true
 hyperion-inventory.workspace = true
 
 valence_protocol.workspace = true

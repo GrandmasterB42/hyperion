@@ -6,9 +6,21 @@ use bevy_ecs::{
     system::{Commands, ParamSet, Query, Res},
     world::World,
 };
+use geometry::aabb::Aabb;
 use glam::{DVec3, IVec3, Vec3};
+use hyperion_entity::{
+    EntitySize, Flight, PendingTeleportation, Pitch, Position, Yaw,
+    player::{ActiveAnimation, AnimationKind, ConfirmBlockSequences},
+};
 use hyperion_inventory::PlayerInventory;
+use hyperion_item::ItemInteractEvent;
+use hyperion_net::{
+    Compose,
+    packet::{self, OrderedPacketRef},
+};
+use hyperion_proxy_proto::ConnectionId;
 use hyperion_utils::next_lowest;
+use hyperion_world::Blocks;
 use tracing::{error, warn};
 use valence_generated::{
     block::{BlockKind, BlockState, PropName},
@@ -23,19 +35,9 @@ use valence_protocol::{
 };
 use valence_text::IntoText;
 
-use crate::{
-    ingress,
-    net::{Compose, ConnectionId},
-    simulation::{
-        Aabb, ConfirmBlockSequences, EntitySize, Flight, MovementTracking, PendingTeleportation,
-        Pitch, Position, Yaw, aabb,
-        animation::{self, ActiveAnimation},
-        block_bounds,
-        blocks::Blocks,
-        event,
-        metadata::{entity::Pose, living_entity::HandStates},
-        packet::{OrderedPacketRef, play},
-    },
+use crate::simulation::{
+    MovementTracking, event,
+    metadata::{entity::Pose, living_entity::HandStates},
 };
 
 #[expect(
@@ -46,10 +48,10 @@ use crate::{
               manually."
 )]
 fn position_and_look_updates(
-    mut full_reader: MessageReader<'_, '_, play::Full>,
-    mut position_reader: MessageReader<'_, '_, play::PositionAndOnGround>,
-    mut look_reader: MessageReader<'_, '_, play::LookAndOnGround>,
-    mut teleport_reader: MessageReader<'_, '_, play::TeleportConfirm>,
+    mut full_reader: MessageReader<'_, '_, packet::play::Full>,
+    mut position_reader: MessageReader<'_, '_, packet::play::PositionAndOnGround>,
+    mut look_reader: MessageReader<'_, '_, packet::play::LookAndOnGround>,
+    mut teleport_reader: MessageReader<'_, '_, packet::play::TeleportConfirm>,
     mut queries: ParamSet<
         '_,
         '_,
@@ -292,8 +294,8 @@ pub fn is_grounded(position: &Vec3, blocks: &Blocks) -> bool {
 fn has_block_collision(position: &Vec3, size: EntitySize, blocks: &Blocks) -> bool {
     use std::ops::ControlFlow;
 
-    let (min, max) = block_bounds(*position, size);
-    let shrunk = aabb(*position, size).shrink(0.01);
+    let (min, max) = size.block_bounds(*position);
+    let shrunk = size.aabb(*position).shrink(0.01);
 
     let res = blocks.get_blocks(min, max, |pos, block| {
         #[expect(clippy::cast_precision_loss)]
@@ -315,7 +317,7 @@ fn has_block_collision(position: &Vec3, size: EntitySize, blocks: &Blocks) -> bo
 }
 
 fn hand_swing(
-    mut packets: MessageReader<'_, '_, play::HandSwing>,
+    mut packets: MessageReader<'_, '_, packet::play::HandSwing>,
     mut query: Query<'_, '_, &mut ActiveAnimation>,
 ) {
     for packet in packets.read() {
@@ -329,10 +331,10 @@ fn hand_swing(
 
         match packet.hand {
             Hand::Main => {
-                animation.push(animation::Kind::SwingMainArm);
+                animation.push(AnimationKind::SwingMainArm);
             }
             Hand::Off => {
-                animation.push(animation::Kind::SwingOffHand);
+                animation.push(AnimationKind::SwingOffHand);
             }
         }
     }
@@ -340,7 +342,7 @@ fn hand_swing(
 
 // i.e., shooting a bow, digging a block, etc
 fn player_action(
-    mut packets: MessageReader<'_, '_, play::PlayerAction>,
+    mut packets: MessageReader<'_, '_, packet::play::PlayerAction>,
     mut start_destroy_writer: MessageWriter<'_, event::StartDestroyBlock>,
     mut stop_destroy_writer: MessageWriter<'_, event::DestroyBlock>,
     mut release_writer: MessageWriter<'_, event::ReleaseUseItem>,
@@ -386,7 +388,7 @@ fn player_action(
 
 // for sneaking/crouching/etc
 fn client_command(
-    mut packets: MessageReader<'_, '_, play::ClientCommand>,
+    mut packets: MessageReader<'_, '_, packet::play::ClientCommand>,
     mut query: Query<'_, '_, (&mut Pose, &mut EntitySize, &mut MovementTracking)>,
 ) {
     for packet in packets.read() {
@@ -430,11 +432,10 @@ fn client_command(
 /// - Using tools/items with special right-click actions (e.g. fishing rods, shields)
 /// - Activating items with duration effects (e.g. chorus fruit teleport)
 fn player_interact_item(
-    mut packets: MessageReader<'_, '_, play::PlayerInteractItem>,
+    mut packets: MessageReader<'_, '_, packet::play::PlayerInteractItem>,
     compose: Res<'_, Compose>,
     query: Query<'_, '_, &PlayerInventory>,
-    mut interact_event_writer: MessageWriter<'_, event::InteractEvent>,
-    mut item_interact_writer: MessageWriter<'_, event::ItemInteract>,
+    mut item_interact_writer: MessageWriter<'_, ItemInteractEvent>,
 ) {
     for packet in packets.read() {
         let inventory = match query.get(packet.sender()) {
@@ -445,37 +446,29 @@ fn player_interact_item(
             }
         };
 
-        let event = event::InteractEvent {
-            client: packet.sender(),
+        let event = ItemInteractEvent {
+            entity: packet.sender(),
             hand: packet.hand,
             sequence: packet.sequence.0,
         };
 
         let cursor = &inventory.get_cursor().stack;
 
-        if !cursor.is_empty() {
-            let event = event::ItemInteract {
-                entity: packet.sender(),
-                hand: packet.hand,
-                sequence: packet.sequence.0,
-            };
-            if cursor.item == ItemKind::WrittenBook {
-                compose
-                    .unicast(
-                        &OpenWrittenBookS2c { hand: packet.hand },
-                        packet.connection_id(),
-                    )
-                    .unwrap();
-            }
-            item_interact_writer.write(event);
+        if !cursor.is_empty() && cursor.item == ItemKind::WrittenBook {
+            compose
+                .unicast(
+                    &OpenWrittenBookS2c { hand: packet.hand },
+                    packet.connection_id(),
+                )
+                .unwrap();
         }
 
-        interact_event_writer.write(event);
+        item_interact_writer.write(event);
     }
 }
 
 fn player_interact_block(
-    mut packets: MessageReader<'_, '_, play::PlayerInteractBlock>,
+    mut packets: MessageReader<'_, '_, packet::play::PlayerInteractBlock>,
     mut query: Query<
         '_,
         '_,
@@ -555,7 +548,7 @@ fn player_interact_block(
             let position_dvec3 = position.as_vec3();
 
             // todo(hack): technically players can do some crazy position stuff to abuse this probably
-            let player_aabb = aabb(**client_position, *size);
+            let player_aabb = size.aabb(**client_position);
 
             let collides_player = block_state
                 .collision_shapes()
@@ -579,7 +572,7 @@ fn player_interact_block(
 }
 
 fn creative_inventory_action(
-    mut packets: MessageReader<'_, '_, play::CreativeInventoryAction>,
+    mut packets: MessageReader<'_, '_, packet::play::CreativeInventoryAction>,
     mut query: Query<'_, '_, &mut PlayerInventory>,
 ) {
     for packet in packets.read() {
@@ -605,7 +598,7 @@ fn creative_inventory_action(
 }
 
 fn player_abilities(
-    mut packets: MessageReader<'_, '_, play::UpdatePlayerAbilities>,
+    mut packets: MessageReader<'_, '_, packet::play::UpdatePlayerAbilities>,
     mut query: Query<'_, '_, &mut Flight>,
 ) {
     for packet in packets.read() {
@@ -640,7 +633,7 @@ impl Plugin for HandlersPlugin {
                 creative_inventory_action,
                 player_abilities,
             )
-                .after(ingress::decode::play),
+                .after(hyperion_net::decode::play),
         );
     }
 }

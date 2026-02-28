@@ -7,6 +7,10 @@ use bevy_ecs::{
     system::{Query, Res},
 };
 use glam::I16Vec2;
+use hyperion_entity::{ChunkPosition, Position};
+use hyperion_net::{Compose, DataBundle, packet_state};
+use hyperion_proxy_proto::ConnectionId;
+use hyperion_world::{Blocks, GetChunk};
 use itertools::Itertools;
 use tracing::error;
 use valence_protocol::{
@@ -16,15 +20,7 @@ use valence_protocol::{
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
-use crate::{
-    config::Config,
-    net::{Compose, ConnectionId, DataBundle},
-    simulation::{
-        ChunkPosition, Position,
-        blocks::{Blocks, GetChunk},
-        packet_state,
-    },
-};
+use crate::config::Config;
 
 #[derive(Component, Default)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]

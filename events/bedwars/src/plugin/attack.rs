@@ -14,25 +14,24 @@ use bevy_ecs::{
 };
 use glam::{DVec3, IVec3, Vec3};
 use hyperion::{
-    ingress,
-    net::{Compose, ConnectionId, agnostic},
-    runtime::AsyncRuntime,
-    simulation::{
-        PendingTeleportation, Position, Velocity, Yaw, blocks::Blocks, event,
-        metadata::living_entity::Health, packet::play, packet_state,
+    entity::{PendingTeleportation, Position, Velocity, Yaw},
+    ident::ident,
+    inventory::PlayerInventory,
+    net::{Compose, agnostic, packet::play, packet_state},
+    protocol::{
+        BlockKind, ItemKind, ItemStack, Particle, VarInt,
+        packets::play::{
+            ClientStatusC2s, DamageTiltS2c, DeathMessageS2c, EntityDamageS2c, GameMessageS2c,
+            ParticleS2c, player_interact_entity_c2s::EntityInteraction,
+        },
+        text::IntoText,
     },
+    proxy::ConnectionId,
+    simulation::{event, metadata::living_entity::Health},
+    utils::{EntityExt, Prev, runtime::AsyncRuntime},
+    world::Blocks,
 };
-use hyperion_inventory::PlayerInventory;
-use hyperion_utils::{EntityExt, Prev};
 use tracing::error;
-use valence_protocol::{
-    BlockKind, ItemKind, ItemStack, Particle, VarInt, ident,
-    packets::play::{
-        DamageTiltS2c, DeathMessageS2c, EntityDamageS2c, GameMessageS2c, ParticleS2c,
-        client_status_c2s::ClientStatusC2s, player_interact_entity_c2s::EntityInteraction,
-    },
-    text::IntoText,
-};
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
@@ -370,7 +369,7 @@ impl Plugin for AttackPlugin {
                 (handle_melee_attacks, handle_attacks).chain(),
                 handle_respawn,
             )
-                .after(ingress::decode::play),
+                .after(hyperion::net::decode::play),
         );
     }
 }

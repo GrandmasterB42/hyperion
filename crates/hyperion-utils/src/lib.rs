@@ -1,6 +1,9 @@
 mod cached_save;
+pub mod command_channel;
 pub mod iterator;
 pub mod prev;
+pub mod runtime;
+
 use std::path::PathBuf;
 
 use bevy_app::{App, Plugin};
@@ -74,9 +77,9 @@ impl ApplyWorld for () {
 pub struct AppId {
     /// The qualifier/category of the application (e.g. "com", "org", "hyperion")
     pub qualifier: String,
-    /// The organization that created the application (e.g. "andrewgazelka")
+    /// The organization that created the application
     pub organization: String,
-    /// The specific application name (e.g. "proof-of-concept")
+    /// The specific application name
     pub application: String,
 }
 

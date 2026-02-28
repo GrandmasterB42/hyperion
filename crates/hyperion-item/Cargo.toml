@@ -7,15 +7,14 @@ readme = "README.md"
 
 [features]
 reflect = [
-    "hyperion/reflect",
     "hyperion-inventory/reflect",
     "bevy_app/reflect_auto_register",
     "bevy_ecs/reflect_auto_register",
 ]
 
 [dependencies]
-hyperion.workspace = true
 hyperion-inventory.workspace = true
+hyperion-net.workspace = true
 
 valence_protocol.workspace = true
 

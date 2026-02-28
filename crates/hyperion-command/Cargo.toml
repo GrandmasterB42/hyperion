@@ -11,13 +11,15 @@ reflect = [
     "bevy_app/reflect_auto_register",
     "bevy_ecs/reflect_auto_register",
     "bevy_reflect/auto_register_inventory",
-    "hyperion/reflect",
     "hyperion-utils/reflect",
 ]
 
 [dependencies]
-hyperion.workspace = true
+hyperion-net.workspace = true
 hyperion-utils.workspace = true
+
+valence_bytes.workspace = true
+valence_protocol.workspace = true
 
 bevy_app.workspace = true
 bevy_ecs.workspace = true

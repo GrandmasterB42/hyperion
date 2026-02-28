@@ -5,10 +5,11 @@ use bevy_ecs::{
 };
 use clap::Parser;
 use hyperion::{
-    net::{Compose, ConnectionId, DataBundle, agnostic},
-    simulation::Flight,
+    clap::{CommandPermission, MinecraftCommand},
+    entity::Flight,
+    net::{Compose, DataBundle, agnostic},
+    proxy::ConnectionId,
 };
-use hyperion_clap::{CommandPermission, MinecraftCommand};
 use tracing::error;
 
 #[derive(Parser, CommandPermission, Debug)]

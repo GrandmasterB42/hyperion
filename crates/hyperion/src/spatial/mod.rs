@@ -8,17 +8,14 @@ use bevy_ecs::{
 };
 use geometry::{aabb::Aabb, ray::Ray};
 use glam::Vec3;
+use hyperion_entity::{EntitySize, Position};
+use hyperion_world::{Blocks, RayCollision};
 use ordered_float::NotNan;
 use rayon::iter::Either;
 #[cfg(feature = "reflect")]
 use {
     bevy_ecs::reflect::{ReflectComponent, ReflectResource},
     bevy_reflect::Reflect,
-};
-
-use super::simulation::{
-    EntitySize, Position, aabb,
-    blocks::{Blocks, RayCollision},
 };
 
 pub struct SpatialPlugin;
@@ -75,7 +72,7 @@ fn get_aabb_func(
         let (position, size) = query
             .get(*entity)
             .expect("spatial index must contain alive entities");
-        aabb(**position, *size)
+        size.aabb(**position)
     }
 }
 

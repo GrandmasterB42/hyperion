@@ -8,14 +8,12 @@ use bevy_ecs::{
     world::{FromWorld, World},
 };
 use clap::{Arg as ClapArg, Parser, ValueEnum, ValueHint, error::ErrorKind};
-use hyperion::{
-    net::{Compose, ConnectionId, DataBundle, agnostic},
-    simulation::{PlayerNameLookup, command::RootCommand, packet::play},
-};
 pub use hyperion_clap_macros::CommandPermission;
 pub use hyperion_command;
-use hyperion_command::{CommandHandler, CommandRegistry, ExecutableCommand};
+use hyperion_command::{Command, CommandHandler, CommandRegistry, ExecutableCommand, RootCommand};
+use hyperion_net::{Compose, DataBundle, lookup::PlayerNameLookup, packet::play};
 use hyperion_permission::Group;
+use hyperion_proxy_proto::ConnectionId;
 use hyperion_utils::ApplyWorld;
 use tracing::error;
 use valence_bytes::Utf8Bytes;
@@ -46,7 +44,9 @@ impl<Command: MinecraftCommand> ExecutableCommand for GenericExecutableCommand<C
                 if Command::has_required_permission(*group) {
                     elem.execute(world, &mut self.state, packet.sender());
                 } else {
-                    let chat = agnostic::chat("§cYou do not have permission to use this command!");
+                    let chat = hyperion_net::agnostic::chat(
+                        "§cYou do not have permission to use this command!",
+                    );
 
                     let mut bundle = DataBundle::new(compose);
                     bundle.add_packet(&chat).unwrap();
@@ -63,7 +63,7 @@ impl<Command: MinecraftCommand> ExecutableCommand for GenericExecutableCommand<C
                 // minecraft red
                 let msg = format!("{prefix}{e}");
 
-                let msg = agnostic::chat(msg);
+                let msg = hyperion_net::agnostic::chat(msg);
                 compose.unicast(&msg, packet.connection_id()).unwrap();
 
                 tracing::warn!("could not parse command {e}");
@@ -106,8 +106,7 @@ pub trait MinecraftCommand: Parser + CommandPermission + 'static {
             Self::has_required_permission(*group)
         };
 
-        let node_to_register =
-            hyperion::simulation::command::Command::literal(name.clone(), has_permissions);
+        let node_to_register = Command::literal(name.clone(), has_permissions);
 
         let root_command = world.resource::<RootCommand>();
         let mut on = **root_command;
@@ -117,10 +116,8 @@ pub trait MinecraftCommand: Parser + CommandPermission + 'static {
             use valence_protocol::packets::play::command_tree_s2c::Parser as ValenceParser;
             let name = arg.get_value_names().unwrap().first().unwrap();
             let name = name.to_ascii_lowercase();
-            let node_to_register = hyperion::simulation::command::Command::argument(
-                name,
-                ValenceParser::String(StringArg::SingleWord),
-            );
+            let node_to_register =
+                Command::argument(name, ValenceParser::String(StringArg::SingleWord));
 
             on = world.spawn((node_to_register, ChildOf(on))).id();
         }
@@ -315,7 +312,7 @@ impl MinecraftCommand for PermissionCommand {
                 // Handle setting permissions
                 let Some(&entity) = name_map.get(cmd.player.as_str()) else {
                     let msg = format!("§c{} not found", cmd.player);
-                    let chat = hyperion::net::agnostic::chat(msg);
+                    let chat = hyperion_net::agnostic::chat(msg);
                     compose.unicast(&chat, connection_id).unwrap();
                     return;
                 };
@@ -326,13 +323,13 @@ impl MinecraftCommand for PermissionCommand {
                     "§b{}§r's group has been set to §e{:?}",
                     cmd.player, cmd.group
                 );
-                let chat = hyperion::net::agnostic::chat(msg);
+                let chat = hyperion_net::agnostic::chat(msg);
                 compose.unicast(&chat, connection_id).unwrap();
             }
             Self::Get(cmd) => {
                 let Some(&entity) = name_map.get(cmd.player.as_str()) else {
                     let msg = format!("§c{} not found", cmd.player);
-                    let chat = hyperion::net::agnostic::chat(msg);
+                    let chat = hyperion_net::agnostic::chat(msg);
                     compose.unicast(&chat, connection_id).unwrap();
                     return;
                 };
@@ -343,7 +340,7 @@ impl MinecraftCommand for PermissionCommand {
                 };
 
                 let msg = format!("§b{}§r's group is §e{:?}", cmd.player, group);
-                let chat = hyperion::net::agnostic::chat(msg);
+                let chat = hyperion_net::agnostic::chat(msg);
                 compose.unicast(&chat, connection_id).unwrap();
             }
         }
@@ -354,7 +351,9 @@ pub struct ClapCommandPlugin;
 
 impl Plugin for ClapCommandPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(hyperion_command::CommandPlugin);
+        if !app.is_plugin_added::<hyperion_command::CommandPlugin>() {
+            app.add_plugins(hyperion_command::CommandPlugin);
+        }
         PermissionCommand::register(app.world_mut());
     }
 }

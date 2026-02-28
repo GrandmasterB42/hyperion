@@ -1,8 +1,6 @@
 use std::sync::Mutex;
 
-use bevy_app::{App, Plugin};
 use bevy_ecs::{entity::Entity, resource::Resource, world::World};
-use hyperion::simulation::packet::play;
 use hyperion_utils::ApplyWorld;
 use indexmap::IndexMap;
 #[cfg(feature = "reflect")]
@@ -10,12 +8,12 @@ use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 
 pub trait ExecutableCommand: ApplyWorld {
     /// Executes a command triggered by a player
-    fn execute(&mut self, world: &World, execution: &play::CommandExecution);
+    fn execute(&mut self, world: &World, execution: &hyperion_net::packet::play::CommandExecution);
 }
 
 pub struct CommandHandler {
     pub executable: Box<dyn ExecutableCommand + Send + Sync + 'static>,
-    pub tab_complete: fn(&World, &play::RequestCommandCompletions),
+    pub tab_complete: fn(&World, &hyperion_net::packet::play::RequestCommandCompletions),
     pub has_permissions: fn(&World, Entity) -> bool,
 }
 
@@ -60,6 +58,14 @@ pub struct CommandRegistry(
     #[cfg_attr(feature = "reflect", reflect(ignore))] Mutex<CommandRegistryInner>,
 );
 
+impl std::default::Default for CommandRegistry {
+    fn default() -> Self {
+        Self(Mutex::new(CommandRegistryInner {
+            commands: IndexMap::default(),
+        }))
+    }
+}
+
 impl std::ops::Deref for CommandRegistry {
     type Target = Mutex<CommandRegistryInner>;
 
@@ -71,15 +77,5 @@ impl std::ops::Deref for CommandRegistry {
 impl std::ops::DerefMut for CommandRegistry {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
-    }
-}
-
-pub struct CommandComponentPlugin;
-
-impl Plugin for CommandComponentPlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(CommandRegistry(Mutex::new(CommandRegistryInner {
-            commands: IndexMap::default(),
-        })));
     }
 }

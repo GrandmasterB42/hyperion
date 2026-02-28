@@ -4,13 +4,15 @@ use bevy_ecs::{
     system::{Query, Res},
 };
 use hyperion::{
-    net::{Compose, ConnectionId, agnostic},
-    simulation::{Position, event::HitGroundEvent, metadata::living_entity::Health},
+    entity::Position,
+    ident::ident,
+    net::{Compose, agnostic},
+    protocol::{VarInt, packets::play, text::IntoText},
+    proxy::ConnectionId,
+    simulation::{event::HitGroundEvent, metadata::living_entity::Health},
+    utils::EntityExt,
 };
-use hyperion_utils::EntityExt;
 use tracing::error;
-use valence_protocol::{VarInt, packets::play, text::IntoText};
-use valence_server::ident;
 
 fn apply_natural_damages(
     mut events: MessageReader<'_, '_, HitGroundEvent>,

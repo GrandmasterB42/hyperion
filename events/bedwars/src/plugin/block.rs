@@ -5,19 +5,17 @@ use bevy_ecs::{
 };
 use glam::IVec3;
 use hyperion::{
-    chat,
-    net::{Compose, ConnectionId},
-    simulation::{
-        blocks::{Blocks, EntityAndSequence},
-        event,
+    net::{Compose, chat},
+    protocol::{
+        BlockPos,
+        block::{PropName, PropValue},
+        packets::play,
     },
+    proxy::ConnectionId,
+    simulation::event,
+    world::{Blocks, EntityAndSequence},
 };
 use tracing::error;
-use valence_protocol::{
-    BlockPos,
-    block::{PropName, PropValue},
-    packets::play,
-};
 
 fn handle_destroyed_blocks(
     mut events: MessageReader<'_, '_, event::DestroyBlock>,

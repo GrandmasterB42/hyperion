@@ -3,8 +3,10 @@ use std::net::SocketAddr;
 
 use bevy_app::{App, Plugin};
 use bevy_ecs::{component::Component, lifecycle::Add, observer::On, system::Commands};
-use hyperion::{Crypto, Endpoint, HyperionCore, simulation::packet_state, spatial::Spatial};
-use valence_text::IntoText;
+use hyperion::{
+    Endpoint, HyperionCore, net::packet_state, protocol::text::IntoText, proxy::Crypto,
+    spatial::Spatial,
+};
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
@@ -66,7 +68,7 @@ impl Team {
     }
 }
 
-impl From<Team> for valence_text::Color {
+impl From<Team> for hyperion::protocol::text::Color {
     fn from(team: Team) -> Self {
         // Source: https://minecraft.wiki/w/Wool/DV
         // (https://web.archive.org/web/20231011122724/https://minecraft.wiki/w/Wool/DV)
@@ -91,7 +93,7 @@ impl From<Team> for valence_text::Color {
     }
 }
 
-impl From<Team> for valence_text::Text {
+impl From<Team> for hyperion::protocol::text::Text {
     fn from(team: Team) -> Self {
         team.name().into_text().color(team)
     }
@@ -123,11 +125,10 @@ impl Plugin for BedwarsPlugin {
                 StatsPlugin,
                 VanishPlugin,
             ),
-            hyperion_clap::ClapCommandPlugin,
-            hyperion_genmap::GenMapPlugin,
-            hyperion_item::ItemPlugin,
-            hyperion_permission::PermissionPlugin,
-            hyperion_proxy_module::HyperionProxyPlugin,
+            hyperion::clap::ClapCommandPlugin,
+            hyperion::world::GenMapPlugin,
+            hyperion::item::ItemPlugin,
+            hyperion::permission::PermissionPlugin,
         ));
         app.add_observer(initialize_player);
 

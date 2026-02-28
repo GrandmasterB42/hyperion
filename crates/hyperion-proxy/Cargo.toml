@@ -6,7 +6,7 @@ publish = false
 readme = "README.md"
 
 [dependencies]
-hyperion-proto.workspace = true
+hyperion-proxy-proto.workspace = true
 
 anyhow.workspace = true
 arrayvec.workspace = true
@@ -22,7 +22,6 @@ papaya.workspace = true
 rkyv.workspace = true
 rustc-hash.workspace = true
 rustls.workspace = true
-rustls-pki-types.workspace = true
 rustls-webpki.workspace = true
 serde.workspace = true
 slotmap.workspace = true

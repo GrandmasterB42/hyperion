@@ -8,7 +8,15 @@ use bevy_ecs::{
     system::{Query, Res},
     world::World,
 };
-use hyperion_proto::UpdateChannelPosition;
+use hyperion_entity::{EntityKind, Pitch, Position, Uuid, Velocity, Yaw};
+use hyperion_net::{Compose, proxy::RequestSubscribeChannelPackets};
+use hyperion_proxy_proto::{
+    Channel, ChannelId, ConnectionId,
+    packets::{
+        intermediate::{IntermediateServerToProxyMessage, UpdateChannelPositions},
+        s2p::UpdateChannelPosition,
+    },
+};
 use hyperion_utils::EntityExt;
 use tracing::error;
 use valence_bytes::CowBytes;
@@ -16,15 +24,7 @@ use valence_protocol::{ByteAngle, RawBytes, VarInt, packets::play};
 
 use crate::{
     egress::metadata::show_all,
-    net::{
-        Channel, ChannelId, Compose, ConnectionId,
-        intermediate::{IntermediateServerToProxyMessage, UpdateChannelPositions},
-    },
-    simulation::{
-        Pitch, Position, RequestSubscribeChannelPackets, Uuid, Velocity, Yaw,
-        entity_kind::EntityKind,
-        metadata::{MetadataChanges, get_and_clear_metadata},
-    },
+    simulation::metadata::{MetadataChanges, get_and_clear_metadata},
 };
 
 fn add_channel(added_channel: On<'_, '_, Add, Channel>, compose: Res<'_, Compose>) {

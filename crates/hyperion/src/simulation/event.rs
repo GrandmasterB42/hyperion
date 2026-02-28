@@ -1,5 +1,6 @@
 use bevy_ecs::{entity::Entity, message::Message};
 use glam::{IVec3, Vec3};
+use hyperion_world::RayCollision;
 use valence_generated::block::BlockState;
 use valence_protocol::{
     Hand, Ident, ItemStack,
@@ -9,7 +10,6 @@ use valence_protocol::{
     },
 };
 
-use super::blocks::RayCollision;
 use crate::simulation::skin::PlayerSkin;
 
 // TODO: Check that all of these events are needed
@@ -18,13 +18,6 @@ use crate::simulation::skin::PlayerSkin;
 pub struct ItemDropEvent {
     pub item: ItemStack,
     pub location: Vec3,
-}
-
-#[derive(Message, Debug)]
-pub struct ItemInteract {
-    pub entity: Entity,
-    pub hand: Hand,
-    pub sequence: i32,
 }
 
 #[derive(Message, Debug)]
@@ -165,11 +158,4 @@ pub struct HitGroundEvent {
     pub client: Entity,
     /// This is at least 3
     pub fall_distance: f32,
-}
-
-#[derive(Message, Clone, Debug)]
-pub struct InteractEvent {
-    pub client: Entity,
-    pub hand: Hand,
-    pub sequence: i32,
 }

@@ -8,6 +8,7 @@ use bevy_ecs::{
     system::{Commands, Query},
     world::EntityRef,
 };
+use hyperion_entity::EntityKind;
 use hyperion_utils::{Prev, track_prev};
 use tracing::error;
 use valence_protocol::{Encode, VarInt};
@@ -103,7 +104,6 @@ impl Plugin for MetadataPlugin {
     }
 }
 
-use super::entity_kind::EntityKind;
 use crate::simulation::metadata::r#type::MetadataType;
 
 #[derive(Debug, Default, Component, Clone)]

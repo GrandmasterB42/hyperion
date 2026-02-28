@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use bevy_ecs::{component::Component, entity::Entity, system::Commands, world::World};
-use hyperion::simulation::{Uuid, entity_kind::EntityKind};
+use hyperion_entity::{EntityKind, Uuid};
 use hyperion_inventory::{Inventory, OpenInventory};
 use serde::{Deserialize, Serialize};
 use valence_protocol::packets::play::{

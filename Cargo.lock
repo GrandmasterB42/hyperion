@@ -612,14 +612,7 @@ dependencies = [
  "geometry",
  "glam 0.29.3",
  "hyperion",
- "hyperion-clap",
- "hyperion-genmap",
- "hyperion-gui",
- "hyperion-inventory",
- "hyperion-item",
  "hyperion-permission",
- "hyperion-proxy-module",
- "hyperion-utils",
  "rayon",
  "roaring",
  "serde",
@@ -627,12 +620,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-tracy",
- "uuid",
- "valence_bytes",
- "valence_ident 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
- "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
- "valence_server",
- "valence_text 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
 ]
 
 [[package]]
@@ -3064,63 +3051,49 @@ dependencies = [
  "bevy_tasks 0.18.0",
  "bevy_time",
  "bitfield-struct 0.12.1",
- "bitvec",
  "boxcar",
  "bvh-region",
- "bytemuck",
  "byteorder",
  "bytes",
  "colored",
  "divan",
- "enumset",
  "fastrand 2.3.0",
- "flate2",
  "geometry",
  "glam 0.29.3",
  "heapless 0.8.0",
  "heed",
+ "hyperion-clap",
+ "hyperion-command",
  "hyperion-crafting",
- "hyperion-genmap",
+ "hyperion-data",
+ "hyperion-entity",
+ "hyperion-gui",
  "hyperion-inventory",
- "hyperion-packet-macros",
- "hyperion-palette",
- "hyperion-proto",
- "hyperion-text",
+ "hyperion-item",
+ "hyperion-net",
+ "hyperion-permission",
+ "hyperion-proxy-proto",
  "hyperion-utils",
- "indexmap",
+ "hyperion-world",
  "itertools 0.14.0",
  "libc",
  "libdeflater",
- "memmap2",
- "more-asserts",
  "ndarray",
  "ordered-float 5.0.0",
- "packet-channel",
- "paste",
  "rayon",
  "reqwest",
  "rkyv",
- "roaring",
- "rustc-hash 2.1.1",
- "rustls",
- "rustls-pki-types",
- "rustls-webpki",
  "serde",
  "serde_json",
  "serial_test",
  "sha2",
- "thiserror 2.0.12",
- "thread_local",
  "tokio",
- "tokio-rustls",
  "toml",
  "tracing",
  "uuid",
- "valence_anvil",
  "valence_bytes",
  "valence_generated 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
  "valence_ident 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
- "valence_nbt 0.8.0 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
  "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
  "valence_registry",
  "valence_server",
@@ -3134,10 +3107,11 @@ dependencies = [
  "bevy_app 0.18.0",
  "bevy_ecs 0.18.0",
  "clap",
- "hyperion",
  "hyperion-clap-macros",
  "hyperion-command",
+ "hyperion-net",
  "hyperion-permission",
+ "hyperion-proxy-proto",
  "hyperion-utils",
  "tracing",
  "valence_bytes",
@@ -3159,11 +3133,13 @@ dependencies = [
  "bevy_app 0.18.0",
  "bevy_ecs 0.18.0",
  "bevy_reflect",
- "hyperion",
+ "hyperion-net",
  "hyperion-utils",
  "indexmap",
  "itertools 0.14.0",
  "tracing",
+ "valence_bytes",
+ "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
 ]
 
 [[package]]
@@ -3178,12 +3154,30 @@ dependencies = [
 ]
 
 [[package]]
-name = "hyperion-genmap"
+name = "hyperion-data"
 version = "0.1.0"
 dependencies = [
- "bevy_app 0.18.0",
- "hyperion",
- "hyperion-utils",
+ "anyhow",
+ "bevy_ecs 0.18.0",
+ "bevy_reflect",
+ "heed",
+ "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
+]
+
+[[package]]
+name = "hyperion-entity"
+version = "0.1.0"
+dependencies = [
+ "bevy_ecs 0.18.0",
+ "bevy_reflect",
+ "bytemuck",
+ "enumset",
+ "fastrand 2.3.0",
+ "geometry",
+ "glam 0.29.3",
+ "serde",
+ "uuid",
+ "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
 ]
 
 [[package]]
@@ -3192,7 +3186,7 @@ version = "0.1.0"
 dependencies = [
  "bevy_ecs 0.18.0",
  "bevy_reflect",
- "hyperion",
+ "hyperion-entity",
  "hyperion-inventory",
  "serde",
  "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
@@ -3219,10 +3213,44 @@ dependencies = [
  "bevy_app 0.18.0",
  "bevy_ecs 0.18.0",
  "bytemuck",
- "hyperion",
  "hyperion-inventory",
+ "hyperion-net",
  "tracing",
  "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
+]
+
+[[package]]
+name = "hyperion-net"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bevy_app 0.18.0",
+ "bevy_ecs 0.18.0",
+ "bevy_reflect",
+ "boxcar",
+ "byteorder",
+ "fastrand 2.3.0",
+ "flate2",
+ "glam 0.29.3",
+ "hyperion-data",
+ "hyperion-entity",
+ "hyperion-inventory",
+ "hyperion-packet-macros",
+ "hyperion-proxy-proto",
+ "hyperion-utils",
+ "libdeflater",
+ "packet-channel",
+ "paste",
+ "rkyv",
+ "rustc-hash 2.1.1",
+ "rustls",
+ "rustls-webpki",
+ "thread_local",
+ "tokio",
+ "tokio-rustls",
+ "tracing",
+ "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
+ "valence_text 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
 ]
 
 [[package]]
@@ -3252,17 +3280,13 @@ dependencies = [
  "bevy_reflect",
  "clap",
  "heed",
- "hyperion",
+ "hyperion-command",
+ "hyperion-data",
+ "hyperion-entity",
+ "hyperion-net",
+ "hyperion-proxy-proto",
  "tracing",
  "uuid",
-]
-
-[[package]]
-name = "hyperion-proto"
-version = "0.1.0"
-dependencies = [
- "glam 0.29.3",
- "rkyv",
 ]
 
 [[package]]
@@ -3278,13 +3302,12 @@ dependencies = [
  "dotenvy",
  "envy",
  "glam 0.29.3",
- "hyperion-proto",
+ "hyperion-proxy-proto",
  "kanal",
  "papaya",
  "rkyv",
  "rustc-hash 2.1.1",
  "rustls",
- "rustls-pki-types",
  "rustls-webpki",
  "serde",
  "slotmap",
@@ -3303,10 +3326,27 @@ dependencies = [
  "bevy_app 0.18.0",
  "bevy_ecs 0.18.0",
  "bevy_reflect",
- "hyperion",
  "hyperion-proxy",
+ "hyperion-utils",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "hyperion-proxy-proto"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bevy_ecs 0.18.0",
+ "bevy_reflect",
+ "glam 0.29.3",
+ "hyperion-data",
+ "hyperion-utils",
+ "libdeflater",
+ "rkyv",
+ "rustls",
+ "tracing",
+ "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
 ]
 
 [[package]]
@@ -3348,6 +3388,48 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+]
+
+[[package]]
+name = "hyperion-world"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bevy_app 0.18.0",
+ "bevy_ecs 0.18.0",
+ "bitfield-struct 0.12.1",
+ "bitvec",
+ "bytemuck",
+ "bytes",
+ "flate2",
+ "geometry",
+ "glam 0.29.3",
+ "hyperion-data",
+ "hyperion-entity",
+ "hyperion-palette",
+ "hyperion-proxy-proto",
+ "hyperion-utils",
+ "indexmap",
+ "itertools 0.14.0",
+ "libdeflater",
+ "memmap2",
+ "more-asserts",
+ "ndarray",
+ "rayon",
+ "roaring",
+ "rustc-hash 2.1.1",
+ "serde",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "valence_anvil",
+ "valence_bytes",
+ "valence_generated 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
+ "valence_ident 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
+ "valence_nbt 0.8.0 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
+ "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
+ "valence_registry",
+ "valence_server",
 ]
 
 [[package]]

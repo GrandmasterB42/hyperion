@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use hyperion_proto::{ArchivedSetReceiveBroadcasts, ArchivedShutdown};
+use hyperion_proxy_proto::packets;
 use rustc_hash::FxBuildHasher;
 use tracing::{error, instrument, warn};
 
@@ -42,7 +42,7 @@ impl Egress {
     }
 
     #[instrument(skip_all)]
-    pub fn handle_set_receive_broadcasts(&self, pkt: &ArchivedSetReceiveBroadcasts) {
+    pub fn handle_set_receive_broadcasts(&self, pkt: &packets::s2p::ArchivedSetReceiveBroadcasts) {
         let player_registry = self.player_registry;
         let players = player_registry.pin();
         let Ok(stream) = rkyv::deserialize::<u64, std::convert::Infallible>(&pkt.stream);
@@ -56,7 +56,7 @@ impl Egress {
     }
 
     #[instrument(skip_all)]
-    pub fn handle_shutdown(&self, pkt: &ArchivedShutdown) {
+    pub fn handle_shutdown(&self, pkt: &packets::s2p::ArchivedShutdown) {
         let player_registry = self.player_registry;
         let players = player_registry.pin();
         let Ok(stream) = rkyv::deserialize::<u64, std::convert::Infallible>(&pkt.stream);
