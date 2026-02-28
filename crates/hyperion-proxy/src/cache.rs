@@ -3,7 +3,9 @@ use std::collections::HashSet;
 use bvh::{Aabb, Bvh, Data, Point};
 use bytes::Bytes;
 use glam::I16Vec2;
-use hyperion_proto::ArchivedServerToProxyMessage;
+use hyperion_proxy_proto::packets::{
+    self, p2s::ProxyToServerMessage, s2p::ArchivedServerToProxyMessage,
+};
 use rustc_hash::FxHashMap;
 use tracing::{debug, error};
 
@@ -194,8 +196,8 @@ impl BufferedEgress {
 
                 if !requested_subscriptions.is_empty() {
                     let request = rkyv::to_bytes::<rkyv::rancor::Error>(
-                        &hyperion_proto::ProxyToServerMessage::RequestSubscribeChannelPackets(
-                            hyperion_proto::RequestSubscribeChannelPackets {
+                        &ProxyToServerMessage::RequestSubscribeChannelPackets(
+                            packets::p2s::RequestSubscribeChannelPackets {
                                 channels: &requested_subscriptions,
                             },
                         ),

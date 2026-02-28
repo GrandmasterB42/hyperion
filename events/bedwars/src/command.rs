@@ -1,5 +1,5 @@
 use bevy_ecs::world::World;
-use hyperion_clap::MinecraftCommand;
+use hyperion::clap::MinecraftCommand;
 
 use crate::command::{
     bow::BowCommand, chest::ChestCommand, fly::FlyCommand, gui::GuiCommand,

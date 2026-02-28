@@ -12,7 +12,13 @@ use bevy_ecs::{
     world::World,
 };
 use colored::Colorize;
-use hyperion_utils::EntityExt;
+use hyperion_entity::{
+    AiTargetable, ChunkPosition, EntityKind, Pitch, Uuid, Velocity, Yaw,
+    player::{ActiveAnimation, ImmuneStatus, Player, Xp},
+};
+use hyperion_net::{Compose, decoder::PacketDecoder, packet, packet_state};
+use hyperion_proxy_proto::{MINECRAFT_VERSION, PROTOCOL_VERSION};
+use hyperion_utils::{EntityExt, command_channel::CommandChannel, runtime::AsyncRuntime};
 use serde_json::json;
 use sha2::Digest;
 use tracing::{error, info, warn};
@@ -30,20 +36,9 @@ use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 
 use crate::{
     InitializePlayerPosition,
-    command_channel::CommandChannel,
     egress::sync_chunks::ChunkSendQueue,
-    net::{Compose, MINECRAFT_VERSION, PROTOCOL_VERSION, PacketDecoder},
-    runtime::AsyncRuntime,
-    simulation::{
-        AiTargetable, ChunkPosition, ImmuneStatus, Pitch, Player, Uuid, Velocity, Xp, Yaw,
-        animation::ActiveAnimation, entity_kind::EntityKind, packet, packet_state,
-        skin::PlayerSkin,
-    },
-    storage::SkinHandler,
-    util::mojang::MojangClient,
+    simulation::skin::{MojangClient, PlayerSkin, SkinHandler},
 };
-
-pub mod decode;
 
 pub fn process_handshake(
     mut packets: MessageReader<'_, '_, packet::handshake::Handshake>,
@@ -64,6 +59,9 @@ pub fn process_handshake(
     }
 }
 
+// TODO: Is a ping response even wanted?
+// This either needs to be removed, as it is not a concern of hyperion, but probably the proxy
+// Or adjusted to allow for multiple different responses
 #[derive(Resource)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct ServerPingResponse {
@@ -296,13 +294,13 @@ pub struct IngressPlugin;
 
 impl Plugin for IngressPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(decode::DecodePlugin);
+        app.add_plugins(hyperion_net::decode::DecodePlugin);
         app.add_systems(
             FixedUpdate,
             (
-                process_handshake.after(decode::handshake),
-                (process_status_request, process_status_ping).after(decode::status),
-                process_login_hello.after(decode::login),
+                process_handshake.after(hyperion_net::decode::handshake),
+                (process_status_request, process_status_ping).after(hyperion_net::decode::status),
+                process_login_hello.after(hyperion_net::decode::login),
             ),
         );
         app.add_observer(remove_player_from_visibility);

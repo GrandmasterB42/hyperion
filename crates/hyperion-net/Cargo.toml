@@ -1,0 +1,52 @@
+[package]
+name = "hyperion-net"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
+[features]
+reflect = [
+    "dep:bevy_reflect",
+    "bevy_ecs/reflect_auto_register",
+    "bevy_app/reflect_auto_register",
+]
+
+[dependencies]
+hyperion-data.workspace = true
+hyperion-entity.workspace = true
+hyperion-inventory.workspace = true
+hyperion-packet-macros.workspace = true
+hyperion-proxy-proto.workspace = true
+hyperion-utils.workspace = true
+
+valence_protocol.workspace = true
+valence_text.workspace = true
+
+bevy_app.workspace = true
+bevy_ecs.workspace = true
+bevy_reflect = { workspace = true, optional = true }
+
+anyhow.workspace = true
+boxcar.workspace = true
+byteorder.workspace = true
+fastrand.workspace = true
+flate2.workspace = true
+glam.workspace = true
+libdeflater.workspace = true
+packet-channel.workspace = true
+paste.workspace = true
+rkyv.workspace = true
+rustc-hash.workspace = true
+rustls.workspace = true
+rustls-webpki.workspace = true
+thread_local.workspace = true
+tokio.workspace = true
+tokio-rustls.workspace = true
+tracing.workspace = true
+
+[lints]
+workspace = true
+
+[package.metadata.cargo-machete]
+ignored = ["rustls-webpki"]

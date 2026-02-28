@@ -1,0 +1,28 @@
+[package]
+name = "hyperion-proxy-proto"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
+[features]
+reflect = ["dep:bevy_reflect", "bevy_ecs/reflect_auto_register"]
+
+[dependencies]
+hyperion-data.workspace = true
+hyperion-utils.workspace = true
+
+valence_protocol.workspace = true
+
+bevy_ecs.workspace = true
+bevy_reflect = { workspace = true, optional = true }
+
+anyhow.workspace = true
+glam.workspace = true
+libdeflater.workspace = true
+rkyv.workspace = true
+rustls.workspace = true
+tracing.workspace = true
+
+[lints]
+workspace = true

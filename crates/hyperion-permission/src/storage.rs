@@ -1,9 +1,10 @@
 use bevy_ecs::resource::Resource;
 use heed::{Database, Env, byteorder::NativeEndian, types};
-use hyperion::storage::LocalDb;
+use hyperion_data::LocalDb;
 
 use crate::Group;
 
+// TODO: Maybe a wrapper around these type of databases could be useful?
 #[derive(Resource)]
 pub struct PermissionStorage {
     env: Env,

@@ -1,12 +1,7 @@
 use std::{fmt::Write, sync::TryLockError};
 
-use bevy_app::{App, FixedUpdate, Plugin};
-use bevy_ecs::{message::MessageReader, schedule::IntoScheduleConfigs, system::Res, world::World};
-use hyperion::{
-    ingress,
-    net::{Compose, agnostic},
-    simulation::packet::play,
-};
+use bevy_ecs::{message::MessageReader, system::Res, world::World};
+use hyperion_net::Compose;
 use itertools::Itertools;
 use tracing::{debug, warn};
 
@@ -24,8 +19,8 @@ use crate::component::CommandRegistry;
     clippy::significant_drop_tightening,
     reason = "the mutex should not be contended and the lock guard lifetime cannot be tightened"
 )]
-fn execute_commands(
-    mut packets: MessageReader<'_, '_, play::CommandExecution>,
+pub(crate) fn execute_commands(
+    mut packets: MessageReader<'_, '_, hyperion_net::packet::play::CommandExecution>,
     registry: Res<'_, CommandRegistry>,
     compose: Res<'_, Compose>,
     world: &World,
@@ -62,7 +57,7 @@ fn execute_commands(
 
             write!(&mut msg, "]").unwrap();
 
-            let chat = agnostic::chat(msg);
+            let chat = hyperion_net::agnostic::chat(msg);
 
             compose.unicast(&chat, packet.connection_id()).unwrap();
 
@@ -75,7 +70,7 @@ fn execute_commands(
     }
 }
 
-fn apply_deferred_changes(world: &mut World) {
+pub(crate) fn apply_deferred_changes(world: &mut World) {
     let mut registry = world.resource_mut::<CommandRegistry>();
 
     // TODO: There should be some sort of error if the apply callback tries to access the
@@ -97,8 +92,8 @@ fn apply_deferred_changes(world: &mut World) {
     clippy::significant_drop_tightening,
     reason = "the mutex should not be contended and the lock guard lifetime cannot be tightened"
 )]
-fn complete_commands(
-    mut packets: MessageReader<'_, '_, play::RequestCommandCompletions>,
+pub(crate) fn complete_commands(
+    mut packets: MessageReader<'_, '_, hyperion_net::packet::play::RequestCommandCompletions>,
     registry: Res<'_, CommandRegistry>,
     world: &World,
 ) {
@@ -137,20 +132,5 @@ fn complete_commands(
         };
 
         (cmd.tab_complete)(world, packet);
-    }
-}
-
-pub struct CommandSystemPlugin;
-
-impl Plugin for CommandSystemPlugin {
-    fn build(&self, app: &mut App) {
-        // The ordering constraint between execute_command and complete_commands isn't necessary,
-        // but they avoid lock contention on the CommandRegistry.
-        app.add_systems(
-            FixedUpdate,
-            (execute_commands, apply_deferred_changes, complete_commands)
-                .chain()
-                .after(ingress::decode::play),
-        );
     }
 }

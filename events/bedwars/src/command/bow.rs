@@ -4,10 +4,12 @@ use bevy_ecs::{
     world::{EntityWorldMut, World},
 };
 use clap::Parser;
-use hyperion_clap::{CommandPermission, MinecraftCommand};
-use hyperion_inventory::PlayerInventory;
+use hyperion::{
+    clap::{CommandPermission, MinecraftCommand},
+    inventory::PlayerInventory,
+    protocol::{ItemKind, ItemStack},
+};
 use tracing::error;
-use valence_protocol::{ItemKind, ItemStack};
 
 #[derive(Parser, CommandPermission, Debug)]
 #[command(name = "bow")]

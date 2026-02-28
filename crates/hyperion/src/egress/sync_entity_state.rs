@@ -6,6 +6,12 @@ use bevy_ecs::{
     system::{ParallelCommands, ParamSet, Query, Res},
 };
 use glam::{IVec3, Vec3};
+use hyperion_entity::{
+    EntitySize, Flight, Owner, PendingTeleportation, Pitch, Position, Velocity, Yaw,
+    player::{ActiveAnimation, Xp},
+};
+use hyperion_net::{Compose, DataBundle};
+use hyperion_proxy_proto::ConnectionId;
 use hyperion_utils::{EntityExt, Prev, track_prev};
 use itertools::Either;
 use tracing::error;
@@ -17,12 +23,8 @@ use valence_protocol::{
 
 use crate::{
     Blocks,
-    net::{Compose, ConnectionId, DataBundle},
     simulation::{
-        EntitySize, Flight, MovementTracking, Owner, PendingTeleportation, Pitch, Position,
-        Velocity, Xp, Yaw,
-        animation::ActiveAnimation,
-        event,
+        MovementTracking, event,
         event::HitGroundEvent,
         handlers::is_grounded,
         metadata::{MetadataChanges, get_and_clear_metadata},

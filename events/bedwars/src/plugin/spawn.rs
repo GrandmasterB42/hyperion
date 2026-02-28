@@ -7,12 +7,13 @@ use bevy_ecs::{
 use glam::{I16Vec2, IVec2, IVec3, Vec3};
 use hyperion::{
     InitializePlayerPosition,
-    runtime::AsyncRuntime,
-    simulation::{Position, blocks::Blocks},
+    entity::Position,
+    protocol::{BlockKind, BlockState},
+    utils::runtime::AsyncRuntime,
+    world::Blocks,
 };
 use roaring::RoaringBitmap;
 use tracing::info;
-use valence_protocol::{BlockKind, BlockState};
 
 const RADIUS: i32 = 0;
 const SPAWN_MIN_Y: i16 = 3;

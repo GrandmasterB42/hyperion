@@ -1,67 +1,107 @@
 //! Hyperion
-#![feature(allocator_api)]
 #![feature(read_buf)]
 #![feature(core_io_borrowed_buf)]
 #![feature(try_trait_v2)]
 #![feature(trivial_bounds)]
 
-use std::{
-    alloc::Allocator, fmt::Debug, io::Write, net::SocketAddr, path::Path, sync::Arc, time::Duration,
-};
+use std::{fmt::Debug, net::SocketAddr, sync::Arc, time::Duration};
 
 use bevy_app::{App, Plugin};
 use bevy_ecs::{entity::Entity, event::EntityEvent, resource::Resource};
 use bevy_time::{Fixed, Time};
 use egress::EgressPlugin;
+use hyperion_data::LocalDb;
+use hyperion_net::{Compose, Global, IoBuf, Shared, lookup::LookupPlugin, proxy::init_proxy_comms};
+use hyperion_proxy_proto::Crypto;
+use hyperion_world::Blocks;
 #[cfg(unix)]
 use libc::{RLIMIT_NOFILE, getrlimit, setrlimit};
 use libdeflater::CompressionLvl;
-use rustls_pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
-use storage::{LocalDb, SkinHandler};
 use tracing::{info, warn};
-use valence_protocol::{CompressionThreshold, Encode, Packet};
+use valence_protocol::CompressionThreshold;
 #[cfg(feature = "reflect")]
 use {
     bevy_ecs::reflect::{ReflectEvent, ReflectResource},
     bevy_reflect::Reflect,
 };
 
-mod common;
-pub use common::*;
+mod config;
 use hyperion_crafting::CraftingRegistry;
-use hyperion_utils::HyperionUtilsPlugin;
+use hyperion_utils::{
+    HyperionUtilsPlugin,
+    command_channel::{CommandChannel, CommandChannelPlugin},
+    runtime::AsyncRuntime,
+};
 
 use crate::{
-    command_channel::{CommandChannel, CommandChannelPlugin},
     ingress::IngressPlugin,
-    net::{Compose, ConnectionId, IoBuf, MAX_PACKET_SIZE, PacketDecoder, proxy::init_proxy_comms},
-    runtime::AsyncRuntime,
-    simulation::{IgnMap, SimPlugin, StreamLookup, blocks::Blocks},
+    simulation::{
+        SimPlugin,
+        skin::{ApiProvider, MojangClient, SkinHandler},
+    },
     spatial::SpatialPlugin,
-    util::mojang::{ApiProvider, MojangClient},
 };
 
 pub mod egress;
 pub mod ingress;
-pub mod net;
 pub mod simulation;
 pub mod spatial;
-pub mod storage;
 
-#[cfg(feature = "reflect")]
-#[expect(clippy::transmute_ptr_to_ptr, clippy::used_underscore_binding)]
-pub mod reflect;
+// TODO: Export every crate here / Clean up some exports
+// bevy_re-exports do not work properly with derive macros
 
-pub const CHUNK_HEIGHT_SPAN: u32 = 384; // 512; // usually 384
-
-pub trait PacketBundle {
-    fn encode_including_ids(self, w: impl Write) -> anyhow::Result<()>;
+// Re-exports of all internal crates
+pub mod bytes {
+    pub use valence_bytes::*;
 }
 
-impl<T: Packet + Encode> PacketBundle for &T {
-    fn encode_including_ids(self, w: impl Write) -> anyhow::Result<()> {
-        self.encode_with_id(w)
-    }
+pub mod clap {
+    pub use hyperion_clap::*;
+}
+
+pub mod entity {
+    pub use hyperion_entity::*;
+}
+
+pub mod gui {
+    pub use hyperion_gui::*;
+}
+
+pub mod ident {
+    pub use valence_ident::*;
+}
+
+pub mod inventory {
+    pub use hyperion_inventory::*;
+}
+
+pub mod item {
+    pub use hyperion_item::*;
+}
+
+pub mod net {
+    pub use hyperion_net::*;
+}
+
+pub mod permission {
+    pub use hyperion_permission::*;
+}
+
+// TODO: The valence_protocol reexports expose a lot, I need to think about if this should be slimmed down properly. Maybe just reesport the packets form hyperion_new::protocol?
+pub mod protocol {
+    pub use valence_protocol::*;
+}
+
+pub mod proxy {
+    pub use hyperion_proxy_proto::*;
+}
+
+pub mod utils {
+    pub use hyperion_utils::*;
+}
+
+pub mod world {
+    pub use hyperion_world::*;
 }
 
 /// on macOS, the soft limit for the number of open file descriptors is often 256. This is far too low
@@ -104,43 +144,6 @@ pub fn adjust_file_descriptor_limits(recommended_min: u64) -> std::io::Result<()
     }
 
     Ok(())
-}
-
-#[derive(Resource)]
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(opaque))]
-pub struct Crypto {
-    /// The root certificate authority's certificate
-    pub root_ca_cert: CertificateDer<'static>,
-
-    /// The game server's certificate
-    pub cert: CertificateDer<'static>,
-
-    /// The game server's private key
-    pub key: PrivateKeyDer<'static>,
-}
-
-impl Crypto {
-    pub fn new(
-        root_ca_cert_path: &Path,
-        cert_path: &Path,
-        key_path: &Path,
-    ) -> Result<Self, rustls_pki_types::pem::Error> {
-        Ok(Self {
-            root_ca_cert: CertificateDer::from_pem_file(root_ca_cert_path)?,
-            cert: CertificateDer::from_pem_file(cert_path)?,
-            key: PrivateKeyDer::from_pem_file(key_path)?,
-        })
-    }
-}
-
-impl Clone for Crypto {
-    fn clone(&self) -> Self {
-        Self {
-            root_ca_cert: self.root_ca_cert.clone(),
-            cert: self.cert.clone(),
-            key: self.key.clone_key(),
-        }
-    }
 }
 
 #[derive(Resource, Debug, Clone, PartialEq, Eq, Hash)]
@@ -247,7 +250,6 @@ impl Plugin for HyperionCore {
         ));
         app.insert_resource(runtime);
         app.insert_resource(CraftingRegistry::default());
-        app.insert_resource(StreamLookup::default());
 
         app.add_plugins((
             bevy_time::TimePlugin,
@@ -257,56 +259,10 @@ impl Plugin for HyperionCore {
             SimPlugin,
             SpatialPlugin,
             HyperionUtilsPlugin,
+            LookupPlugin,
         ));
 
-        app.insert_resource(IgnMap::default());
         // Minecraft is 20 TPS
         app.insert_resource(Time::<Fixed>::from_hz(20.0));
-    }
-}
-
-/// A scratch buffer for intermediate operations. This will return an empty [`Vec`] when calling [`Scratch::obtain`].
-#[derive(Debug)]
-pub struct Scratch<A: Allocator = std::alloc::Global> {
-    inner: Box<[u8], A>,
-}
-
-impl Default for Scratch<std::alloc::Global> {
-    fn default() -> Self {
-        std::alloc::Global.into()
-    }
-}
-
-/// Nice for getting a buffer that can be used for intermediate work
-pub trait ScratchBuffer: sealed::Sealed + Debug {
-    /// The type of the allocator the [`Vec`] uses.
-    type Allocator: Allocator;
-    /// Obtains a buffer that can be used for intermediate work. The contents are unspecified.
-    fn obtain(&mut self) -> &mut [u8];
-}
-
-mod sealed {
-    pub trait Sealed {}
-}
-
-impl<A: Allocator + Debug> sealed::Sealed for Scratch<A> {}
-
-impl<A: Allocator + Debug> ScratchBuffer for Scratch<A> {
-    type Allocator = A;
-
-    fn obtain(&mut self) -> &mut [u8] {
-        &mut self.inner
-    }
-}
-
-impl<A: Allocator> From<A> for Scratch<A> {
-    fn from(allocator: A) -> Self {
-        // A zeroed slice is allocated to avoid reading from uninitialized memory, which is UB.
-        // Allocating zeroed memory is usually very cheap, so there are minimal performance
-        // penalties from this.
-        let inner = Box::new_zeroed_slice_in(MAX_PACKET_SIZE, allocator);
-        // SAFETY: The box was initialized to zero, and u8 can be represented by zero
-        let inner = unsafe { inner.assume_init() };
-        Self { inner }
     }
 }

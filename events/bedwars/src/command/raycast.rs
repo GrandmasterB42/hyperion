@@ -6,10 +6,11 @@ use bevy_ecs::{
 use clap::Parser;
 use glam::Vec3;
 use hyperion::{
-    simulation::{EntitySize, Pitch, Position, Yaw, blocks::Blocks, entity_kind::EntityKind},
+    clap::{CommandPermission, MinecraftCommand},
+    entity::{EntityKind, EntitySize, Pitch, Position, Yaw},
     spatial::{SpatialIndex, get_first_collision},
+    world::Blocks,
 };
-use hyperion_clap::{CommandPermission, MinecraftCommand};
 use rayon::iter::Either;
 use tracing::{debug, error};
 

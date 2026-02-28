@@ -9,15 +9,15 @@ use bevy_ecs::{
     system::{Commands, Query, Res},
 };
 use hyperion::{
-    ingress,
-    net::{Compose, ConnectionId},
-    simulation::{Position, packet, packet_state},
+    entity::Position,
+    net::{Compose, packet, packet_state},
+    protocol::{
+        Text, packets,
+        text::{Color, IntoText},
+    },
+    proxy::ConnectionId,
 };
 use tracing::error;
-use valence_protocol::{
-    packets::play,
-    text::{Color, IntoText, Text},
-};
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
@@ -67,7 +67,7 @@ pub fn handle_chat_messages(
                 format!("§cPlease wait {remaining_secs:.2} seconds before sending another message")
                     .into_cow_text();
 
-            let packet = play::GameMessageS2c {
+            let packet = packets::play::GameMessageS2c {
                 chat: cooldown_msg,
                 overlay: false,
             };
@@ -83,7 +83,7 @@ pub fn handle_chat_messages(
             + name.as_str().to_owned().color(*team)
             + "> ".color(Color::DARK_GRAY)
             + (**packet.message).to_owned();
-        let packet = play::GameMessageS2c {
+        let packet = packets::play::GameMessageS2c {
             chat: chat.into(),
             overlay: false,
         };
@@ -101,7 +101,7 @@ impl Plugin for ChatPlugin {
         app.add_observer(initialize_cooldown);
         app.add_systems(
             FixedUpdate,
-            handle_chat_messages.after(ingress::decode::play),
+            handle_chat_messages.after(hyperion::net::decode::play),
         );
     }
 }

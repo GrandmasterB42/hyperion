@@ -6,49 +6,22 @@ publish = false
 readme = "README.md"
 
 [features]
-reflect = [
-    "dep:bevy_reflect",
-    "bevy_app/reflect_auto_register",
-    "bevy_ecs/reflect_auto_register",
-    "bevy_reflect/auto_register_inventory",
-    "hyperion/reflect",
-    "hyperion-clap/reflect",
-    "hyperion-gui/reflect",
-    "hyperion-inventory/reflect",
-    "hyperion-item/reflect",
-    "hyperion-permission/reflect",
-    "hyperion-proxy-module/reflect",
-    "hyperion-utils/reflect",
-]
+reflect = ["dep:bevy_reflect", "hyperion/reflect"]
 # This incurs about a 0.2-0.3ms cost on my system - should more crates have this feature?
 debug = ["hyperion/ecs_debug"]
 
 [dependencies]
-hyperion.workspace = true
-hyperion-clap.workspace = true
-hyperion-genmap.workspace = true
-hyperion-gui.workspace = true
-hyperion-inventory.workspace = true
-hyperion-item.workspace = true
-hyperion-permission.workspace = true
-hyperion-proxy-module.workspace = true
-hyperion-utils.workspace = true
-
-valence_bytes.workspace = true
-valence_ident.workspace = true
-valence_protocol.workspace = true
-valence_server.workspace = true
-valence_text.workspace = true
+hyperion = { path = "../../crates/hyperion" }
+hyperion-permission = { path = "../../crates/hyperion-permission" } #TODO: Adjust the macro, like bevy_ecs, to support using it through hyperion directly
 
 bevy_app.workspace = true
 bevy_ecs.workspace = true
-# this is definitely only a dependency that would be used by projects built on top of hyperion
 bevy_reflect = { workspace = true, optional = true }
+# this is definitely only a dependency that would be used by projects built on top of hyperion
 bevy_remote = { version = '0.18', default-features = false, features = [
     'http',
 ] }
 bevy_tasks.workspace = true
-
 anyhow.workspace = true
 clap.workspace = true
 dotenvy.workspace = true
@@ -62,7 +35,6 @@ serde.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 tracing-tracy.workspace = true
-uuid.workspace = true
 
 [dev-dependencies]
 tracing = { workspace = true, features = ["release_max_level_info"] }
@@ -72,3 +44,6 @@ tikv-jemallocator.workspace = true
 
 [lints]
 workspace = true
+
+[package.metadata.cargo-machete]
+ignored = ["hyperion-permission"] # see macro issue above

@@ -1,0 +1,21 @@
+[package]
+name = "hyperion-data"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
+[features]
+reflect = ["dep:bevy_reflect", "bevy_ecs/reflect_auto_register"]
+
+[dependencies]
+valence_protocol.workspace = true
+
+bevy_ecs.workspace = true
+bevy_reflect = { workspace = true, optional = true }
+
+anyhow.workspace = true
+heed.workspace = true
+
+[lints]
+workspace = true

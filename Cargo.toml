@@ -29,19 +29,22 @@ members = [
     'crates/hyperion-clap',
     'crates/hyperion-command',
     'crates/hyperion-crafting',
-    'crates/hyperion-genmap',
+    'crates/hyperion-data',
+    'crates/hyperion-entity',
     'crates/hyperion-gui',
     'crates/hyperion-inventory',
     'crates/hyperion-item',
+    'crates/hyperion-net',
     'crates/hyperion-packet-macros',
     'crates/hyperion-palette',
     'crates/hyperion-permission',
-    'crates/hyperion-proto',
     'crates/hyperion-proxy',
     'crates/hyperion-proxy-module',
+    'crates/hyperion-proxy-proto',
     'crates/hyperion-stats',
     'crates/hyperion-text',
     'crates/hyperion-utils',
+    'crates/hyperion-world',
     'crates/packet-channel',
     'events/bedwars',
     'tools/packet-inspector',
@@ -53,23 +56,25 @@ resolver = '2'
 
 [workspace.dependencies]
 # Workspace members
-hyperion = { path = 'crates/hyperion' }
 hyperion-clap = { path = "crates/hyperion-clap" }
 hyperion-clap-macros = { path = "crates/hyperion-clap-macros" }
 hyperion-command = { path = "crates/hyperion-command" }
 hyperion-crafting = { path = "crates/hyperion-crafting" }
-hyperion-genmap = { path = "crates/hyperion-genmap" }
+hyperion-data = { path = "crates/hyperion-data" }
+hyperion-entity = { path = "crates/hyperion-entity" }
 hyperion-gui = { path = "crates/hyperion-gui" }
 hyperion-inventory = { path = "crates/hyperion-inventory" }
 hyperion-item = { path = "crates/hyperion-item" }
+hyperion-net = { path = "crates/hyperion-net" }
 hyperion-packet-macros = { path = "crates/hyperion-packet-macros" }
 hyperion-palette = { path = "crates/hyperion-palette" }
 hyperion-permission = { path = "crates/hyperion-permission" }
-hyperion-proto = { path = "crates/hyperion-proto" }
 hyperion-proxy = { path = "crates/hyperion-proxy" }
 hyperion-proxy-module = { path = "crates/hyperion-proxy-module" }
+hyperion-proxy-proto = { path = "crates/hyperion-proxy-proto" }
 hyperion-text = { path = "crates/hyperion-text" }
 hyperion-utils = { path = "crates/hyperion-utils" }
+hyperion-world = { path = "crates/hyperion-world" }
 
 bvh-region = { path = "crates/bvh-region" }
 geometry = { path = "crates/geometry" }
@@ -208,7 +213,6 @@ rustls = { version = '0.23', default-features = false, features = [
     'std',
     'tls12',
 ] }
-rustls-pki-types = '1.12'
 rustls-webpki = '0.103'
 tokio-rustls = { version = '0.26', default-features = false, features = [
     'logging',

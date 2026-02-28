@@ -5,9 +5,11 @@ use bevy_ecs::{
     resource::Resource,
     system::{Res, ResMut},
 };
-use hyperion::net::Compose;
+use hyperion::{
+    net::Compose,
+    protocol::{packets::play, text::IntoText},
+};
 use tracing::info_span;
-use valence_protocol::{packets::play, text::IntoText};
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 

@@ -1,0 +1,50 @@
+[package]
+name = "hyperion-world"
+edition.workspace = true
+version.workspace = true
+publish = false
+readme = "README.md"
+
+[dependencies]
+hyperion-data.workspace = true
+hyperion-entity.workspace = true
+hyperion-utils.workspace = true
+hyperion-palette.workspace = true
+hyperion-proxy-proto.workspace = true
+
+valence_anvil.workspace = true
+valence_bytes.workspace = true
+valence_generated.workspace = true
+valence_protocol.workspace = true
+valence_ident.workspace = true
+valence_nbt.workspace = true
+valence_registry.workspace = true
+valence_server.workspace = true
+
+bevy_app.workspace = true
+bevy_ecs.workspace = true
+
+anyhow.workspace = true
+bitfield-struct.workspace = true
+bitvec.workspace = true
+bytemuck.workspace = true
+bytes.workspace = true
+flate2.workspace = true
+geometry.workspace = true
+glam.workspace = true
+indexmap.workspace = true
+itertools.workspace = true
+libdeflater.workspace = true
+memmap2.workspace = true
+more-asserts.workspace = true
+ndarray.workspace = true
+rayon.workspace = true
+roaring.workspace = true
+rustc-hash.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[lints]
+workspace = true

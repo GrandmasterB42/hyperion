@@ -5,8 +5,11 @@ use bevy_ecs::{
     world::World,
 };
 use clap::Parser;
-use hyperion::net::{Compose, ConnectionId};
-use hyperion_clap::{CommandPermission, MinecraftCommand};
+use hyperion::{
+    clap::{CommandPermission, MinecraftCommand},
+    net::Compose,
+    proxy::ConnectionId,
+};
 use tracing::error;
 
 use crate::plugin::vanish::Vanished;

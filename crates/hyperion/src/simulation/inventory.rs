@@ -12,6 +12,8 @@ use bevy_ecs::{
 use hyperion_inventory::{
     CursorItem, Inventory, InventoryState, ItemKindExt, ItemSlot, OpenInventory, PlayerInventory,
 };
+use hyperion_net::{Compose, DataBundle, packet, packet_state};
+use hyperion_proxy_proto::ConnectionId;
 use hyperion_utils::EntityExt;
 use tracing::error;
 use valence_protocol::{
@@ -26,11 +28,6 @@ use valence_server::ItemStack;
 use valence_text::IntoText;
 
 use super::event;
-use crate::{
-    ingress,
-    net::{Compose, ConnectionId, DataBundle},
-    simulation::{packet, packet_state},
-};
 
 pub struct InventoryPlugin;
 
@@ -47,7 +44,7 @@ impl Plugin for InventoryPlugin {
                     handle_update_selected_slot,
                     handle_click_slot,
                 )
-                    .after(ingress::decode::play),
+                    .after(hyperion_net::decode::play),
                 update_player_inventory
                     .after(handle_close_window)
                     .after(handle_update_selected_slot)
