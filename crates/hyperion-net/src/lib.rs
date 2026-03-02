@@ -2,6 +2,7 @@
 #![expect(clippy::transmute_ptr_to_ptr)]
 
 pub mod agnostic;
+mod cast;
 mod compose;
 pub mod decode;
 pub mod decoder;
@@ -12,16 +13,18 @@ pub mod packet_state;
 pub mod packets;
 pub mod proxy;
 
-use std::{
-    sync::{Arc, atomic::AtomicUsize},
-    time::Duration,
-};
+use std::time::Duration;
 
-#[cfg(feature = "reflect")]
-use bevy_reflect::{Reflect, reflect_remote};
+use bevy_ecs::resource::Resource;
+pub use cast::*;
 pub use compose::*;
 use libdeflater::CompressionLvl;
 use valence_protocol::CompressionThreshold;
+#[cfg(feature = "reflect")]
+use {
+    bevy_ecs::reflect::ReflectResource,
+    bevy_reflect::{Reflect, reflect_remote},
+};
 
 #[cfg_attr(feature = "reflect", reflect_remote(CompressionThreshold))]
 pub struct RemoteCompressionThreshold(pub i32);
@@ -38,51 +41,70 @@ pub struct Shared {
     pub compression_level: CompressionLvl,
 }
 
-#[cfg_attr(feature = "reflect", derive(Reflect))]
-pub struct Global {
+#[cfg_attr(feature = "reflect", derive(Resource, Reflect), reflect(Resource))]
+/// The amount of time from the last packet a player has sent before the server will kick them.
+pub struct KeepAliveTimeout(pub Duration); // TODO: Is this currently unused?
+
+impl std::default::Default for KeepAliveTimeout {
+    fn default() -> Self {
+        Self(Duration::from_secs(20))
+    }
+}
+
+impl std::ops::Deref for KeepAliveTimeout {
+    type Target = Duration;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[cfg_attr(feature = "reflect", derive(Resource, Reflect), reflect(Resource))]
+/// The maximum amount of time a player is resistant to being hurt. This is weird as this is 20 in vanilla Minecraft.
+/// However, the check to determine if a player can be hurt actually looks at this value divided by 2
+pub struct MaxHurtResistantTime(pub u16); // TODO: This is currently unused? Might only be relevant to external plugins?
+
+impl std::default::Default for MaxHurtResistantTime {
+    fn default() -> Self {
+        Self(20)
+    }
+}
+
+impl std::ops::Deref for MaxHurtResistantTime {
+    type Target = u16;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[cfg_attr(feature = "reflect", derive(Resource, Reflect), reflect(Resource))]
+#[derive(Default, Debug)]
+pub struct PlayerCount {
+    /// The amount of players currently in the playing state.
+    pub count: usize, /* This was an atomic at some point, so that it didn't have to take a ResMut. This might need investigation at larger playercounts? */
+}
+
+impl std::fmt::Display for PlayerCount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.count.fmt(f)
+    }
+}
+
+impl std::ops::Deref for PlayerCount {
+    type Target = usize;
+
+    fn deref(&self) -> &Self::Target {
+        &self.count
+    }
+}
+
+/// Data related to game ticks. This is updated every tick
+#[cfg_attr(feature = "reflect", derive(Resource, Reflect), reflect(Resource))]
+#[derive(Default)]
+pub struct TickData {
     /// The current tick of the game. This is incremented every 50 ms.
     pub tick: i64,
-
-    /// The maximum amount of time a player is resistant to being hurt. This is weird as this is 20 in vanilla
-    /// Minecraft.
-    /// However, the check to determine if a player can be hurt actually looks at this value divided by 2
-    pub max_hurt_resistant_time: u16,
-
-    /// Data shared between the IO thread and the ECS framework.
-    #[cfg_attr(feature = "reflect", reflect(ignore, default = "dummy_reflect_shared"))]
-    pub shared: Arc<Shared>,
-
-    /// The amount of time from the last packet a player has sent before the server will kick them.
-    pub keep_alive_timeout: Duration,
-
     /// The amount of time the last tick took in milliseconds.
-    pub ms_last_tick: f32,
-
-    #[cfg_attr(feature = "reflect", reflect(ignore))]
-    pub player_count: AtomicUsize,
-}
-
-// Note: Caution! The Arc and AtomicUsize did not throw errors for me, it just didn't work
-
-#[cfg(feature = "reflect")]
-fn dummy_reflect_shared() -> Arc<Shared> {
-    Arc::new(Shared {
-        compression_threshold: CompressionThreshold::default(),
-        compression_level: CompressionLvl::default(),
-    })
-}
-
-impl Global {
-    /// Creates a new [`Global`] with the given shared data.
-    #[must_use]
-    pub const fn new(shared: Arc<Shared>) -> Self {
-        Self {
-            tick: 0,
-            max_hurt_resistant_time: 20, // actually kinda like 10 vanilla mc is weird
-            shared,
-            keep_alive_timeout: Duration::from_secs(20),
-            ms_last_tick: 0.0,
-            player_count: AtomicUsize::new(0),
-        }
-    }
+    pub ms_last_tick: f32, // TODO: Is this actually being updated?
 }

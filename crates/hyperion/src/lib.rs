@@ -11,7 +11,10 @@ use bevy_ecs::{entity::Entity, event::EntityEvent, resource::Resource};
 use bevy_time::{Fixed, Time};
 use egress::EgressPlugin;
 use hyperion_data::LocalDb;
-use hyperion_net::{Compose, Global, IoBuf, Shared, lookup::LookupPlugin, proxy::init_proxy_comms};
+use hyperion_net::{
+    Compose, IoBuf, KeepAliveTimeout, MaxHurtResistantTime, PlayerCount, Shared, TickData,
+    lookup::LookupPlugin, proxy::init_proxy_comms,
+};
 use hyperion_proxy_proto::Crypto;
 use hyperion_world::Blocks;
 #[cfg(unix)]
@@ -231,8 +234,6 @@ impl Plugin for HyperionCore {
         app.insert_resource(MojangClient::new(&runtime, ApiProvider::MAT_DOES_DEV));
         app.insert_resource(Blocks::empty(&runtime));
 
-        let global = Global::new(shared.clone());
-
         app.add_plugins(CommandChannelPlugin);
 
         if let Some(address) = app.world().get_resource::<Endpoint>() {
@@ -245,11 +246,15 @@ impl Plugin for HyperionCore {
 
         app.insert_resource(Compose::new(
             shared.compression_level,
-            global,
+            shared,
             IoBuf::default(),
         ));
         app.insert_resource(runtime);
-        app.insert_resource(CraftingRegistry::default());
+        app.init_resource::<CraftingRegistry>(); // TODO: Maybe a crafting-Plugin is needed?
+        app.init_resource::<TickData>();
+        app.init_resource::<PlayerCount>();
+        app.init_resource::<KeepAliveTimeout>();
+        app.init_resource::<MaxHurtResistantTime>();
 
         app.add_plugins((
             bevy_time::TimePlugin,

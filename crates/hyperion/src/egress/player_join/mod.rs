@@ -351,7 +351,7 @@ impl FromWorld for CommonPlayerJoinResponses {
         let crafting_registry = world.get_resource::<CraftingRegistry>().unwrap();
         let compose = world.get_resource::<Compose>().unwrap();
 
-        let compression_level = compose.global().shared.compression_threshold;
+        let compression_level = compose.shared.compression_threshold;
         let mut encoder = PacketEncoder::new();
         encoder.set_compression(compression_level);
 

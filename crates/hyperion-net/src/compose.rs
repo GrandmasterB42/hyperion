@@ -1,4 +1,7 @@
-use std::cell::{Cell, RefCell};
+use std::{
+    cell::{Cell, RefCell},
+    sync::Arc,
+};
 
 use bevy_ecs::resource::Resource;
 use byteorder::WriteBytesExt;
@@ -20,9 +23,12 @@ use thread_local::ThreadLocal;
 use tracing::error;
 use valence_protocol::bytes::{Bytes, BytesMut};
 #[cfg(feature = "reflect")]
-use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
+use {
+    bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect,
+    valence_protocol::CompressionThreshold,
+};
 
-use crate::{Global, proxy::EgressComm};
+use crate::{Broadcast, BroadcastChannel, BroadcastLocal, Shared, Unicast, proxy::EgressComm};
 
 /// A singleton that can be used to compose and encode packets.
 #[derive(Resource)]
@@ -34,8 +40,114 @@ pub struct Compose {
     compressor: ThreadLocal<RefCell<libdeflater::Compressor>>,
     #[cfg_attr(feature = "reflect", reflect(ignore))]
     scratch: ThreadLocal<RefCell<Scratch>>,
-    global: Global,
-    io_buf: IoBuf,
+    pub(crate) io_buf: IoBuf,
+    /// Data shared between the IO thread and the ECS framework.
+    #[cfg_attr(feature = "reflect", reflect(ignore, default = "dummy_reflect_shared"))]
+    pub shared: Arc<Shared>,
+}
+
+#[cfg(feature = "reflect")]
+fn dummy_reflect_shared() -> Arc<Shared> {
+    Arc::new(Shared {
+        compression_threshold: CompressionThreshold::default(),
+        compression_level: CompressionLvl::default(),
+    })
+}
+
+impl Compose {
+    #[must_use]
+    pub const fn new(compression_lvl: CompressionLvl, shared: Arc<Shared>, io_buf: IoBuf) -> Self {
+        Self {
+            compression_lvl,
+            compressor: ThreadLocal::new(),
+            scratch: ThreadLocal::new(),
+            io_buf,
+            shared,
+        }
+    }
+
+    /// Broadcast globally to all players
+    ///
+    /// See <https://github.com/andrewgazelka/hyperion-proto/blob/main/src/server_to_proxy.proto#L17-L22>
+    pub const fn broadcast<P>(&self, packet: P) -> Broadcast<'_, P>
+    where
+        P: PacketBundle,
+    {
+        Broadcast::new(packet, self)
+    }
+
+    #[must_use]
+    #[expect(missing_docs)]
+    pub const fn io_buf(&self) -> &IoBuf {
+        &self.io_buf
+    }
+
+    #[expect(missing_docs)]
+    pub const fn io_buf_mut(&mut self) -> &mut IoBuf {
+        &mut self.io_buf
+    }
+
+    /// Broadcast a packet within a certain region.
+    ///
+    /// See <https://github.com/andrewgazelka/hyperion-proto/blob/main/src/server_to_proxy.proto#L17-L22>
+    pub const fn broadcast_local<P>(&self, packet: P, center: I16Vec2) -> BroadcastLocal<'_, P>
+    where
+        P: PacketBundle,
+    {
+        BroadcastLocal::new(packet, self, ChunkPosition {
+            x: center.x,
+            z: center.y,
+        })
+    }
+
+    /// Broadcast a packet in a channel.
+    pub const fn broadcast_channel<P>(
+        &self,
+        packet: P,
+        channel: ChannelId,
+    ) -> BroadcastChannel<'_, P>
+    where
+        P: PacketBundle,
+    {
+        BroadcastChannel::new(packet, self, channel)
+    }
+
+    /// Send a packet to a single player.
+    pub fn unicast<P>(&self, packet: P, stream_id: ConnectionId) -> anyhow::Result<()>
+    where
+        P: PacketBundle,
+    {
+        Unicast::new(packet, stream_id, self, true).send()
+    }
+
+    /// Send a packet to a single player without compression.
+    pub fn unicast_no_compression<P>(
+        &self,
+        packet: &P,
+        stream_id: ConnectionId,
+    ) -> anyhow::Result<()>
+    where
+        P: valence_protocol::Packet + valence_protocol::Encode,
+    {
+        Unicast::new(packet, stream_id, self, false).send()
+    }
+
+    pub(crate) fn encoder(&self) -> PacketEncoder {
+        PacketEncoder::new(self.shared.compression_threshold)
+    }
+
+    /// Obtain a thread-local scratch buffer.
+    #[must_use]
+    pub fn scratch(&self) -> &RefCell<Scratch> {
+        self.scratch.get_or_default()
+    }
+
+    /// Obtain a thread-local [`libdeflater::Compressor`]
+    #[must_use]
+    pub fn compressor(&self) -> &RefCell<libdeflater::Compressor> {
+        self.compressor
+            .get_or(|| RefCell::new(libdeflater::Compressor::new(self.compression_lvl)))
+    }
 }
 
 #[derive(Default)]
@@ -70,9 +182,7 @@ impl IoBuf {
     pub(crate) fn remove_proxy(&mut self, proxy_id: ProxyId) -> Option<EgressComm> {
         self.egress_comms.remove(&proxy_id)
     }
-}
 
-impl IoBuf {
     pub fn encode_packet<P>(&self, packet: P, compose: &Compose) -> anyhow::Result<BytesMut>
     where
         P: PacketBundle,
@@ -107,7 +217,7 @@ impl IoBuf {
         Ok(result)
     }
 
-    fn unicast_private<P>(
+    pub(crate) fn unicast_private<P>(
         &self,
         packet: P,
         id: ConnectionId,
@@ -167,7 +277,7 @@ impl IoBuf {
         }
     }
 
-    fn broadcast_local_raw(
+    pub(crate) fn broadcast_local_raw(
         &self,
         data: &[u8],
         center: impl Into<ChunkPosition>,
@@ -184,7 +294,7 @@ impl IoBuf {
         ));
     }
 
-    fn broadcast_channel_raw(
+    pub(crate) fn broadcast_channel_raw(
         &self,
         data: &[u8],
         channel: ChannelId,
@@ -253,334 +363,5 @@ impl IoBuf {
         self.add_proxy_message(&IntermediateServerToProxyMessage::Shutdown(
             intermediate::Shutdown { stream },
         ));
-    }
-}
-
-#[must_use]
-pub struct DataBundle<'a> {
-    compose: &'a Compose,
-    data: BytesMut,
-}
-
-impl<'a> DataBundle<'a> {
-    pub fn new(compose: &'a Compose) -> Self {
-        Self {
-            compose,
-            data: BytesMut::new(),
-        }
-    }
-
-    pub fn add_packet(&mut self, pkt: impl PacketBundle) -> anyhow::Result<()> {
-        let data = self.compose.io_buf.encode_packet(pkt, self.compose)?;
-        // todo: test to see if this ever actually unsplits
-        self.data.unsplit(data);
-        Ok(())
-    }
-
-    pub fn add_raw(&mut self, raw: &[u8]) {
-        self.data.extend_from_slice(raw);
-    }
-
-    pub fn unicast(&self, stream: ConnectionId) -> anyhow::Result<()> {
-        if self.data.is_empty() {
-            return Ok(());
-        }
-
-        self.compose.io_buf.unicast_raw(&self.data, stream);
-        Ok(())
-    }
-
-    // todo: use builder pattern for excluding
-    pub fn broadcast_local(&self, center: I16Vec2) -> anyhow::Result<()> {
-        if self.data.is_empty() {
-            return Ok(());
-        }
-
-        self.compose
-            .io_buf
-            .broadcast_local_raw(&self.data, center, None);
-        Ok(())
-    }
-
-    // todo: use builder pattern for excluding
-    pub fn broadcast_channel(&self, channel: ChannelId) -> anyhow::Result<()> {
-        if self.data.is_empty() {
-            return Ok(());
-        }
-
-        self.compose
-            .io_buf
-            .broadcast_channel_raw(&self.data, channel, None);
-
-        Ok(())
-    }
-}
-
-impl Compose {
-    #[must_use]
-    pub const fn new(compression_lvl: CompressionLvl, global: Global, io_buf: IoBuf) -> Self {
-        Self {
-            compression_lvl,
-            compressor: ThreadLocal::new(),
-            scratch: ThreadLocal::new(),
-            global,
-            io_buf,
-        }
-    }
-
-    #[must_use]
-    #[expect(missing_docs)]
-    pub const fn global(&self) -> &Global {
-        &self.global
-    }
-
-    #[expect(missing_docs)]
-    pub const fn global_mut(&mut self) -> &mut Global {
-        &mut self.global
-    }
-
-    /// Broadcast globally to all players
-    ///
-    /// See <https://github.com/andrewgazelka/hyperion-proto/blob/main/src/server_to_proxy.proto#L17-L22>
-    pub const fn broadcast<P>(&self, packet: P) -> Broadcast<'_, P>
-    where
-        P: PacketBundle,
-    {
-        Broadcast {
-            packet,
-            compose: self,
-            exclude: None,
-        }
-    }
-
-    #[must_use]
-    #[expect(missing_docs)]
-    pub const fn io_buf(&self) -> &IoBuf {
-        &self.io_buf
-    }
-
-    #[expect(missing_docs)]
-    pub const fn io_buf_mut(&mut self) -> &mut IoBuf {
-        &mut self.io_buf
-    }
-
-    /// Broadcast a packet within a certain region.
-    ///
-    /// See <https://github.com/andrewgazelka/hyperion-proto/blob/main/src/server_to_proxy.proto#L17-L22>
-    pub const fn broadcast_local<P>(&self, packet: P, center: I16Vec2) -> BroadcastLocal<'_, P>
-    where
-        P: PacketBundle,
-    {
-        BroadcastLocal {
-            packet,
-            compose: self,
-            exclude: None,
-            center: ChunkPosition {
-                x: center.x,
-                z: center.y,
-            },
-        }
-    }
-
-    /// Broadcast a packet in a channel.
-    pub const fn broadcast_channel<P>(
-        &self,
-        packet: P,
-        channel: ChannelId,
-    ) -> BroadcastChannel<'_, P>
-    where
-        P: PacketBundle,
-    {
-        BroadcastChannel {
-            packet,
-            compose: self,
-            exclude: None,
-            channel,
-        }
-    }
-
-    /// Send a packet to a single player.
-    pub fn unicast<P>(&self, packet: P, stream_id: ConnectionId) -> anyhow::Result<()>
-    where
-        P: PacketBundle,
-    {
-        Unicast {
-            packet,
-            stream_id,
-            compose: self,
-            // todo: Should we have this true by default, or is there a better way?
-            // Or a better word for no_compress, or should we just use negative field names?
-            compress: true,
-        }
-        .send()
-    }
-
-    /// Send a packet to a single player without compression.
-    pub fn unicast_no_compression<P>(
-        &self,
-        packet: &P,
-        stream_id: ConnectionId,
-    ) -> anyhow::Result<()>
-    where
-        P: valence_protocol::Packet + valence_protocol::Encode,
-    {
-        Unicast {
-            packet,
-            stream_id,
-            compose: self,
-            compress: false,
-        }
-        .send()
-    }
-
-    #[must_use]
-    #[allow(clippy::missing_const_for_fn, reason = "this is a false positive")]
-    pub(crate) fn encoder(&self) -> PacketEncoder {
-        let threshold = self.global.shared.compression_threshold;
-        PacketEncoder::new(threshold)
-    }
-
-    /// Obtain a thread-local scratch buffer.
-    #[must_use]
-    pub fn scratch(&self) -> &RefCell<Scratch> {
-        self.scratch.get_or_default()
-    }
-
-    /// Obtain a thread-local [`libdeflater::Compressor`]
-    #[must_use]
-    pub fn compressor(&self) -> &RefCell<libdeflater::Compressor> {
-        self.compressor
-            .get_or(|| RefCell::new(libdeflater::Compressor::new(self.compression_lvl)))
-    }
-}
-
-/// A broadcast builder
-#[must_use]
-pub struct Broadcast<'a, P> {
-    packet: P,
-    compose: &'a Compose,
-    exclude: Option<ConnectionId>,
-}
-
-/// A unicast builder
-#[must_use]
-struct Unicast<'a, P> {
-    packet: P,
-    stream_id: ConnectionId,
-    compose: &'a Compose,
-    compress: bool,
-}
-
-impl<P> Unicast<'_, P>
-where
-    P: PacketBundle,
-{
-    fn send(self) -> anyhow::Result<()> {
-        self.compose.io_buf.unicast_private(
-            self.packet,
-            self.stream_id,
-            self.compose,
-            self.compress,
-        )
-    }
-}
-
-impl<P> Broadcast<'_, P> {
-    /// Send the packet to all players.
-    pub fn send(self) -> anyhow::Result<()>
-    where
-        P: PacketBundle,
-    {
-        let bytes = self
-            .compose
-            .io_buf
-            .encode_packet(self.packet, self.compose)?;
-
-        self.compose.io_buf.broadcast_raw(&bytes, self.exclude);
-
-        Ok(())
-    }
-
-    /// Exclude a certain player from the broadcast. This can only be called once.
-    pub fn exclude(self, exclude: impl Into<Option<ConnectionId>>) -> Self {
-        let exclude = exclude.into();
-        Broadcast {
-            packet: self.packet,
-            compose: self.compose,
-            exclude,
-        }
-    }
-}
-
-#[must_use]
-#[expect(missing_docs)]
-pub struct BroadcastLocal<'a, P> {
-    packet: P,
-    compose: &'a Compose,
-    center: ChunkPosition,
-    exclude: Option<ConnectionId>,
-}
-
-impl<P> BroadcastLocal<'_, P> {
-    /// Send the packet
-    pub fn send(self) -> anyhow::Result<()>
-    where
-        P: PacketBundle,
-    {
-        let bytes = self
-            .compose
-            .io_buf
-            .encode_packet(self.packet, self.compose)?;
-
-        self.compose
-            .io_buf
-            .broadcast_local_raw(&bytes, self.center, self.exclude);
-
-        Ok(())
-    }
-
-    /// Exclude a certain player from the broadcast. This can only be called once.
-    pub fn exclude(self, exclude: impl Into<Option<ConnectionId>>) -> Self {
-        let exclude = exclude.into();
-        BroadcastLocal {
-            packet: self.packet,
-            compose: self.compose,
-            center: self.center,
-            exclude,
-        }
-    }
-}
-
-#[must_use]
-#[expect(missing_docs)]
-pub struct BroadcastChannel<'a, P> {
-    packet: P,
-    compose: &'a Compose,
-    exclude: Option<ConnectionId>,
-    channel: ChannelId,
-}
-
-impl<P> BroadcastChannel<'_, P> {
-    /// Send the packet
-    pub fn send(self) -> anyhow::Result<()>
-    where
-        P: PacketBundle,
-    {
-        let bytes = self
-            .compose
-            .io_buf
-            .encode_packet(self.packet, self.compose)?;
-
-        self.compose
-            .io_buf
-            .broadcast_channel_raw(&bytes, self.channel, self.exclude);
-
-        Ok(())
-    }
-
-    /// Exclude a certain player from the broadcast. This can only be called once.
-    pub fn exclude(self, exclude: impl Into<Option<ConnectionId>>) -> Self {
-        let exclude = exclude.into();
-        Self { exclude, ..self }
     }
 }

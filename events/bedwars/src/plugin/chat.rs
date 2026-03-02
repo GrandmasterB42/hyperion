@@ -10,7 +10,7 @@ use bevy_ecs::{
 };
 use hyperion::{
     entity::Position,
-    net::{Compose, packet, packet_state},
+    net::{Compose, TickData, packet, packet_state},
     protocol::{
         Text, packets,
         text::{Color, IntoText},
@@ -44,9 +44,10 @@ pub fn initialize_cooldown(
 pub fn handle_chat_messages(
     mut packets: MessageReader<'_, '_, packet::play::ChatMessage>,
     compose: Res<'_, Compose>,
+    tick: Res<'_, TickData>,
     mut query: Query<'_, '_, (&Name, &Position, &mut ChatCooldown, &ConnectionId, &Team)>,
 ) {
-    let current_tick = compose.global().tick;
+    let current_tick = tick.tick;
 
     for packet in packets.read() {
         let (name, position, mut cooldown, io, team) = match query.get_mut(packet.sender()) {

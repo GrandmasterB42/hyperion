@@ -17,7 +17,7 @@ use hyperion::{
     entity::{PendingTeleportation, Position, Velocity, Yaw},
     ident::ident,
     inventory::PlayerInventory,
-    net::{Compose, agnostic, packet::play, packet_state},
+    net::{Compose, TickData, agnostic, packet::play, packet_state},
     protocol::{
         BlockKind, ItemKind, ItemStack, Particle, VarInt,
         packets::play::{
@@ -180,6 +180,7 @@ fn handle_melee_attacks(
 fn handle_attacks(
     mut events: MessageReader<'_, '_, event::AttackEntity>,
     compose: Res<'_, Compose>,
+    tick: Res<'_, TickData>,
     mut origin_query: Query<'_, '_, (&Team, &Name, &ConnectionId)>,
     mut target_query: Query<
         '_,
@@ -195,7 +196,7 @@ fn handle_attacks(
         ),
     >,
 ) {
-    let current_tick = compose.global().tick;
+    let current_tick = tick.tick;
 
     for event in events.read() {
         if event.damage <= 0.0 {

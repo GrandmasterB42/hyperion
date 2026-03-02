@@ -12,7 +12,7 @@ use bevy_ecs::{
 use hyperion_inventory::{
     CursorItem, Inventory, InventoryState, ItemKindExt, ItemSlot, OpenInventory, PlayerInventory,
 };
-use hyperion_net::{Compose, DataBundle, packet, packet_state};
+use hyperion_net::{Compose, DataBundle, TickData, packet, packet_state};
 use hyperion_proxy_proto::ConnectionId;
 use hyperion_utils::EntityExt;
 use tracing::error;
@@ -338,6 +338,7 @@ fn handle_update_selected_slot(
 fn handle_click_slot_inner<'a>(
     packet: &packet::play::ClickSlot,
     compose: &Compose,
+    tick: i64,
     event_writer: &mut MessageWriter<'_, event::DropItemStackEvent>,
     inv_state: &mut InventoryState,
     player_inventory: &'a mut PlayerInventory,
@@ -412,7 +413,7 @@ fn handle_click_slot_inner<'a>(
                 0 => {
                     handle_left_click_slot(
                         packet,
-                        compose,
+                        tick,
                         event_writer,
                         &mut inventories_mut,
                         inv_state,
@@ -506,8 +507,8 @@ fn handle_click_slot_inner<'a>(
     }
 
     if has_changed {
-        inv_state.set_last_button(0, compose.global().tick);
-        inv_state.set_last_mode(ClickMode::Click, compose.global().tick);
+        inv_state.set_last_button(0, tick);
+        inv_state.set_last_mode(ClickMode::Click, tick);
     }
 }
 
@@ -524,6 +525,7 @@ fn handle_click_slot(
         ),
     >,
     compose: Res<'_, Compose>,
+    tick: Res<'_, TickData>,
     mut inventory_query: Query<'_, '_, &mut Inventory>,
     mut event_writer: MessageWriter<'_, event::DropItemStackEvent>,
 ) {
@@ -576,6 +578,7 @@ fn handle_click_slot(
             handle_click_slot_inner(
                 packet,
                 compose,
+                tick.tick,
                 &mut event_writer,
                 &mut inv_state,
                 &mut player_inventory,
@@ -594,6 +597,7 @@ fn handle_click_slot(
             handle_click_slot_inner(
                 packet,
                 compose,
+                tick.tick,
                 &mut event_writer,
                 &mut inv_state,
                 &mut player_inventory,
@@ -609,7 +613,7 @@ fn handle_click_slot(
 
 fn handle_left_click_slot(
     packet: &packet::play::ClickSlot,
-    compose: &Compose,
+    tick: i64,
     event_writer: &mut MessageWriter<'_, event::DropItemStackEvent>,
     inventories_mut: &mut Vec<&mut ItemSlot>,
     inv_state: &mut InventoryState,
@@ -659,7 +663,7 @@ fn handle_left_click_slot(
         slot.stack = cursor;
         slot.changed = true;
         cursor_item.0 = ItemStack::EMPTY;
-        inv_state.set_last_stack_clicked(ItemStack::EMPTY, compose.global().tick);
+        inv_state.set_last_stack_clicked(ItemStack::EMPTY, tick);
     } else if slot.stack.item == cursor.item {
         let count = slot.stack.count.saturating_add(cursor.count);
         let max = slot.stack.item.max_stack();
@@ -674,13 +678,13 @@ fn handle_left_click_slot(
         }
 
         slot.changed = true;
-        inv_state.set_last_stack_clicked(slot.stack.clone(), compose.global().tick);
+        inv_state.set_last_stack_clicked(slot.stack.clone(), tick);
     } else {
         let old_slot_stack = slot.stack.clone();
         slot.stack = cursor;
         slot.changed = true;
         cursor_item.0 = old_slot_stack.clone();
-        inv_state.set_last_stack_clicked(old_slot_stack, compose.global().tick);
+        inv_state.set_last_stack_clicked(old_slot_stack, tick);
     }
 }
 

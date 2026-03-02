@@ -6,7 +6,7 @@ use bevy_ecs::{
     system::{Res, ResMut},
 };
 use hyperion::{
-    net::Compose,
+    net::{Compose, PlayerCount},
     protocol::{packets::play, text::IntoText},
 };
 use tracing::info_span;
@@ -45,6 +45,7 @@ impl Plugin for StatsPlugin {
         app.add_systems(
             Update,
             move |compose: Res<'_, Compose>,
+                  player_count: Res<'_, PlayerCount>,
                   start: Res<'_, UpdateStart>,
                   mut elapsed: ResMut<'_, TicksElapsed>| {
                 if elapsed.0 == 0 {
@@ -57,10 +58,6 @@ impl Plugin for StatsPlugin {
 
                 let span = info_span!("stats");
                 let _enter = span.enter();
-                let player_count = compose
-                    .global()
-                    .player_count
-                    .load(std::sync::atomic::Ordering::Relaxed);
 
                 #[expect(clippy::cast_precision_loss)]
                 let ms_per_tick = start.0.elapsed().as_secs_f32() * 1000.0 / (ticks_elapsed as f32);
@@ -85,7 +82,7 @@ impl Plugin for StatsPlugin {
                      {avg_s60:.2} ms"
                 );
 
-                let footer = format!("§d§l{player_count} players online");
+                let footer = format!("§d§l{} players online", *player_count);
 
                 let pkt = play::PlayerListHeaderS2c {
                     header: title.into_cow_text(),

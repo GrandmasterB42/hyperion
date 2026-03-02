@@ -16,7 +16,7 @@ use hyperion_entity::{
     AiTargetable, ChunkPosition, EntityKind, Pitch, Uuid, Velocity, Yaw,
     player::{ActiveAnimation, ImmuneStatus, Player, Xp},
 };
-use hyperion_net::{Compose, decoder::PacketDecoder, packet, packet_state};
+use hyperion_net::{Compose, PlayerCount, decoder::PacketDecoder, packet, packet_state};
 use hyperion_proxy_proto::{MINECRAFT_VERSION, PROTOCOL_VERSION};
 use hyperion_utils::{EntityExt, command_channel::CommandChannel, runtime::AsyncRuntime};
 use serde_json::json;
@@ -85,17 +85,13 @@ fn process_status_request(
     mut packets: MessageReader<'_, '_, packet::status::QueryRequest>,
     ping_response_data: Res<'_, ServerPingResponse>,
     compose: Res<'_, Compose>,
+    player_count: Res<'_, PlayerCount>,
 ) {
     for packet in packets.read() {
         // let img_bytes = include_bytes!("data/hyperion.png");
 
         // let favicon = general_purpose::STANDARD.encode(img_bytes);
         // let favicon = format!("data:image/png;base64,{favicon}");
-
-        let online = compose
-            .global()
-            .player_count
-            .load(std::sync::atomic::Ordering::Relaxed);
 
         // https://wiki.vg/Server_List_Ping#Response
         let json = json!({
@@ -104,7 +100,7 @@ fn process_status_request(
                 "protocol": PROTOCOL_VERSION,
             },
             "players": {
-                "online": online,
+                "online": player_count.count,
                 "max": ping_response_data.max_players,
                 "sample": [],
             },
@@ -158,14 +154,14 @@ pub fn process_login_hello(
         let profile_id = packet.profile_id;
 
         // Set compression
-        let global = compose.global();
+        let compression_threshold = compose.shared.compression_threshold;
         let pkt = LoginCompressionS2c {
-            threshold: VarInt(global.shared.compression_threshold.0),
+            threshold: VarInt(compression_threshold.0),
         };
         compose
             .unicast_no_compression(&pkt, packet.connection_id())
             .unwrap();
-        decoder.set_compression(global.shared.compression_threshold);
+        decoder.set_compression(compression_threshold);
 
         let uuid = profile_id.unwrap_or_else(|| offline_uuid(username));
         let uuid_s = format!("{uuid:?}").dimmed();
