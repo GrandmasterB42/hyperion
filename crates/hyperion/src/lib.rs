@@ -1,7 +1,4 @@
 //! Hyperion
-#![feature(read_buf)]
-#![feature(core_io_borrowed_buf)]
-#![feature(try_trait_v2)]
 #![feature(trivial_bounds)]
 
 use std::{fmt::Debug, net::SocketAddr, sync::Arc, time::Duration};
