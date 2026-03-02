@@ -76,7 +76,6 @@ heed.workspace = true
 itertools.workspace = true
 libc.workspace = true
 libdeflater.workspace = true
-ndarray.workspace = true
 ordered-float.workspace = true
 rayon.workspace = true
 reqwest.workspace = true
