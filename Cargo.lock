@@ -3237,6 +3237,7 @@ dependencies = [
  "hyperion-inventory",
  "hyperion-packet-macros",
  "hyperion-proxy-proto",
+ "hyperion-text",
  "hyperion-utils",
  "libdeflater",
  "packet-channel",
@@ -3249,6 +3250,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tracing",
+ "uuid",
  "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
  "valence_text 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
 ]

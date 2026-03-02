@@ -9,6 +9,7 @@ pub mod encoder;
 pub mod lookup;
 pub mod packet;
 pub mod packet_state;
+pub mod packets;
 pub mod proxy;
 
 use std::{

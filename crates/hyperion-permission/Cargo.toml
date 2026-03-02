@@ -11,6 +11,11 @@ reflect = [
     "bevy_app/reflect_auto_register",
     "bevy_ecs/reflect_auto_register",
     "bevy_reflect/auto_register_inventory",
+    "hyperion-command/reflect",
+    "hyperion-data/reflect",
+    "hyperion-entity/reflect",
+    "hyperion-net/reflect",
+    "hyperion-proxy-proto/reflect",
 ]
 
 [dependencies]

@@ -12,8 +12,17 @@ reflect = [
     "bevy_ecs/reflect_auto_register",
     "bevy_reflect/auto_register_inventory",
     "bevy_reflect/uuid",
+    "hyperion-clap/reflect",
+    "hyperion-command/reflect",
     "hyperion-crafting/reflect",
+    "hyperion-data/reflect",
+    "hyperion-entity/reflect",
+    "hyperion-gui/reflect",
     "hyperion-inventory/reflect",
+    "hyperion-item/reflect",
+    "hyperion-net/reflect",
+    "hyperion-permission/reflect",
+    "hyperion-proxy-proto/reflect",
     "hyperion-utils/reflect",
 ]
 ecs_debug = ["bevy_ecs/trace", "bevy_ecs/debug"]

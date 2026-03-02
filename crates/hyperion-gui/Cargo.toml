@@ -8,6 +8,7 @@ reflect = [
     "dep:bevy_reflect",
     "bevy_ecs/reflect_auto_register",
     "bevy_reflect/auto_register_inventory",
+    "hyperion-entity/reflect",
     "hyperion-inventory/reflect",
 ]
 

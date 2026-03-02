@@ -10,7 +10,9 @@ reflect = [
     "bevy_app/reflect_auto_register",
     "bevy_ecs/reflect_auto_register",
     "hyperion-command/reflect",
+    "hyperion-net/reflect",
     "hyperion-permission/reflect",
+    "hyperion-proxy-proto/reflect",
     "hyperion-utils/reflect",
 ]
 
