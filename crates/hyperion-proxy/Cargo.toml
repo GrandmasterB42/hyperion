@@ -10,7 +10,7 @@ hyperion-proxy-proto.workspace = true
 
 anyhow.workspace = true
 arrayvec.workspace = true
-bvh.workspace = true
+bvh-data.workspace = true
 bytes.workspace = true
 clap.workspace = true
 colored.workspace = true

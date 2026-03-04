@@ -23,6 +23,7 @@ panic = 'abort'
 
 [workspace]
 members = [
+    'crates/bvh-data',
     'crates/bvh-region',
     'crates/geometry',
     'crates/hyperion',
@@ -78,6 +79,7 @@ hyperion-text = { path = "crates/hyperion-text" }
 hyperion-utils = { path = "crates/hyperion-utils" }
 hyperion-world = { path = "crates/hyperion-world" }
 
+bvh-data = { path = "crates/bvh-data" }
 bvh-region = { path = "crates/bvh-region" }
 geometry = { path = "crates/geometry" }
 packet-channel = { path = "crates/packet-channel" }
@@ -120,7 +122,6 @@ arrayvec = '0.7.4'
 bitfield-struct = '0.12'
 bitvec = '1.0'
 boxcar = '0.2'
-bvh = { git = 'https://github.com/TestingPlant/bvh-data' }
 compact_str = '0.9'
 enumset = '1.1'
 flume = '0.11'

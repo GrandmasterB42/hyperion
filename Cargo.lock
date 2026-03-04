@@ -1132,16 +1132,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1628fb46dfa0b37568d12e5edd512553eccf6a22a78e8bde00bb4aed84d5bdbf"
 
 [[package]]
-name = "bvh"
+name = "bvh-data"
 version = "0.1.0"
-source = "git+https://github.com/TestingPlant/bvh-data#02f0ac2321f0e125bfec425acfc6619ecbbd2eb7"
 dependencies = [
  "arrayvec",
  "bytes",
  "fast_hilbert",
+ "fastrand 2.3.0",
  "glam 0.29.3",
  "heapless 0.8.0",
  "more-asserts",
+ "tracing",
 ]
 
 [[package]]
@@ -2219,12 +2220,9 @@ dependencies = [
 
 [[package]]
 name = "fast_hilbert"
-version = "2.0.0"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8ec2bbe15af87954c739e236021f4411766c0f2b9c4a5f0b9317bcf6048ebf8"
-dependencies = [
- "num-traits",
-]
+checksum = "4f551b382f601850b4f57052d064d1c60dca971aeee4ccb40ac103b87f766640"
 
 [[package]]
 name = "fastrand"
@@ -3279,7 +3277,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "arrayvec",
- "bvh",
+ "bvh-data",
  "bytes",
  "clap",
  "colored",

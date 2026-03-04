@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use bvh::{Aabb, Bvh, Data, Point};
+use bvh_data::{Aabb, Bvh, Data, Point};
 use bytes::Bytes;
 use glam::I16Vec2;
 use hyperion_proxy_proto::packets::{
