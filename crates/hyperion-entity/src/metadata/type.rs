@@ -35,7 +35,7 @@ use valence_generated::block::BlockState;
 use valence_protocol::{ItemStack, VarInt};
 use valence_text::Text;
 
-use crate::simulation::metadata::entity::Pose;
+use crate::metadata::entity::Pose;
 
 pub trait MetadataType {
     const INDEX: i32;

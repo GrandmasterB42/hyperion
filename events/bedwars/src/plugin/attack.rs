@@ -14,7 +14,7 @@ use bevy_ecs::{
 };
 use glam::{DVec3, IVec3, Vec3};
 use hyperion::{
-    entity::{PendingTeleportation, Position, Velocity, Yaw},
+    entity::{PendingTeleportation, Position, Velocity, Yaw, metadata::living_entity::Health},
     ident::ident,
     inventory::PlayerInventory,
     net::{Compose, TickData, agnostic, packet::play, packet_state},
@@ -27,7 +27,7 @@ use hyperion::{
         text::IntoText,
     },
     proxy::ConnectionId,
-    simulation::{event, metadata::living_entity::Health},
+    simulation::message,
     utils::{EntityExt, Prev, runtime::AsyncRuntime},
     world::Blocks,
 };
@@ -112,7 +112,7 @@ fn handle_melee_attacks(
     mut packets: MessageReader<'_, '_, play::PlayerInteractEntity>,
     origin_query: Query<'_, '_, (&Position, &PlayerInventory, &CombatStats)>,
     target_query: Query<'_, '_, (&Prev<Position>, &Position)>,
-    mut world_and_writer: ParamSet<'_, '_, (&World, MessageWriter<'_, event::AttackEntity>)>,
+    mut world_and_writer: ParamSet<'_, '_, (&World, MessageWriter<'_, message::AttackEntity>)>,
 ) {
     for packet in packets.read() {
         if packet.interact != EntityInteraction::Attack {
@@ -155,7 +155,7 @@ fn handle_melee_attacks(
         let damage_after_protection =
             get_inflicted_damage(damage_after_armor, combat_stats.protection);
 
-        world_and_writer.p1().write(event::AttackEntity {
+        world_and_writer.p1().write(message::AttackEntity {
             origin,
             target,
             direction: (target_pos - origin_pos).normalize(),
@@ -178,7 +178,7 @@ fn handle_melee_attacks(
 }
 
 fn handle_attacks(
-    mut events: MessageReader<'_, '_, event::AttackEntity>,
+    mut events: MessageReader<'_, '_, message::AttackEntity>,
     compose: Res<'_, Compose>,
     tick: Res<'_, TickData>,
     mut origin_query: Query<'_, '_, (&Team, &Name, &ConnectionId)>,

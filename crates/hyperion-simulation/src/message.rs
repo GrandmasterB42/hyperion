@@ -10,7 +10,7 @@ use valence_protocol::{
     },
 };
 
-use crate::simulation::skin::PlayerSkin;
+use crate::skin::PlayerSkin;
 
 // TODO: Check that all of these events are needed
 

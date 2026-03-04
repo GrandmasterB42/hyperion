@@ -8,7 +8,7 @@ use glam::Vec3;
 use hyperion::{
     clap::{CommandPermission, MinecraftCommand},
     entity::{EntityKind, EntitySize, Pitch, Position, Yaw},
-    spatial::{SpatialIndex, get_first_collision},
+    simulation::spatial::{SpatialIndex, get_first_collision},
     world::Blocks,
 };
 use rayon::iter::Either;

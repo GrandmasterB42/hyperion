@@ -11,9 +11,8 @@ use bevy_app::{App, FixedMain};
 use bevy_ecs::system::{Query, Res};
 use geometry::{aabb::Aabb, ray::Ray};
 use glam::Vec3;
-use hyperion::spatial;
 use hyperion_entity::{EntitySize, Position};
-use spatial::{Spatial, SpatialIndex, SpatialPlugin};
+use hyperion_simulation::spatial::{Spatial, SpatialIndex, SpatialPlugin};
 
 #[test]
 fn spatial() {

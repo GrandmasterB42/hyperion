@@ -3073,6 +3073,7 @@ dependencies = [
  "hyperion-net",
  "hyperion-permission",
  "hyperion-proxy-proto",
+ "hyperion-simulation",
  "hyperion-utils",
  "hyperion-world",
  "itertools 0.14.0",
@@ -3167,6 +3168,7 @@ dependencies = [
 name = "hyperion-entity"
 version = "0.1.0"
 dependencies = [
+ "bevy_app 0.18.0",
  "bevy_ecs 0.18.0",
  "bevy_reflect",
  "bytemuck",
@@ -3174,9 +3176,13 @@ dependencies = [
  "fastrand 2.3.0",
  "geometry",
  "glam 0.29.3",
+ "hyperion-utils",
  "serde",
+ "tracing",
  "uuid",
+ "valence_generated 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
  "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
+ "valence_text 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
 ]
 
 [[package]]
@@ -3348,6 +3354,51 @@ dependencies = [
  "rustls",
  "tracing",
  "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
+]
+
+[[package]]
+name = "hyperion-simulation"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64 0.22.1",
+ "bevy_app 0.18.0",
+ "bevy_ecs 0.18.0",
+ "bevy_reflect",
+ "boxcar",
+ "bvh-region",
+ "byteorder",
+ "colored",
+ "geometry",
+ "glam 0.29.3",
+ "heapless 0.8.0",
+ "heed",
+ "hyperion-crafting",
+ "hyperion-data",
+ "hyperion-entity",
+ "hyperion-inventory",
+ "hyperion-item",
+ "hyperion-net",
+ "hyperion-proxy-proto",
+ "hyperion-utils",
+ "hyperion-world",
+ "itertools 0.14.0",
+ "ordered-float 5.0.0",
+ "rayon",
+ "reqwest",
+ "rkyv",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+ "toml",
+ "tracing",
+ "uuid",
+ "valence_bytes",
+ "valence_generated 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
+ "valence_protocol 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
+ "valence_registry",
+ "valence_text 0.2.0-alpha.1+mc.1.20.1 (git+https://github.com/TestingPlant/valence?branch=feat-bytes)",
 ]
 
 [[package]]

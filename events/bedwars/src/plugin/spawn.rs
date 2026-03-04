@@ -6,9 +6,9 @@ use bevy_ecs::{
 };
 use glam::{I16Vec2, IVec2, IVec3, Vec3};
 use hyperion::{
-    InitializePlayerPosition,
     entity::Position,
     protocol::{BlockKind, BlockState},
+    simulation::login::InitializePlayerPosition,
     utils::runtime::AsyncRuntime,
     world::Blocks,
 };

@@ -23,6 +23,7 @@ reflect = [
     "hyperion-net/reflect",
     "hyperion-permission/reflect",
     "hyperion-proxy-proto/reflect",
+    "hyperion-simulation/reflect",
     "hyperion-utils/reflect",
 ]
 ecs_debug = ["bevy_ecs/trace", "bevy_ecs/debug"]
@@ -43,6 +44,7 @@ hyperion-item.workspace = true
 hyperion-net.workspace = true
 hyperion-permission.workspace = true
 hyperion-proxy-proto.workspace = true
+hyperion-simulation.workspace = true
 hyperion-utils.workspace = true
 hyperion-world.workspace = true
 

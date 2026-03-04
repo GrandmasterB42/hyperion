@@ -17,17 +17,16 @@ use hyperion_proxy_proto::ConnectionId;
 use hyperion_utils::EntityExt;
 use tracing::error;
 use valence_protocol::{
-    VarInt,
+    ItemStack, VarInt,
     packets::play::{
         self,
         click_slot_c2s::{ClickMode, SlotChange},
         entity_equipment_update_s2c::EquipmentEntry,
     },
 };
-use valence_server::ItemStack;
 use valence_text::IntoText;
 
-use super::event;
+use crate::message;
 
 pub struct InventoryPlugin;
 
@@ -306,7 +305,7 @@ fn handle_close_window(
 fn handle_update_selected_slot(
     mut packets: MessageReader<'_, '_, packet::play::UpdateSelectedSlot>,
     mut query: Query<'_, '_, &mut Inventory>,
-    mut event_writer: MessageWriter<'_, event::UpdateSelectedSlotEvent>,
+    mut event_writer: MessageWriter<'_, message::UpdateSelectedSlotEvent>,
 ) {
     for packet in packets.read() {
         let mut inventory = match query.get_mut(packet.sender()) {
@@ -325,7 +324,7 @@ fn handle_update_selected_slot(
             continue;
         }
 
-        let event = event::UpdateSelectedSlotEvent {
+        let event = message::UpdateSelectedSlotEvent {
             client: packet.sender(),
             slot,
         };
@@ -339,7 +338,7 @@ fn handle_click_slot_inner<'a>(
     packet: &packet::play::ClickSlot,
     compose: &Compose,
     tick: i64,
-    event_writer: &mut MessageWriter<'_, event::DropItemStackEvent>,
+    event_writer: &mut MessageWriter<'_, message::DropItemStackEvent>,
     inv_state: &mut InventoryState,
     player_inventory: &'a mut PlayerInventory,
     cursor_item: &mut CursorItem,
@@ -527,7 +526,7 @@ fn handle_click_slot(
     compose: Res<'_, Compose>,
     tick: Res<'_, TickData>,
     mut inventory_query: Query<'_, '_, &mut Inventory>,
-    mut event_writer: MessageWriter<'_, event::DropItemStackEvent>,
+    mut event_writer: MessageWriter<'_, message::DropItemStackEvent>,
 ) {
     let compose = compose.into_inner();
     for packet in packets.read() {
@@ -614,7 +613,7 @@ fn handle_click_slot(
 fn handle_left_click_slot(
     packet: &packet::play::ClickSlot,
     tick: i64,
-    event_writer: &mut MessageWriter<'_, event::DropItemStackEvent>,
+    event_writer: &mut MessageWriter<'_, message::DropItemStackEvent>,
     inventories_mut: &mut Vec<&mut ItemSlot>,
     inv_state: &mut InventoryState,
     cursor_item: &mut CursorItem,
@@ -624,7 +623,7 @@ fn handle_left_click_slot(
         if cursor_item.0.is_empty() {
             return;
         }
-        let event = event::DropItemStackEvent {
+        let event = message::DropItemStackEvent {
             client: packet.sender(),
             from_slot: None,
             item: cursor_item.0.clone(),
@@ -690,7 +689,7 @@ fn handle_left_click_slot(
 
 fn handle_right_click_slot(
     packet: &packet::play::ClickSlot,
-    event_writer: &mut MessageWriter<'_, event::DropItemStackEvent>,
+    event_writer: &mut MessageWriter<'_, message::DropItemStackEvent>,
     inventories_mut: &mut Vec<&mut ItemSlot>,
     cursor_item: &mut CursorItem,
     player_only: bool,
@@ -703,7 +702,7 @@ fn handle_right_click_slot(
             if cursor_item.0.count == 0 {
                 cursor_item.0 = ItemStack::EMPTY;
             }
-            event_writer.write(event::DropItemStackEvent {
+            event_writer.write(message::DropItemStackEvent {
                 client: packet.sender(),
                 from_slot: None,
                 item: new_stack,
@@ -1121,7 +1120,7 @@ fn handle_hotbar_swap(
 
 fn handle_drop_key(
     packet: &packet::play::ClickSlot,
-    event_writer: &mut MessageWriter<'_, event::DropItemStackEvent>,
+    event_writer: &mut MessageWriter<'_, message::DropItemStackEvent>,
     inventories_mut: &mut Vec<&mut ItemSlot>,
     cursor_item: &mut CursorItem,
     _player_only: bool,
@@ -1152,7 +1151,7 @@ fn handle_drop_key(
             cursor_item.0 = ItemStack::EMPTY;
         }
 
-        let event = event::DropItemStackEvent {
+        let event = message::DropItemStackEvent {
             client: packet.sender(),
             from_slot: None,
             item: dropped,
@@ -1191,7 +1190,7 @@ fn handle_drop_key(
 
     slot.changed = true;
 
-    let event = event::DropItemStackEvent {
+    let event = message::DropItemStackEvent {
         client: packet.sender(),
         from_slot: Some(slot_idx),
         item: dropped,

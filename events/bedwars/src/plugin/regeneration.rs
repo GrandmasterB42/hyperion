@@ -6,8 +6,8 @@ use bevy_ecs::{
     system::{Commands, Query, Res},
 };
 use hyperion::{
+    entity::metadata::living_entity::Health,
     net::{TickData, packet_state},
-    simulation::metadata::living_entity::Health,
     utils::Prev,
 };
 #[cfg(feature = "reflect")]

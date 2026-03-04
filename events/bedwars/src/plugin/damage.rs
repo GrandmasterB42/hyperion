@@ -4,12 +4,12 @@ use bevy_ecs::{
     system::{Query, Res},
 };
 use hyperion::{
-    entity::Position,
+    entity::{Position, metadata::living_entity::Health},
     ident::ident,
     net::{Compose, agnostic},
     protocol::{VarInt, packets::play, text::IntoText},
     proxy::ConnectionId,
-    simulation::{event::HitGroundEvent, metadata::living_entity::Health},
+    simulation::message::HitGroundEvent,
     utils::EntityExt,
 };
 use tracing::error;

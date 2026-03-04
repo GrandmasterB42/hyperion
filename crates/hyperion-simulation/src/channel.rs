@@ -8,7 +8,9 @@ use bevy_ecs::{
     system::{Query, Res},
     world::World,
 };
-use hyperion_entity::{EntityKind, Pitch, Position, Uuid, Velocity, Yaw};
+use hyperion_entity::{
+    EntityKind, Pitch, Position, Uuid, Velocity, Yaw, metadata::MetadataChanges,
+};
 use hyperion_net::{Compose, proxy::RequestSubscribeChannelPackets};
 use hyperion_proxy_proto::{
     Channel, ChannelId, ConnectionId,
@@ -22,10 +24,7 @@ use tracing::error;
 use valence_bytes::CowBytes;
 use valence_protocol::{ByteAngle, RawBytes, VarInt, packets::play};
 
-use crate::{
-    egress::metadata::show_all,
-    simulation::metadata::{MetadataChanges, get_and_clear_metadata},
-};
+use crate::login::show_all;
 
 fn add_channel(added_channel: On<'_, '_, Add, Channel>, compose: Res<'_, Compose>) {
     let packet = play::EntitiesDestroyS2c {
@@ -96,6 +95,7 @@ fn send_subscribe_channel_packets(
         let mut packet_buf;
         let minecraft_id = event.0.minecraft_id();
 
+        // TODO: Does this have to be handled here? Maybe some kind of channeljoinbehaiviour?
         if entity_kind == EntityKind::Player {
             let spawn_packet = play::PlayerSpawnS2c {
                 entity_id: VarInt(minecraft_id),
@@ -146,7 +146,7 @@ fn send_subscribe_channel_packets(
         let mut metadata = MetadataChanges::default();
         metadata.encode_non_default_components(world.entity(entity));
 
-        if let Some(view) = get_and_clear_metadata(&mut metadata) {
+        if let Some(view) = metadata.get_and_clear() {
             let pkt = play::EntityTrackerUpdateS2c {
                 entity_id: VarInt(minecraft_id),
                 tracked_values: RawBytes(CowBytes::Borrowed(&view)),
@@ -154,11 +154,8 @@ fn send_subscribe_channel_packets(
             packet_buf.extend_from_slice(&compose.io_buf().encode_packet(&pkt, &compose).unwrap());
         }
 
-        compose.io_buf().send_subscribe_channel_packets(
-            event.0.into(),
-            &packet_buf,
-            connection_id.copied(),
-        );
+        let io_buf = compose.io_buf();
+        io_buf.send_subscribe_channel_packets(event.0.into(), &packet_buf, connection_id.copied());
     }
 }
 

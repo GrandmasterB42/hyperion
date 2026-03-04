@@ -364,7 +364,7 @@ mod tests {
 
     use hyperion_utils::runtime::AsyncRuntime;
 
-    use crate::simulation::skin::{ApiProvider, MojangClient};
+    use crate::skin::{ApiProvider, MojangClient};
 
     #[test]
     fn test_get_uuid() {

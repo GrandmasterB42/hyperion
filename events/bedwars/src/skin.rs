@@ -6,17 +6,19 @@ use bevy_ecs::{
     system::{Query, Res},
 };
 use hyperion::{
-    egress::player_join::{PlayerListActions, PlayerListEntry, PlayerListS2c},
     entity::Uuid,
     ident::ident,
     net::{Compose, DataBundle},
     protocol::{
         GameMode, VarInt,
         game_mode::OptGameMode,
-        packets::play::{EntitiesDestroyS2c, PlayerRemoveS2c, PlayerRespawnS2c},
+        packets::play::{
+            EntitiesDestroyS2c, PlayerListS2c, PlayerRemoveS2c, PlayerRespawnS2c,
+            player_list_s2c::{PlayerListActions, PlayerListEntry},
+        },
     },
     proxy::ConnectionId,
-    simulation::event,
+    simulation::message,
     utils::EntityExt,
 };
 use tracing::error;
@@ -30,7 +32,7 @@ impl Plugin for SkinPlugin {
 }
 
 fn on_set_skin(
-    mut events: MessageReader<'_, '_, event::SetSkin>,
+    mut events: MessageReader<'_, '_, message::SetSkin>,
     compose: Res<'_, Compose>,
     query: Query<'_, '_, (&ConnectionId, &Uuid)>,
 ) {

@@ -8,13 +8,20 @@ readme = "README.md"
 [features]
 reflect = [
     "dep:bevy_reflect",
+    "bevy_app/reflect_auto_register",
     "bevy_ecs/reflect_auto_register",
     "bevy_reflect/auto_register_inventory",
+    "hyperion-utils/reflect",
 ]
 
 [dependencies]
-valence_protocol.workspace = true
+hyperion-utils.workspace = true
 
+valence_generated.workspace = true
+valence_protocol.workspace = true
+valence_text.workspace = true
+
+bevy_app.workspace = true
 bevy_ecs.workspace = true
 bevy_reflect = { workspace = true, optional = true }
 
@@ -24,6 +31,7 @@ fastrand.workspace = true
 geometry.workspace = true
 glam.workspace = true
 serde.workspace = true
+tracing.workspace = true
 uuid.workspace = true
 
 [lints]

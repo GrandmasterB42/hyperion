@@ -12,13 +12,13 @@ use hyperion::{
         packets::play,
     },
     proxy::ConnectionId,
-    simulation::event,
+    simulation::message,
     world::{Blocks, EntityAndSequence},
 };
 use tracing::error;
 
 fn handle_destroyed_blocks(
-    mut events: MessageReader<'_, '_, event::DestroyBlock>,
+    mut events: MessageReader<'_, '_, message::DestroyBlock>,
     compose: Res<'_, Compose>,
     mut blocks: ResMut<'_, Blocks>,
     query: Query<'_, '_, &ConnectionId>,
@@ -50,12 +50,12 @@ fn handle_destroyed_blocks(
 }
 
 fn handle_placed_blocks(
-    mut events: MessageReader<'_, '_, event::PlaceBlock>,
+    mut events: MessageReader<'_, '_, message::PlaceBlock>,
     mut blocks: ResMut<'_, Blocks>,
     compose: Res<'_, Compose>,
     query: Query<'_, '_, &ConnectionId>,
 ) {
-    for event::PlaceBlock {
+    for message::PlaceBlock {
         position,
         block,
         from,
@@ -94,7 +94,7 @@ fn handle_placed_blocks(
 }
 
 fn handle_toggled_doors(
-    mut events: MessageReader<'_, '_, event::ToggleDoor>,
+    mut events: MessageReader<'_, '_, message::ToggleDoor>,
     mut blocks: ResMut<'_, Blocks>,
 ) {
     for event in events.read() {

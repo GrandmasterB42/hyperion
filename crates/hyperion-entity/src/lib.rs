@@ -1,4 +1,6 @@
+#![feature(trivial_bounds)]
 mod entity_kind;
+pub mod metadata;
 pub mod player;
 mod position;
 mod size;

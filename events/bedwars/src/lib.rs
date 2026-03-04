@@ -5,7 +5,7 @@ use bevy_app::{App, Plugin};
 use bevy_ecs::{component::Component, lifecycle::Add, observer::On, system::Commands};
 use hyperion::{
     Endpoint, HyperionCore, net::packet_state, protocol::text::IntoText, proxy::Crypto,
-    spatial::Spatial,
+    simulation::spatial::Spatial,
 };
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};

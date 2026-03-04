@@ -6,13 +6,12 @@ use bevy_ecs::{
     system::{Query, Res},
 };
 use hyperion::{
-    entity::Uuid,
+    entity::{Uuid, metadata::entity::EntityFlags},
     net::Compose,
     protocol::{
         GameMode,
         packets::play::{self, player_list_s2c::PlayerListActions},
     },
-    simulation::metadata::entity::EntityFlags,
 };
 use tracing::error;
 #[cfg(feature = "reflect")]

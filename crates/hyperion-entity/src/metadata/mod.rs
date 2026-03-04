@@ -8,14 +8,19 @@ use bevy_ecs::{
     system::{Commands, Query},
     world::EntityRef,
 };
-use hyperion_entity::EntityKind;
 use hyperion_utils::{Prev, track_prev};
 use tracing::error;
 use valence_protocol::{Encode, VarInt};
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
-use crate::simulation::metadata::entity::{EntityFlags, Pose};
+use crate::{
+    EntityKind,
+    metadata::{
+        entity::{EntityFlags, Pose},
+        r#type::MetadataType,
+    },
+};
 
 pub mod block_display;
 pub mod display;
@@ -104,8 +109,6 @@ impl Plugin for MetadataPlugin {
     }
 }
 
-use crate::simulation::metadata::r#type::MetadataType;
-
 #[derive(Debug, Default, Component, Clone)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 // index (u8), type (varint), value (varies)
@@ -113,6 +116,19 @@ use crate::simulation::metadata::r#type::MetadataType;
 ///
 /// Tracks updates within a gametick for the metadata
 pub struct MetadataChanges(Vec<u8>);
+
+impl MetadataChanges {
+    /// This is only meant to be called from egress systems
+    pub fn get_and_clear(&mut self) -> Option<MetadataView<'_>> {
+        if self.0.is_empty() {
+            return None;
+        }
+        // denote end of metadata
+        self.0.push(0xff);
+
+        Some(MetadataView(self))
+    }
+}
 
 mod status;
 
@@ -190,7 +206,7 @@ macro_rules! define_and_register_components {
 
         pub fn register(app: &mut bevy_app::App) {
             $(
-                $crate::simulation::metadata::component_and_track::<$name>(app);
+                $crate::metadata::component_and_track::<$name>(app);
             )*
         }
 
@@ -203,7 +219,7 @@ macro_rules! define_and_register_components {
             )
         }
 
-        pub fn encode_non_default_components(entity: bevy_ecs::world::EntityRef<'_>, metadata: &mut $crate::simulation::metadata::MetadataChanges) {
+        pub fn encode_non_default_components(entity: bevy_ecs::world::EntityRef<'_>, metadata: &mut $crate::metadata::MetadataChanges) {
             $(
                 if let Some(component) = entity.get::<$name>() {
                     metadata.encode_if_not_default(component.clone());
@@ -285,15 +301,4 @@ impl Drop for MetadataView<'_> {
     fn drop(&mut self) {
         self.0.0.clear();
     }
-}
-
-/// This is only meant to be called from egress systems
-pub(crate) fn get_and_clear_metadata(metadata: &mut MetadataChanges) -> Option<MetadataView<'_>> {
-    if metadata.is_empty() {
-        return None;
-    }
-    // denote end of metadata
-    metadata.0.push(0xff);
-
-    Some(MetadataView(metadata))
 }

@@ -19,7 +19,7 @@ use valence_text::Text;
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
-use crate::{define_and_register_components, simulation::Metadata};
+use crate::{define_and_register_components, metadata::Metadata};
 
 mod flags;
 pub use flags::EntityFlags;

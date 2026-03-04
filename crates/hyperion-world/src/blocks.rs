@@ -5,7 +5,7 @@ use bevy_ecs::{entity::Entity, resource::Resource};
 use bytes::Bytes;
 use geometry::{aabb::Aabb, ray::Ray};
 use glam::{I16Vec2, IVec2, IVec3, Vec3};
-use hyperion_entity::Position;
+use hyperion_entity::{EntitySize, Position};
 use hyperion_utils::runtime::AsyncRuntime;
 use indexmap::IndexMap;
 use ndarray::ArrayView3;
@@ -126,6 +126,48 @@ impl Blocks {
         }
 
         None
+    }
+
+    #[must_use]
+    #[expect(clippy::cast_possible_truncation)]
+    pub fn is_grounded(&self, position: &Vec3) -> bool {
+        // Calculate the block position by flooring the x and z coordinates
+        let block_x = position.x as i32;
+        let block_y = (position.y.ceil() - 1.0) as i32; // Check the block directly below
+        let block_z = position.z as i32;
+
+        // Check if the block at the calculated position is not air
+        let is_air = self
+            .get_block(IVec3::new(block_x, block_y, block_z))
+            .is_none_or(BlockState::is_air);
+
+        !is_air
+    }
+
+    #[must_use]
+    pub fn has_block_collision(&self, position: &Vec3, size: EntitySize) -> bool {
+        use std::ops::ControlFlow;
+
+        let (min, max) = size.block_bounds(*position);
+        let shrunk = size.aabb(*position).shrink(0.01);
+
+        let res = self.get_blocks(min, max, |pos, block| {
+            #[expect(clippy::cast_precision_loss)]
+            let pos = Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32);
+
+            for aabb in block.collision_shapes() {
+                let aabb = Aabb::new(aabb.min().as_vec3(), aabb.max().as_vec3());
+                let aabb = aabb.move_by(pos);
+
+                if shrunk.collides(&aabb) {
+                    return ControlFlow::Break(false);
+                }
+            }
+
+            ControlFlow::Continue(())
+        });
+
+        res.is_break()
     }
 
     #[must_use]

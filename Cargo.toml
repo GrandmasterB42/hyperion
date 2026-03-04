@@ -41,6 +41,7 @@ members = [
     'crates/hyperion-proxy',
     'crates/hyperion-proxy-module',
     'crates/hyperion-proxy-proto',
+    'crates/hyperion-simulation',
     'crates/hyperion-stats',
     'crates/hyperion-text',
     'crates/hyperion-utils',
@@ -50,7 +51,7 @@ members = [
     'tools/packet-inspector',
     'tools/rust-mc-bot',
 ]
-resolver = '2'
+resolver = '3'
 
 #=============== Dependencies ==============#
 
@@ -72,6 +73,7 @@ hyperion-permission = { path = "crates/hyperion-permission" }
 hyperion-proxy = { path = "crates/hyperion-proxy" }
 hyperion-proxy-module = { path = "crates/hyperion-proxy-module" }
 hyperion-proxy-proto = { path = "crates/hyperion-proxy-proto" }
+hyperion-simulation = { path = "crates/hyperion-simulation" }
 hyperion-text = { path = "crates/hyperion-text" }
 hyperion-utils = { path = "crates/hyperion-utils" }
 hyperion-world = { path = "crates/hyperion-world" }
@@ -231,7 +233,7 @@ serde = { version = '1.0', features = ['derive'] }
 serde_json = { version = '1.0', features = ['raw_value'] }
 
 # Logging
-tracing = { version = '0.1', features = ['release_max_level_info'] }
+tracing = '0.1'
 tracing-subscriber = { version = '0.3', features = ['env-filter', 'time'] }
 tracing-tracy = { version = '0.11', features = ['timer-fallback'] }
 tracing-appender = '0.2'

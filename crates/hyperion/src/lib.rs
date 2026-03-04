@@ -1,18 +1,28 @@
 //! Hyperion
-#![feature(trivial_bounds)]
-
 use std::{fmt::Debug, net::SocketAddr, sync::Arc, time::Duration};
 
 use bevy_app::{App, Plugin};
-use bevy_ecs::{entity::Entity, event::EntityEvent, resource::Resource};
+use bevy_ecs::resource::Resource;
 use bevy_time::{Fixed, Time};
-use egress::EgressPlugin;
+use hyperion_crafting::CraftingRegistry;
 use hyperion_data::LocalDb;
+use hyperion_item::ItemPlugin;
 use hyperion_net::{
     Compose, IoBuf, KeepAliveTimeout, MaxHurtResistantTime, PlayerCount, Shared, TickData,
-    lookup::LookupPlugin, proxy::init_proxy_comms,
+    lookup::LookupPlugin, packet::PacketPlugin, proxy::init_proxy_comms,
 };
 use hyperion_proxy_proto::Crypto;
+use hyperion_simulation::{
+    SimPlugin,
+    config::Config,
+    skin::{ApiProvider, MojangClient, SkinHandler},
+    spatial::SpatialPlugin,
+};
+use hyperion_utils::{
+    HyperionUtilsPlugin,
+    command_channel::{CommandChannel, CommandChannelPlugin},
+    runtime::AsyncRuntime,
+};
 use hyperion_world::Blocks;
 #[cfg(unix)]
 use libc::{RLIMIT_NOFILE, getrlimit, setrlimit};
@@ -20,32 +30,7 @@ use libdeflater::CompressionLvl;
 use tracing::{info, warn};
 use valence_protocol::CompressionThreshold;
 #[cfg(feature = "reflect")]
-use {
-    bevy_ecs::reflect::{ReflectEvent, ReflectResource},
-    bevy_reflect::Reflect,
-};
-
-mod config;
-use hyperion_crafting::CraftingRegistry;
-use hyperion_utils::{
-    HyperionUtilsPlugin,
-    command_channel::{CommandChannel, CommandChannelPlugin},
-    runtime::AsyncRuntime,
-};
-
-use crate::{
-    ingress::IngressPlugin,
-    simulation::{
-        SimPlugin,
-        skin::{ApiProvider, MojangClient, SkinHandler},
-    },
-    spatial::SpatialPlugin,
-};
-
-pub mod egress;
-pub mod ingress;
-pub mod simulation;
-pub mod spatial;
+use {bevy_ecs::reflect::ReflectResource, bevy_reflect::Reflect};
 
 // TODO: Export every crate here / Clean up some exports
 // bevy_re-exports do not work properly with derive macros
@@ -94,6 +79,10 @@ pub mod protocol {
 
 pub mod proxy {
     pub use hyperion_proxy_proto::*;
+}
+
+pub mod simulation {
+    pub use hyperion_simulation::*;
 }
 
 pub mod utils {
@@ -169,10 +158,6 @@ impl From<SocketAddr> for Endpoint {
     }
 }
 
-#[derive(EntityEvent, Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Event))]
-pub struct InitializePlayerPosition(pub Entity);
-
 /// The central [`HyperionCore`] struct which owns and manages the entire server.
 pub struct HyperionCore;
 
@@ -218,7 +203,7 @@ impl Plugin for HyperionCore {
         });
 
         info!("starting hyperion");
-        let config = config::Config::load("run/config.toml").expect("failed to load config");
+        let config = Config::load("run/config.toml").expect("failed to load config");
         app.insert_resource(config);
 
         let runtime = AsyncRuntime::new();
@@ -256,8 +241,8 @@ impl Plugin for HyperionCore {
         app.add_plugins((
             bevy_time::TimePlugin,
             bevy_app::ScheduleRunnerPlugin::run_loop(Duration::from_millis(10)),
-            IngressPlugin,
-            EgressPlugin,
+            PacketPlugin,
+            ItemPlugin,
             SimPlugin,
             SpatialPlugin,
             HyperionUtilsPlugin,

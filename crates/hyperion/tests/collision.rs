@@ -7,8 +7,9 @@
 use bevy_app::{App, FixedMain};
 use bevy_ecs::{entity::Entity, world::World};
 use glam::Vec3;
-use hyperion::{HyperionCore, spatial::Spatial};
+use hyperion::HyperionCore;
 use hyperion_entity::{EntityKind, EntitySize, Owner, Pitch, Position, Velocity, Yaw};
+use hyperion_simulation::spatial::Spatial;
 
 #[test]
 fn test_get_first_collision() {
