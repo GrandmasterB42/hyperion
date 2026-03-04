@@ -205,6 +205,7 @@ tokio = { version = '1.45', features = [
     'time',
     'macros',
     'tracing',
+    'signal',
     'sync',
 ] }
 tokio-util = { version = '0.7', features = ['net', 'codec', 'io-util'] }
