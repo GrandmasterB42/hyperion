@@ -44,6 +44,10 @@ pub mod clap {
     pub use hyperion_clap::*;
 }
 
+pub mod command {
+    pub use hyperion_command::*;
+}
+
 pub mod entity {
     pub use hyperion_entity::*;
 }
