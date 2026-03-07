@@ -100,8 +100,8 @@ impl std::ops::DerefMut for PlayerUuidLookup {
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct PlayerNameLookup(PlayerNameHashMap<Entity>);
 
-#[cfg_attr(feature = "reflect", derive(Reflect))]
 #[derive(Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect))]
 pub struct PlayerNameHasher(u64);
 
 impl std::hash::Hasher for PlayerNameHasher {

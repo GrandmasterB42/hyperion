@@ -42,8 +42,8 @@ pub struct Shared {
 }
 
 /// The amount of time from the last packet a player has sent before the server will kick them.
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 #[derive(Resource)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct KeepAliveTimeout(pub Duration); // TODO: Is this currently unused?
 
 impl std::default::Default for KeepAliveTimeout {
@@ -62,8 +62,8 @@ impl std::ops::Deref for KeepAliveTimeout {
 
 /// The maximum amount of time a player is resistant to being hurt. This is weird as this is 20 in vanilla Minecraft.
 /// However, the check to determine if a player can be hurt actually looks at this value divided by 2
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 #[derive(Resource)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct MaxHurtResistantTime(pub u16); // TODO: This is currently unused? Might only be relevant to external plugins?
 
 impl std::default::Default for MaxHurtResistantTime {
@@ -80,8 +80,8 @@ impl std::ops::Deref for MaxHurtResistantTime {
     }
 }
 
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 #[derive(Resource, Default, Debug)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct PlayerCount {
     /// The amount of players currently in the playing state.
     pub count: usize, /* This was an atomic at some point, so that it didn't have to take a ResMut. This might need investigation at larger playercounts? */
@@ -102,8 +102,8 @@ impl std::ops::Deref for PlayerCount {
 }
 
 /// Data related to game ticks. This is updated every tick
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 #[derive(Resource, Default)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct TickData {
     /// The current tick of the game. This is incremented every 50 ms.
     pub tick: i64,
