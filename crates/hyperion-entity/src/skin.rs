@@ -217,7 +217,7 @@ impl ApiProvider {
 /// A client to interface with the Minecraft profile API.
 ///
 /// Can use either the official Mojang API or [matdoes/mowojang](https://matdoes.dev/minecraft-uuids) as a data source.
-/// This does not include caching, this should be done separately probably using [`crate::storage::LocalDb`].
+/// This does not include caching, this should be done separately probably using [`hyperion_data::LocalDb`].
 #[derive(Resource, Clone)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct MojangClient {

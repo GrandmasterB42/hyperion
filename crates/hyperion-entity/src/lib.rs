@@ -4,6 +4,7 @@ pub mod metadata;
 pub mod player;
 mod position;
 mod size;
+pub mod skin;
 mod uuid;
 
 use bevy_ecs::{component::Component, entity::Entity};

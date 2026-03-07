@@ -17,6 +17,7 @@ use hyperion_entity::{
     AiTargetable, ChunkPosition, EntityKind, PendingTeleportation, Pitch, Position, Uuid, Velocity,
     Yaw,
     player::{ActiveAnimation, ImmuneStatus, Player, Xp},
+    skin::{MojangClient, PlayerSkin, SkinHandler},
 };
 use hyperion_net::{Compose, DataBundle, decoder::PacketDecoder, packet, packet_state};
 use hyperion_proxy_proto::{Channel, ConnectionId};
@@ -44,7 +45,6 @@ use crate::{
     config::Config,
     login::{InitializePlayerPosition, offline_uuid},
     player::MovementTracking,
-    skin::{MojangClient, PlayerSkin, SkinHandler},
     spatial::ChunkSendQueue,
 };
 

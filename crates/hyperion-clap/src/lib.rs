@@ -80,8 +80,8 @@ impl<Command: MinecraftCommand> ApplyWorld for GenericExecutableCommand<Command>
 
 pub trait MinecraftCommand: Parser + CommandPermission + 'static {
     /// Command state passed to [`MinecraftCommand::execute`]. This can be any type, but it may be
-    /// useful to store a [`bevy::ecs::system::SystemState`] to access types implementing
-    /// [`bevy::ecs::system::ReadOnlySystemParam`]. The state is initialized using the [`FromWorld`]
+    /// useful to store a [`bevy_ecs::system::SystemState`] to access types implementing
+    /// [`bevy_ecs::system::ReadOnlySystemParam`]. The state is initialized using the [`FromWorld`]
     /// trait, and it is applied with the [`ApplyWorld`] trait once every `FixedMain`.
     type State: FromWorld + ApplyWorld + Send + Sync + 'static;
 

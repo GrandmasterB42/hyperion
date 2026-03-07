@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
-/// The full pose of an entity. This is used for both [`Player`] and [`Npc`].
+/// The full pose of an entity. This is used for both [`crate::player::Player`] and [`crate::Npc`].
 #[derive(Component, Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Position {

@@ -4,7 +4,7 @@
 /// - `get_contiguous` must return a slice of exactly `len` bytes long.
 /// - `advance` must advance the buffer by exactly `len` bytes.
 pub unsafe trait Buf {
-    /// What type we get when we advance. For example, if we have a [`bytes::BytesMut`], we get a [`bytes::BytesMut`].
+    /// What type we get when we advance. For example, if we have a [`valence_protocol::bytes::BytesMut`], we get a [`valence_protocol::bytes::BytesMut`].
     type Output;
 
     /// Get a contiguous slice of memory of length `len`.

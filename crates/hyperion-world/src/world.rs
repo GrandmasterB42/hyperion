@@ -7,7 +7,6 @@ use valence_registry::{BiomeRegistry, biome::BiomeId};
 
 use crate::RegionManager;
 
-/// Inner state of the [`MinecraftWorld`] component.
 pub struct WorldShared {
     pub regions: RegionManager,
     pub biome_to_id: BTreeMap<Ident, BiomeId>,

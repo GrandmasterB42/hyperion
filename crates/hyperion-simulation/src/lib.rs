@@ -13,7 +13,6 @@ pub mod inventory;
 pub mod login;
 pub mod message;
 pub mod player;
-pub mod skin;
 pub mod spatial;
 pub mod stats;
 pub mod sync;

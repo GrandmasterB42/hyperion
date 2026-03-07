@@ -1,5 +1,6 @@
 use bevy_ecs::{entity::Entity, message::Message};
 use glam::{IVec3, Vec3};
+use hyperion_entity::skin::PlayerSkin;
 use hyperion_world::RayCollision;
 use valence_generated::block::BlockState;
 use valence_protocol::{
@@ -9,8 +10,6 @@ use valence_protocol::{
         click_slot_c2s::{ClickMode, SlotChange},
     },
 };
-
-use crate::skin::PlayerSkin;
 
 // TODO: Check that all of these events are needed
 
@@ -37,7 +36,7 @@ pub struct AttackEntity {
     pub target: Entity,
     /// The direction of the attack. This value is normalized. This is used to calculate knockback.
     pub direction: Vec3,
-    /// The damage dealt by the attack. This corresponds to the same unit as [`crate::simulation::metadata::living_entity::Health`].
+    /// The damage dealt by the attack. This corresponds to the same unit as [`hyperion_entity::metadata::living_entity::Health`].
     pub damage: f32,
     /// Sound to play on a successful attack
     pub sound: Ident,

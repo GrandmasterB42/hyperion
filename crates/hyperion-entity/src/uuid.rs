@@ -2,7 +2,7 @@ use bevy_ecs::component::Component;
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
-/// A UUID component. Generally speaking, this tends to be tied to entities with a [`Player`] component.
+/// A UUID component. Generally speaking, this tends to be tied to entities with a [`crate::player::Player`] component.
 #[derive(Component, Copy, Clone, Debug, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Uuid(pub uuid::Uuid);

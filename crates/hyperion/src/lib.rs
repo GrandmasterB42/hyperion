@@ -6,18 +6,14 @@ use bevy_ecs::resource::Resource;
 use bevy_time::{Fixed, Time};
 use hyperion_crafting::CraftingRegistry;
 use hyperion_data::LocalDb;
+use hyperion_entity::skin::{ApiProvider, MojangClient, SkinHandler};
 use hyperion_item::ItemPlugin;
 use hyperion_net::{
     Compose, IoBuf, KeepAliveTimeout, MaxHurtResistantTime, PlayerCount, Shared, TickData,
     lookup::LookupPlugin, packet::PacketPlugin, proxy::init_proxy_comms,
 };
 use hyperion_proxy_proto::Crypto;
-use hyperion_simulation::{
-    SimPlugin,
-    config::Config,
-    skin::{ApiProvider, MojangClient, SkinHandler},
-    spatial::SpatialPlugin,
-};
+use hyperion_simulation::{SimPlugin, config::Config, spatial::SpatialPlugin};
 use hyperion_utils::{
     HyperionUtilsPlugin,
     command_channel::{CommandChannel, CommandChannelPlugin},

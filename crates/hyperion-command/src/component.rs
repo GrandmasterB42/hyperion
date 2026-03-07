@@ -51,7 +51,7 @@ impl CommandRegistryInner {
 /// Registry storing a list of commands.
 ///
 /// This registry is locked by a [`Mutex`]. See the `execute_commands` system for justification.
-/// Consider accessing this resource using [`ResMut`] and [`Mutex::get_mut`].
+/// Consider accessing this resource using [`bevy_ecs::change_detection::ResMut`] and [`Mutex::get_mut`].
 #[derive(Resource)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Resource))]
 pub struct CommandRegistry(
