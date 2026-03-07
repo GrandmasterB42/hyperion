@@ -25,6 +25,7 @@ reflect = [
     "hyperion-proxy-proto/reflect",
     "hyperion-simulation/reflect",
     "hyperion-utils/reflect",
+    "hyperion-world/reflect",
 ]
 ecs_debug = ["bevy_ecs/trace", "bevy_ecs/debug"]
 

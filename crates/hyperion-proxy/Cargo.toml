@@ -5,6 +5,11 @@ version.workspace = true
 publish = false
 readme = "README.md"
 
+[features]
+reflect = [
+    "hyperion-proxy-proto/reflect",
+]
+
 [dependencies]
 hyperion-proxy-proto.workspace = true
 

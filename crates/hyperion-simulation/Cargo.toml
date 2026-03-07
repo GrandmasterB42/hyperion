@@ -14,9 +14,11 @@ reflect = [
     "hyperion-crafting/reflect",
     "hyperion-entity/reflect",
     "hyperion-inventory/reflect",
+    "hyperion-item/reflect",
     "hyperion-net/reflect",
     "hyperion-proxy-proto/reflect",
     "hyperion-utils/reflect",
+    "hyperion-world/reflect",
 ]
 
 [dependencies]
