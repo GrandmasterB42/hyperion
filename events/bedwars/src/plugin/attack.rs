@@ -14,25 +14,24 @@ use bevy_ecs::{
 };
 use glam::{DVec3, IVec3, Vec3};
 use hyperion::{
-    ingress,
-    net::{Compose, ConnectionId, agnostic},
-    runtime::AsyncRuntime,
-    simulation::{
-        PendingTeleportation, Position, Velocity, Yaw, blocks::Blocks, event,
-        metadata::living_entity::Health, packet::play, packet_state,
+    entity::{PendingTeleportation, Position, Velocity, Yaw, metadata::living_entity::Health},
+    ident::ident,
+    inventory::PlayerInventory,
+    net::{Compose, TickData, agnostic, packet::play, packet_state},
+    protocol::{
+        BlockKind, ItemKind, ItemStack, Particle, VarInt,
+        packets::play::{
+            ClientStatusC2s, DamageTiltS2c, DeathMessageS2c, EntityDamageS2c, GameMessageS2c,
+            ParticleS2c, player_interact_entity_c2s::EntityInteraction,
+        },
+        text::IntoText,
     },
+    proxy::ConnectionId,
+    simulation::message,
+    utils::{EntityExt, Prev, runtime::AsyncRuntime},
+    world::Blocks,
 };
-use hyperion_inventory::PlayerInventory;
-use hyperion_utils::{EntityExt, Prev};
 use tracing::error;
-use valence_protocol::{
-    BlockKind, ItemKind, ItemStack, Particle, VarInt, ident,
-    packets::play::{
-        DamageTiltS2c, DeathMessageS2c, EntityDamageS2c, GameMessageS2c, ParticleS2c,
-        client_status_c2s::ClientStatusC2s, player_interact_entity_c2s::EntityInteraction,
-    },
-    text::IntoText,
-};
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
@@ -113,7 +112,7 @@ fn handle_melee_attacks(
     mut packets: MessageReader<'_, '_, play::PlayerInteractEntity>,
     origin_query: Query<'_, '_, (&Position, &PlayerInventory, &CombatStats)>,
     target_query: Query<'_, '_, (&Prev<Position>, &Position)>,
-    mut world_and_writer: ParamSet<'_, '_, (&World, MessageWriter<'_, event::AttackEntity>)>,
+    mut world_and_writer: ParamSet<'_, '_, (&World, MessageWriter<'_, message::AttackEntity>)>,
 ) {
     for packet in packets.read() {
         if packet.interact != EntityInteraction::Attack {
@@ -156,7 +155,7 @@ fn handle_melee_attacks(
         let damage_after_protection =
             get_inflicted_damage(damage_after_armor, combat_stats.protection);
 
-        world_and_writer.p1().write(event::AttackEntity {
+        world_and_writer.p1().write(message::AttackEntity {
             origin,
             target,
             direction: (target_pos - origin_pos).normalize(),
@@ -179,8 +178,9 @@ fn handle_melee_attacks(
 }
 
 fn handle_attacks(
-    mut events: MessageReader<'_, '_, event::AttackEntity>,
+    mut events: MessageReader<'_, '_, message::AttackEntity>,
     compose: Res<'_, Compose>,
+    tick: Res<'_, TickData>,
     mut origin_query: Query<'_, '_, (&Team, &Name, &ConnectionId)>,
     mut target_query: Query<
         '_,
@@ -196,7 +196,7 @@ fn handle_attacks(
         ),
     >,
 ) {
-    let current_tick = compose.global().tick;
+    let current_tick = tick.tick;
 
     for event in events.read() {
         if event.damage <= 0.0 {
@@ -370,7 +370,7 @@ impl Plugin for AttackPlugin {
                 (handle_melee_attacks, handle_attacks).chain(),
                 handle_respawn,
             )
-                .after(ingress::decode::play),
+                .after(hyperion::net::decode::play),
         );
     }
 }

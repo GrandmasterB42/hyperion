@@ -6,10 +6,10 @@ use bevy_ecs::{
 use clap::Parser;
 use glam::Vec3;
 use hyperion::{
-    net::Channel,
-    simulation::{Pitch, Position, Uuid, Velocity, Yaw, entity_kind::EntityKind},
+    clap::{CommandPermission, MinecraftCommand},
+    entity::{EntityKind, Pitch, Position, Uuid, Velocity, Yaw},
+    proxy::Channel,
 };
-use hyperion_clap::{CommandPermission, MinecraftCommand};
 use tracing::{debug, error};
 
 #[derive(Parser, CommandPermission, Debug)]

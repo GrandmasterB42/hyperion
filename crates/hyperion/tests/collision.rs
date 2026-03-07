@@ -7,11 +7,9 @@
 use bevy_app::{App, FixedMain};
 use bevy_ecs::{entity::Entity, world::World};
 use glam::Vec3;
-use hyperion::{
-    HyperionCore,
-    simulation::{EntitySize, Owner, Pitch, Position, Velocity, Yaw, entity_kind::EntityKind},
-    spatial::Spatial,
-};
+use hyperion::HyperionCore;
+use hyperion_entity::{EntityKind, EntitySize, Owner, Pitch, Position, Velocity, Yaw};
+use hyperion_simulation::spatial::Spatial;
 
 #[test]
 fn test_get_first_collision() {
@@ -31,7 +29,7 @@ fn test_get_first_collision() {
 
     let mut app = App::new();
 
-    app.add_plugins((HyperionCore, hyperion_genmap::GenMapPlugin));
+    app.add_plugins((HyperionCore, hyperion_world::GenMapPlugin));
 
     let world = app.world_mut();
 

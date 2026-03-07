@@ -1,4 +1,4 @@
-#![expect(clippy::transmute_ptr_to_ptr)]
+#![cfg_attr(feature = "reflect", expect(clippy::transmute_ptr_to_ptr))]
 use std::{cell::Cell, cmp::min, num::Wrapping};
 
 use bevy_ecs::{component::Component, entity::Entity};

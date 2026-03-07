@@ -4,12 +4,14 @@ use bevy_ecs::{
     world::World,
 };
 use clap::Parser;
-use hyperion::simulation::entity_kind::EntityKind;
-use hyperion_clap::{CommandPermission, MinecraftCommand};
-use hyperion_gui::Gui;
-use hyperion_inventory::{Inventory, ItemSlot};
+use hyperion::{
+    clap::{CommandPermission, MinecraftCommand},
+    entity::EntityKind,
+    gui::Gui,
+    inventory::{Inventory, ItemSlot},
+    protocol::{ItemKind, ItemStack, packets::play::open_screen_s2c::WindowType},
+};
 use tracing::debug;
-use valence_protocol::{ItemKind, ItemStack, packets::play::open_screen_s2c::WindowType};
 
 #[derive(Parser, CommandPermission, Debug)]
 #[command(name = "chest")]

@@ -19,10 +19,10 @@ use std::{
 };
 
 use libdeflater::{CompressionLvl, Compressor, Decompressor};
-#[cfg(unix)]
-use mio::net::UnixStream;
 use mio::{Events, Interest, Poll, Registry, Token, event, net::TcpStream};
 use rand::{Rng, seq::IndexedRandom};
+#[cfg(unix)]
+use {mio::net::UnixStream, std::path::PathBuf};
 
 use crate::{
     packet_utils::Buf,

@@ -10,11 +10,10 @@ use bevy_ecs::{
     world::World,
 };
 use clap::ValueEnum;
-use hyperion::{
-    net::{Compose, ConnectionId},
-    simulation::{Uuid, command::get_command_packet},
-    storage::LocalDb,
-};
+use hyperion_data::LocalDb;
+use hyperion_entity::Uuid;
+use hyperion_net::Compose;
+use hyperion_proxy_proto::ConnectionId;
 use storage::PermissionStorage;
 use tracing::error;
 #[cfg(feature = "reflect")]
@@ -84,7 +83,7 @@ fn initialize_commands(
     compose: Res<'_, Compose>,
     world: &World,
 ) {
-    let cmd_pkt = get_command_packet(world, Some(new_group.entity));
+    let cmd_pkt = hyperion_command::get_command_packet(world, Some(new_group.entity));
     let Ok(&connection_id) = query.get(new_group.entity) else {
         error!("failed to initialize commands: player is missing ConnectionId");
         return;

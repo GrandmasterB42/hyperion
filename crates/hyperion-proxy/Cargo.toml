@@ -5,12 +5,17 @@ version.workspace = true
 publish = false
 readme = "README.md"
 
+[features]
+reflect = [
+    "hyperion-proxy-proto/reflect",
+]
+
 [dependencies]
-hyperion-proto.workspace = true
+hyperion-proxy-proto.workspace = true
 
 anyhow.workspace = true
 arrayvec.workspace = true
-bvh.workspace = true
+bvh-data.workspace = true
 bytes.workspace = true
 clap.workspace = true
 colored.workspace = true
@@ -22,7 +27,6 @@ papaya.workspace = true
 rkyv.workspace = true
 rustc-hash.workspace = true
 rustls.workspace = true
-rustls-pki-types.workspace = true
 rustls-webpki.workspace = true
 serde.workspace = true
 slotmap.workspace = true

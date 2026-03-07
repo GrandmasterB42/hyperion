@@ -4,8 +4,10 @@ use bevy_ecs::{
     world::World,
 };
 use clap::Parser;
-use hyperion::simulation::Xp;
-use hyperion_clap::{CommandPermission, MinecraftCommand};
+use hyperion::{
+    clap::{CommandPermission, MinecraftCommand},
+    entity::player::Xp,
+};
 
 #[derive(Parser, CommandPermission, Debug)]
 #[command(name = "xp")]

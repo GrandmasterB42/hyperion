@@ -1,0 +1,304 @@
+use std::fmt::Debug;
+
+use bevy_app::{App, FixedPostUpdate, Plugin};
+use bevy_ecs::{
+    component::Component,
+    lifecycle::Insert,
+    observer::On,
+    system::{Commands, Query},
+    world::EntityRef,
+};
+use hyperion_utils::{Prev, track_prev};
+use tracing::error;
+use valence_protocol::{Encode, VarInt};
+#[cfg(feature = "reflect")]
+use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
+
+use crate::{
+    EntityKind,
+    metadata::{
+        entity::{EntityFlags, Pose},
+        r#type::MetadataType,
+    },
+};
+
+pub mod block_display;
+pub mod display;
+pub mod entity;
+pub mod item;
+pub mod living_entity;
+pub mod player;
+
+/// Set up a system to track metadata changes
+fn component_and_track<T>(app: &mut App)
+where
+    T: Component + Clone + PartialEq + Metadata + Default + Debug,
+{
+    track_prev::<T>(app);
+
+    // TODO: This will silently ignore changes to the metadata between this system's execution and
+    // the time that Prev is updated. There should be a warning for this.
+    app.add_systems(
+        FixedPostUpdate,
+        |mut query: Query<'_, '_, (&Prev<T>, &T, &mut MetadataChanges)>| {
+            for (prev, current, mut metadata_changes) in &mut query {
+                if **prev != *current {
+                    metadata_changes.encode(current.clone());
+                }
+            }
+        },
+    );
+}
+
+fn initialize_entity(
+    entity: On<'_, '_, Insert, EntityKind>,
+    query: Query<'_, '_, &EntityKind>,
+    mut commands: Commands<'_, '_>,
+) {
+    let kind = match query.get(entity.entity) {
+        Ok(kind) => *kind,
+        Err(e) => {
+            error!("failed to initialize entity: query failed: {e}");
+            return;
+        }
+    };
+
+    let mut entity = commands.entity(entity.entity);
+
+    entity.insert((
+        MetadataChanges::default(),
+        EntityFlags::default(),
+        Pose::default(),
+        entity::default_components(),
+    ));
+
+    match kind {
+        EntityKind::BlockDisplay => {
+            entity.insert((
+                display::default_components(),
+                block_display::default_components(),
+            ));
+        }
+        EntityKind::Player => {
+            entity.insert((
+                living_entity::default_components(),
+                player::default_components(),
+            ));
+        }
+        EntityKind::Item => {
+            entity.insert(item::default_components());
+        }
+        _ => {}
+    }
+}
+
+pub struct MetadataPlugin;
+
+impl Plugin for MetadataPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_observer(initialize_entity);
+        component_and_track::<EntityFlags>(app);
+        component_and_track::<Pose>(app);
+
+        entity::register(app);
+        display::register(app);
+        block_display::register(app);
+        item::register(app);
+        living_entity::register(app);
+        player::register(app);
+    }
+}
+
+#[derive(Debug, Default, Component, Clone)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
+// index (u8), type (varint), value (varies)
+/// <https://wiki.vg/Entity_metadata>
+///
+/// Tracks updates within a gametick for the metadata
+pub struct MetadataChanges(Vec<u8>);
+
+impl MetadataChanges {
+    /// This is only meant to be called from egress systems
+    pub fn get_and_clear(&mut self) -> Option<MetadataView<'_>> {
+        if self.0.is_empty() {
+            return None;
+        }
+        // denote end of metadata
+        self.0.push(0xff);
+
+        Some(MetadataView(self))
+    }
+}
+
+mod status;
+
+mod r#type;
+
+pub trait Metadata {
+    const INDEX: u8;
+    type Type: MetadataType + Encode;
+    fn to_type(self) -> Self::Type;
+}
+
+// TODO: These macros do not play nicely with reflection. What are they used for? Maybe attributes can be added as an extra argument?
+#[macro_export]
+macro_rules! define_metadata_component {
+    ($index:literal, $name:ident -> $type:ty) => {
+        #[derive(bevy_ecs::component::Component, Clone, PartialEq, Debug)]
+        #[allow(clippy::derive_partial_eq_without_eq)]
+        pub struct $name {
+            value: $type,
+        }
+
+        impl $name {
+            pub const fn new(value: $type) -> Self {
+                Self { value }
+            }
+        }
+
+        impl std::ops::Deref for $name {
+            type Target = $type;
+
+            fn deref(&self) -> &Self::Target {
+                &self.value
+            }
+        }
+
+        impl std::ops::DerefMut for $name {
+            fn deref_mut(&mut self) -> &mut Self::Target {
+                &mut self.value
+            }
+        }
+
+        #[allow(warnings)]
+        impl PartialOrd for $name
+        where
+            $type: PartialOrd,
+        {
+            fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+                self.value.partial_cmp(&other.value)
+            }
+        }
+
+        impl Metadata for $name {
+            type Type = $type;
+
+            const INDEX: u8 = $index;
+
+            fn to_type(self) -> Self::Type {
+                self.value
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! define_and_register_components {
+    {
+        $(
+            $index:literal, $name:ident -> $type:ty
+        ),* $(,)?
+    } => {
+        // Define all components
+        $(
+            $crate::define_metadata_component!($index, $name -> $type);
+        )*
+
+        pub fn register(app: &mut bevy_app::App) {
+            $(
+                $crate::metadata::component_and_track::<$name>(app);
+            )*
+        }
+
+        #[must_use]
+        pub fn default_components() -> impl bevy_ecs::bundle::Bundle {
+            (
+                $(
+                    $name::default(),
+                )*
+            )
+        }
+
+        pub fn encode_non_default_components(entity: bevy_ecs::world::EntityRef<'_>, metadata: &mut $crate::metadata::MetadataChanges) {
+            $(
+                if let Some(component) = entity.get::<$name>() {
+                    metadata.encode_if_not_default(component.clone());
+                }
+            )*
+        }
+    };
+}
+
+impl MetadataChanges {
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    fn encode_if_not_default<M: Metadata + Default + PartialEq>(&mut self, metadata: M) {
+        if metadata == M::default() {
+            return;
+        }
+
+        self.encode(metadata);
+    }
+
+    pub fn encode<M: Metadata>(&mut self, metadata: M) {
+        let value_index = M::INDEX;
+        self.0.push(value_index);
+
+        let type_index = VarInt(<M as Metadata>::Type::INDEX);
+        type_index.encode(&mut self.0).unwrap();
+
+        let r#type = metadata.to_type();
+        r#type.encode(&mut self.0).unwrap();
+    }
+
+    pub fn encode_non_default_components(&mut self, entity: EntityRef<'_>) {
+        let kind = entity
+            .get::<EntityKind>()
+            .expect("entity must have EntityKind component");
+
+        if let Some(component) = entity.get::<EntityFlags>() {
+            self.encode_if_not_default(*component);
+        }
+
+        if let Some(component) = entity.get::<Pose>() {
+            self.encode_if_not_default(*component);
+        }
+
+        entity::encode_non_default_components(entity, self);
+
+        match kind {
+            EntityKind::BlockDisplay => {
+                display::encode_non_default_components(entity, self);
+                block_display::encode_non_default_components(entity, self);
+            }
+            EntityKind::Player => {
+                living_entity::encode_non_default_components(entity, self);
+                player::encode_non_default_components(entity, self);
+            }
+            EntityKind::Item => {
+                item::encode_non_default_components(entity, self);
+            }
+            _ => {}
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct MetadataView<'a>(&'a mut MetadataChanges);
+
+impl core::ops::Deref for MetadataView<'_> {
+    type Target = [u8];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0.0[..]
+    }
+}
+
+impl Drop for MetadataView<'_> {
+    fn drop(&mut self) {
+        self.0.0.clear();
+    }
+}

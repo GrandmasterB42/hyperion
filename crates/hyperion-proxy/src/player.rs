@@ -4,9 +4,7 @@ use std::io::IoSlice;
 
 use arrayvec::ArrayVec;
 use bytes::Bytes;
-use hyperion_proto::{
-    PlayerConnect, PlayerDisconnect, PlayerDisconnectReason, PlayerPackets, ProxyToServerMessage,
-};
+use hyperion_proxy_proto::{packets, packets::p2s::ProxyToServerMessage};
 use rkyv::ser::allocator::Arena;
 use rustc_hash::FxBuildHasher;
 use tokio::{
@@ -55,7 +53,7 @@ pub fn initiate_player_connection(
             let player_stream_id = player_id;
 
             let connect = rkyv::to_bytes::<rkyv::rancor::Error>(
-                &ProxyToServerMessage::PlayerConnect(PlayerConnect {
+                &packets::p2s::ProxyToServerMessage::PlayerConnect(packets::p2s::PlayerConnect {
                     stream: player_stream_id,
                 }),
             )
@@ -85,10 +83,11 @@ pub fn initiate_player_connection(
                     return;
                 }
 
-                let player_packets = ProxyToServerMessage::PlayerPackets(PlayerPackets {
-                    stream: player_id,
-                    data: &read_buffer,
-                });
+                let player_packets =
+                    ProxyToServerMessage::PlayerPackets(packets::p2s::PlayerPackets {
+                        stream: player_id,
+                        data: &read_buffer,
+                    });
 
                 let aligned_vec = rkyv::api::high::to_bytes_with_alloc::<_, rkyv::rancor::Error>(
                     &player_packets,
@@ -149,9 +148,9 @@ pub fn initiate_player_connection(
                 packet_reader_task.abort();
 
                 let disconnect = rkyv::to_bytes::<rkyv::rancor::Error>(
-                    &ProxyToServerMessage::PlayerDisconnect(PlayerDisconnect {
+                    &ProxyToServerMessage::PlayerDisconnect(packets::p2s::PlayerDisconnect {
                         stream: player_id,
-                        reason: PlayerDisconnectReason::LostConnection,
+                        reason: packets::p2s::PlayerDisconnectReason::LostConnection,
                     }),
                 ).unwrap();
 
@@ -165,9 +164,9 @@ pub fn initiate_player_connection(
 
 
                 let disconnect = rkyv::to_bytes::<rkyv::rancor::Error>(
-                    &ProxyToServerMessage::PlayerDisconnect(PlayerDisconnect {
+                    &ProxyToServerMessage::PlayerDisconnect(packets::p2s::PlayerDisconnect {
                         stream: player_id,
-                        reason: PlayerDisconnectReason::LostConnection,
+                        reason: packets::p2s::PlayerDisconnectReason::LostConnection,
                     })).unwrap();
 
                 if let Err(e) = server_sender.send(disconnect).await {

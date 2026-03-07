@@ -14,10 +14,13 @@ use std::{fmt::Debug, path::Path, sync::Arc};
 
 use anyhow::Context;
 use colored::Colorize;
-use hyperion_proto::ArchivedServerToProxyMessage;
+use hyperion_proxy_proto::packets;
 use rustc_hash::FxBuildHasher;
-use rustls::{RootCertStore, client::ClientConfig};
-use rustls_pki_types::{CertificateDer, PrivateKeyDer, ServerName, pem::PemObject};
+use rustls::{
+    RootCertStore,
+    client::ClientConfig,
+    pki_types::{CertificateDer, PrivateKeyDer, ServerName, pem::PemObject},
+};
 use tokio::{
     io::{AsyncRead, AsyncReadExt, BufReader},
     net::{TcpStream, ToSocketAddrs},
@@ -319,7 +322,9 @@ where
         let slice = &mut self.buffer[..len];
         self.server_read.read_exact(slice).await?;
 
-        let result = unsafe { rkyv::access_unchecked::<ArchivedServerToProxyMessage<'_>>(slice) };
+        let result = unsafe {
+            rkyv::access_unchecked::<packets::s2p::ArchivedServerToProxyMessage<'_>>(slice)
+        };
 
         self.egress.handle_packet(result);
 

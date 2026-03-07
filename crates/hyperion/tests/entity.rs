@@ -5,10 +5,8 @@
 )]
 
 use bevy_app::{App, FixedMain};
-use hyperion::{
-    HyperionCore,
-    simulation::{Owner, Position, Uuid, Velocity, entity_kind::EntityKind},
-};
+use hyperion::HyperionCore;
+use hyperion_entity::{EntityKind, Owner, Position, Uuid, Velocity};
 use serial_test::serial;
 
 #[test]

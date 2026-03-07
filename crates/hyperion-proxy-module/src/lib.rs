@@ -2,7 +2,7 @@ use std::{net::SocketAddr, path::Path};
 
 use bevy_app::{App, Plugin};
 use bevy_ecs::{event::Event, observer::On, system::Res};
-use hyperion::runtime::AsyncRuntime;
+use hyperion_utils::runtime::AsyncRuntime;
 use tokio::net::TcpListener;
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectEvent, bevy_reflect::Reflect};

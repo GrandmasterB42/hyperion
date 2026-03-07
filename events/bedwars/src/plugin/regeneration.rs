@@ -6,10 +6,10 @@ use bevy_ecs::{
     system::{Commands, Query, Res},
 };
 use hyperion::{
-    net::Compose,
-    simulation::{metadata::living_entity::Health, packet_state},
+    entity::metadata::living_entity::Health,
+    net::{TickData, packet_state},
+    utils::Prev,
 };
-use hyperion_utils::Prev;
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
@@ -34,9 +34,9 @@ fn initialize_player(
 
 fn regenerate(
     query: Query<'_, '_, (&mut LastDamaged, &Prev<Health>, &mut Health)>,
-    compose: Res<'_, Compose>,
+    tick: Res<'_, TickData>,
 ) {
-    let current_tick = compose.global().tick;
+    let current_tick = tick.tick;
 
     for (mut last_damaged, prev_health, mut health) in query {
         if *health < **prev_health {

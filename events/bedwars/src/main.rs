@@ -3,7 +3,7 @@ use std::{net::SocketAddr, path::PathBuf};
 
 use bedwars::init_game;
 use clap::Parser;
-use hyperion::Crypto;
+use hyperion::proxy::Crypto;
 use serde::Deserialize;
 use tracing_subscriber::{EnvFilter, Registry, layer::SubscriberExt};
 use tracing_tracy::TracyLayer;

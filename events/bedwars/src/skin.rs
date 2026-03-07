@@ -6,19 +6,22 @@ use bevy_ecs::{
     system::{Query, Res},
 };
 use hyperion::{
-    egress::player_join::{PlayerListActions, PlayerListEntry, PlayerListS2c},
-    net::{Compose, ConnectionId, DataBundle},
-    simulation::event,
+    entity::Uuid,
+    ident::ident,
+    net::{Compose, DataBundle},
+    protocol::{
+        GameMode, VarInt,
+        game_mode::OptGameMode,
+        packets::play::{
+            EntitiesDestroyS2c, PlayerListS2c, PlayerRemoveS2c, PlayerRespawnS2c,
+            player_list_s2c::{PlayerListActions, PlayerListEntry},
+        },
+    },
+    proxy::ConnectionId,
+    simulation::message,
+    utils::EntityExt,
 };
-use hyperion_utils::EntityExt;
 use tracing::error;
-use valence_bytes::Utf8Bytes;
-use valence_ident::ident;
-use valence_protocol::{
-    GameMode, VarInt,
-    game_mode::OptGameMode,
-    packets::play::{EntitiesDestroyS2c, PlayerRemoveS2c, PlayerRespawnS2c},
-};
 
 pub struct SkinPlugin;
 
@@ -29,9 +32,9 @@ impl Plugin for SkinPlugin {
 }
 
 fn on_set_skin(
-    mut events: MessageReader<'_, '_, event::SetSkin>,
+    mut events: MessageReader<'_, '_, message::SetSkin>,
     compose: Res<'_, Compose>,
-    query: Query<'_, '_, (&ConnectionId, &hyperion::simulation::Uuid)>,
+    query: Query<'_, '_, (&ConnectionId, &Uuid)>,
 ) {
     for event in events.read() {
         let (&connection_id, uuid) = match query.get(event.by) {
@@ -59,7 +62,7 @@ fn on_set_skin(
             .unwrap();
 
         // todo: in future, do not clone
-        let property = valence_protocol::profile::Property::<Utf8Bytes> {
+        let property = hyperion::protocol::profile::Property::<hyperion::bytes::Utf8Bytes> {
             name: "textures".into(),
             value: event.skin.textures.clone().into(),
             signature: Some(event.skin.signature.clone().into()),

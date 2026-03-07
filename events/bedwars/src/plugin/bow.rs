@@ -11,18 +11,18 @@ use bevy_ecs::{
 };
 use glam::Vec3;
 use hyperion::{
-    net::Channel,
-    simulation::{
-        Owner, Pitch, Position, Uuid, Velocity, Yaw,
-        entity_kind::EntityKind,
-        event, get_direction_from_rotation,
+    entity::{
+        EntityKind, Owner, Pitch, Position, Uuid, Velocity, Yaw,
         metadata::living_entity::{ArrowsInEntity, HandStates},
-        packet_state,
     },
+    ident::ident,
+    inventory::PlayerInventory,
+    net::packet_state,
+    protocol::{ItemKind, ItemStack},
+    proxy::Channel,
+    simulation::message,
 };
-use hyperion_inventory::PlayerInventory;
 use tracing::{debug, error};
-use valence_protocol::{ItemKind, ItemStack, ident};
 
 #[derive(Component)]
 pub struct LastFireTime {
@@ -82,7 +82,7 @@ fn initialize_player(
 }
 
 fn handle_bow_use(
-    mut events: MessageReader<'_, '_, event::ItemInteract>,
+    mut events: MessageReader<'_, '_, hyperion::item::ItemInteractEvent>,
     query: Query<'_, '_, &PlayerInventory>,
     mut commands: Commands<'_, '_>,
 ) {
@@ -107,7 +107,7 @@ fn handle_bow_use(
 }
 
 fn handle_bow_release(
-    mut events: MessageReader<'_, '_, event::ReleaseUseItem>,
+    mut events: MessageReader<'_, '_, message::ReleaseUseItem>,
     mut query: Query<
         '_,
         '_,
@@ -179,7 +179,7 @@ fn handle_bow_release(
         );
 
         // Calculate the direction vector from the player's rotation
-        let direction = get_direction_from_rotation(**yaw, **pitch);
+        let direction = hyperion::entity::get_direction_from_rotation(**yaw, **pitch);
         // Calculate the velocity of the arrow based on the charge (3.0 is max velocity)
         let velocity = direction * (charge * 3.0);
 
@@ -201,11 +201,11 @@ fn handle_bow_release(
 }
 
 fn arrow_entity_hit(
-    mut events: MessageReader<'_, '_, event::ProjectileEntityEvent>,
+    mut events: MessageReader<'_, '_, message::ProjectileEntityEvent>,
     arrow_query: Query<'_, '_, (&Velocity, &Owner)>,
     mut player_query: Query<'_, '_, &mut ArrowsInEntity>,
     mut commands: Commands<'_, '_>,
-    mut writer: MessageWriter<'_, event::AttackEntity>,
+    mut writer: MessageWriter<'_, message::AttackEntity>,
 ) {
     for event in events.read() {
         let (velocity, owner) = match arrow_query.get(event.projectile) {
@@ -234,7 +234,7 @@ fn arrow_entity_hit(
 
         commands.entity(event.projectile).despawn();
 
-        writer.write(event::AttackEntity {
+        writer.write(message::AttackEntity {
             origin: owner.entity,
             target: event.client,
             direction: velocity.0.normalize(),
@@ -246,7 +246,7 @@ fn arrow_entity_hit(
 }
 
 fn arrow_block_hit(
-    mut events: MessageReader<'_, '_, event::ProjectileBlockEvent>,
+    mut events: MessageReader<'_, '_, message::ProjectileBlockEvent>,
     mut query: Query<'_, '_, (&mut Position, &mut Velocity)>,
 ) {
     for event in events.read() {
