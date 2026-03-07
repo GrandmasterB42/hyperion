@@ -9,12 +9,11 @@ use bevy_ecs::{
     lifecycle::{Add, Remove},
     name::Name,
     observer::On,
-    query::With,
     resource::Resource,
     system::{Commands, Query, Res, ResMut},
     world::World,
 };
-use hyperion_entity::{EntityKind, Uuid, player::Player};
+use hyperion_entity::{EntityKind, Uuid};
 use hyperion_proxy_proto::ConnectionId;
 use rustc_hash::FxHashMap;
 use tracing::{error, info};
@@ -152,20 +151,9 @@ fn initialize_player(
     mut name_map: ResMut<'_, PlayerNameLookup>,
     mut uuid_map: ResMut<'_, PlayerUuidLookup>,
     compose: Res<'_, Compose>,
-    name_query: Query<'_, '_, (&Name, &Uuid), With<Player>>,
+    name_query: Query<'_, '_, (&Name, &Uuid)>,
     connection_id_query: Query<'_, '_, &ConnectionId>,
-    mut commands: Commands<'_, '_>,
 ) {
-    // TODO: This is definitly a player required component situation, maybe on Packetstate::Play? Maybe hyperion_player crate? Maybe hyperion_entity for player and stuff like entitiykind?
-    // This should really be seperate form the uuid and name lookup initialization
-    commands.entity(now_playing.entity).insert((
-        hyperion_entity::player::ConfirmBlockSequences::default(),
-        hyperion_entity::EntitySize::default(),
-        hyperion_entity::Flight::default(),
-        hyperion_entity::FlyingSpeed::default(),
-        hyperion_inventory::CursorItem::default(),
-    ));
-
     let Ok((name, uuid)) = name_query.get(now_playing.entity) else {
         error!("failed to initialize player: missing Name or Uuid component");
         return;
@@ -203,7 +191,7 @@ fn remove_player(
     not_playing: On<'_, '_, Remove, packet_state::Play>,
     mut name_map: ResMut<'_, PlayerNameLookup>,
     mut uuid_map: ResMut<'_, PlayerUuidLookup>,
-    player_query: Query<'_, '_, (&Name, &Uuid), With<Player>>,
+    player_query: Query<'_, '_, (&Name, &Uuid)>,
 ) {
     let (name, uuid) = match player_query.get(not_playing.entity) {
         Ok(name) => name,

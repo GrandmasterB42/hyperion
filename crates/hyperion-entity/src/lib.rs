@@ -162,11 +162,22 @@ impl std::ops::Deref for Pitch {
     }
 }
 
-#[derive(Component, Default, Debug, Copy, Clone)]
+#[derive(Component, Debug, Copy, Clone)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Flight {
     pub allow: bool,
     pub is_flying: bool,
+    pub speed: f32,
+}
+
+impl Default for Flight {
+    fn default() -> Self {
+        Self {
+            allow: false,
+            is_flying: false,
+            speed: 0.05,
+        }
+    }
 }
 
 // TODO: This might be a good fit for a relationship?
@@ -184,25 +195,6 @@ impl Owner {
 }
 
 /// If the entity can be targeted by non-player entities.
-#[derive(Component)]
+#[derive(Component, Default)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct AiTargetable;
-
-#[derive(Component, Debug, Copy, Clone, PartialEq)]
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
-pub struct FlyingSpeed {
-    pub speed: f32,
-}
-
-impl FlyingSpeed {
-    #[must_use]
-    pub const fn new(speed: f32) -> Self {
-        Self { speed }
-    }
-}
-
-impl Default for FlyingSpeed {
-    fn default() -> Self {
-        Self { speed: 0.05 }
-    }
-}

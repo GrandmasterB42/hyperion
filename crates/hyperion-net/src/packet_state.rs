@@ -23,18 +23,6 @@ pub struct Status;
 pub struct Login;
 
 /// Marks players who are in the play state.
-///
-/// Players in this state are guaranteed to have the following components:
-/// - [`bevy_ecs::name::Name`]
-/// - [`hyperion_entity::Uuid`]
-/// - [`hyperion_entity::AiTargetable`]
-/// - [`hyperion_entity::player::ImmuneStatus`]
-/// - [`hyperion_entity::ChunkPosition`]
-/// - [`hyperion_entity::Yaw`]
-/// - [`hyperion_entity::Pitch`]
-/// - [`hyperion_entity::skin::PlayerSkin`]
-/// - [`hyperion_entity::Position`]
-/// - [`hyperion_entity::player::Player`]
 #[derive(Component)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Play;

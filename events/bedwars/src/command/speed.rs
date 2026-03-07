@@ -1,12 +1,13 @@
 use bevy_ecs::{
     entity::Entity,
+    query::With,
     system::{Commands, Query, Res, SystemState},
     world::World,
 };
 use clap::Parser;
 use hyperion::{
     clap::{CommandPermission, MinecraftCommand},
-    entity::FlyingSpeed,
+    entity::Flight,
     net::{Compose, agnostic},
     proxy::ConnectionId,
 };
@@ -21,7 +22,7 @@ pub struct SpeedCommand {
 
 impl MinecraftCommand for SpeedCommand {
     type State = SystemState<(
-        Query<'static, 'static, &'static ConnectionId>,
+        Query<'static, 'static, &'static ConnectionId, With<Flight>>,
         Res<'static, Compose>,
         Commands<'static, 'static>,
     )>;
@@ -41,8 +42,12 @@ impl MinecraftCommand for SpeedCommand {
         let chat = agnostic::chat(msg);
         compose.unicast(&chat, connection_id).unwrap();
 
-        commands
-            .entity(caller)
-            .insert(FlyingSpeed::new(self.amount));
+        commands.queue(move |w: &mut World| {
+            let mut flight = w
+                .get_mut::<Flight>(caller)
+                .expect("this component is required by the query");
+
+            flight.speed = self.amount;
+        });
     }
 }

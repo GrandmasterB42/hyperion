@@ -6,14 +6,6 @@ use bytemuck::{Pod, Zeroable};
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
-// TODO: This should probably require the other components
-/// A component that represents a Player. In the future, this should be broken up into multiple components.
-///
-/// Why should it be broken up? The more things are broken up, the more we can take advantage of Rust borrowing rules.
-#[derive(Component, Debug, Default)]
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
-pub struct Player;
-
 #[derive(
     Component, Debug, PartialEq, Eq, PartialOrd, Copy, Clone, Default, Pod, Zeroable
 )]

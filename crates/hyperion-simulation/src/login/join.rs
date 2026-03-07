@@ -14,9 +14,7 @@ use colored::Colorize;
 use glam::DVec3;
 use hyperion_crafting::{Action, CraftingRegistry, RecipeBookState};
 use hyperion_entity::{
-    AiTargetable, ChunkPosition, EntityKind, PendingTeleportation, Pitch, Position, Uuid, Velocity,
-    Yaw,
-    player::{ActiveAnimation, ImmuneStatus, Player, Xp},
+    PendingTeleportation, Position, Uuid, Yaw,
     skin::{MojangClient, PlayerSkin, SkinHandler},
 };
 use hyperion_net::{Compose, DataBundle, decoder::PacketDecoder, packet, packet_state};
@@ -44,8 +42,7 @@ use valence_text::IntoText;
 use crate::{
     config::Config,
     login::{InitializePlayerPosition, offline_uuid},
-    player::MovementTracking,
-    spatial::ChunkSendQueue,
+    player::{MovementTracking, Player},
 };
 
 pub(crate) fn process_login_hello(
@@ -132,17 +129,7 @@ pub(crate) fn process_login_hello(
             entity.remove::<packet_state::Login>().insert((
                 Player,
                 Name::new(username.clone()),
-                ActiveAnimation::NONE,
-                AiTargetable,
-                ImmuneStatus::default(),
                 Uuid(uuid),
-                ChunkPosition::null(),
-                ChunkSendQueue::default(),
-                Yaw::default(),
-                Pitch::default(),
-                Velocity::default(),
-                Xp::default(),
-                EntityKind::Player,
             ));
 
             world.trigger(InitializePlayerPosition(sender));

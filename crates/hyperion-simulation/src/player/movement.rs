@@ -3,13 +3,13 @@ use bevy_ecs::{
     lifecycle::Insert,
     message::MessageReader,
     observer::On,
+    query::Changed,
     system::{Commands, ParamSet, Query, Res},
     world::World,
 };
 use glam::{DVec3, Vec3};
 use hyperion_entity::{
-    EntitySize, Flight, FlyingSpeed, PendingTeleportation, Pitch, Position, Yaw,
-    metadata::entity::Pose,
+    EntitySize, Flight, PendingTeleportation, Pitch, Position, Yaw, metadata::entity::Pose,
 };
 use hyperion_net::{
     Compose,
@@ -56,23 +56,20 @@ pub(crate) fn send_pending_teleportation(
 }
 
 pub(crate) fn update_flight(
-    now_flying: On<'_, '_, Insert, (FlyingSpeed, Flight)>,
     compose: Res<'_, Compose>,
-    query: Query<'_, '_, (&ConnectionId, &Flight, &FlyingSpeed)>,
+    query: Query<'_, '_, (&ConnectionId, &Flight), Changed<Flight>>,
 ) {
-    let Ok((&connection_id, flight, flying_speed)) = query.get(now_flying.entity) else {
-        return;
-    };
+    for (&connection_id, flight) in &query {
+        let pkt = PlayerAbilitiesS2c {
+            flags: PlayerAbilitiesFlags::default()
+                .with_allow_flying(flight.allow)
+                .with_flying(flight.is_flying),
+            flying_speed: flight.speed,
+            fov_modifier: 0.0,
+        };
 
-    let pkt = PlayerAbilitiesS2c {
-        flags: PlayerAbilitiesFlags::default()
-            .with_allow_flying(flight.allow)
-            .with_flying(flight.is_flying),
-        flying_speed: flying_speed.speed,
-        fov_modifier: 0.0,
-    };
-
-    compose.unicast(&pkt, connection_id).unwrap();
+        compose.unicast(&pkt, connection_id).unwrap();
+    }
 }
 
 #[expect(
