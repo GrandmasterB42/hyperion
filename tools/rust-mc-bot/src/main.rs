@@ -1,6 +1,8 @@
 #![allow(missing_docs)]
 #![allow(clippy::similar_names, reason = "todo: fix")]
 
+#[cfg(unix)]
+use std::path::PathBuf;
 use std::{
     net::ToSocketAddrs,
     sync::{Arc, atomic::AtomicU32},
