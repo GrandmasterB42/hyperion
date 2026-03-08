@@ -4,6 +4,7 @@ use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
 /// Uniquely identifies an Entity
 #[derive(Component, Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[component(immutable)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Uuid(pub uuid::Uuid);
 
