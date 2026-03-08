@@ -3,11 +3,11 @@ mod storage;
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
     component::Component,
-    lifecycle::{Add, Despawn, Insert},
+    lifecycle::{Add, Despawn, HookContext},
     observer::On,
     query::With,
     system::{Commands, Query, Res},
-    world::World,
+    world::DeferredWorld,
 };
 use clap::ValueEnum;
 use hyperion_data::LocalDb;
@@ -22,6 +22,7 @@ use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 pub struct PermissionPlugin;
 
 #[derive(Default, Component, Copy, Clone, Debug, PartialEq, ValueEnum, Eq)]
+#[component(on_insert)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 #[repr(u8)]
 pub enum Group {
@@ -44,6 +45,17 @@ impl Group {
     #[must_use]
     pub const fn to_u8(self) -> u8 {
         self as u8
+    }
+
+    fn on_insert(world: DeferredWorld<'_>, ctx: HookContext) {
+        let compose = world.resource::<Compose>();
+
+        let cmd_pkt = hyperion_command::get_command_packet(&world, Some(ctx.entity));
+        let Some(&connection_id) = world.get::<ConnectionId>(ctx.entity) else {
+            error!("failed to initialize commands: player is missing ConnectionId");
+            return;
+        };
+        compose.unicast(&cmd_pkt, connection_id).unwrap();
     }
 }
 
@@ -77,26 +89,11 @@ fn store_permissions(
     permissions.set(**uuid, *group).unwrap();
 }
 
-fn initialize_commands(
-    new_group: On<'_, '_, Insert, Group>,
-    query: Query<'_, '_, &ConnectionId>,
-    compose: Res<'_, Compose>,
-    world: &World,
-) {
-    let cmd_pkt = hyperion_command::get_command_packet(world, Some(new_group.entity));
-    let Ok(&connection_id) = query.get(new_group.entity) else {
-        error!("failed to initialize commands: player is missing ConnectionId");
-        return;
-    };
-    compose.unicast(&cmd_pkt, connection_id).unwrap();
-}
-
 impl Plugin for PermissionPlugin {
     fn build(&self, app: &mut App) {
         let storage = storage::PermissionStorage::new(app.world().resource::<LocalDb>()).unwrap();
         app.insert_resource(storage);
         app.add_observer(load_permissions);
         app.add_observer(store_permissions);
-        app.add_observer(initialize_commands);
     }
 }
