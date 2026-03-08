@@ -75,6 +75,7 @@ impl PlayerSpawnPosition {
     }
 }
 
+#[cfg(feature = "reflect")]
 fn ret_default_spawn_position() -> SpawnFunction {
     default_spawn_position
 }
