@@ -12,7 +12,7 @@ use bevy_ecs::{
 use glam::Vec3;
 use hyperion::{
     entity::{
-        EntityKind, Owner, Pitch, Position, Uuid, Velocity, Yaw,
+        EntityKind, OwnedBy, Pitch, Position, Uuid, Velocity, Yaw,
         metadata::living_entity::{ArrowsInEntity, HandStates},
     },
     ident::ident,
@@ -193,7 +193,7 @@ fn handle_bow_release(
             Velocity::new(velocity.x, velocity.y, velocity.z),
             Pitch::new(**pitch),
             Yaw::new(**yaw),
-            Owner::new(event.from),
+            OwnedBy::new(event.from),
             EntityKind::Arrow,
             Channel,
         ));
@@ -202,7 +202,7 @@ fn handle_bow_release(
 
 fn arrow_entity_hit(
     mut events: MessageReader<'_, '_, message::ProjectileEntityEvent>,
-    arrow_query: Query<'_, '_, (&Velocity, &Owner)>,
+    arrow_query: Query<'_, '_, (&Velocity, &OwnedBy)>,
     mut player_query: Query<'_, '_, &mut ArrowsInEntity>,
     mut commands: Commands<'_, '_>,
     mut writer: MessageWriter<'_, message::AttackEntity>,

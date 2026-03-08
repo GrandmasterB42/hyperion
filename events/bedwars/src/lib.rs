@@ -16,12 +16,12 @@ use crate::{
         damage::DamagePlugin, regeneration::RegenerationPlugin, spawn::SpawnPlugin,
         stats::StatsPlugin, vanish::VanishPlugin,
     },
-    skin::SkinPlugin,
+    // skin::SkinPlugin,
 };
 
 mod command;
 mod plugin;
-mod skin;
+// mod skin;
 
 #[derive(Component, Debug, Copy, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
@@ -120,7 +120,8 @@ impl Plugin for BedwarsPlugin {
                 ChatPlugin,
                 DamagePlugin,
                 RegenerationPlugin,
-                SkinPlugin,
+                // TODO: The Internal Skin resolving needs to be made more flexible and this needs a command
+                // SkinPlugin,
                 SpawnPlugin,
                 StatsPlugin,
                 VanishPlugin,

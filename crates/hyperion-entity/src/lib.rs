@@ -134,6 +134,12 @@ impl std::ops::Deref for Yaw {
     }
 }
 
+impl From<f32> for Yaw {
+    fn from(value: f32) -> Self {
+        Self { yaw: value }
+    }
+}
+
 #[derive(Component, Copy, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Pitch {
@@ -162,47 +168,50 @@ impl std::ops::Deref for Pitch {
     }
 }
 
-#[derive(Component, Default, Debug, Copy, Clone)]
+impl From<f32> for Pitch {
+    fn from(value: f32) -> Self {
+        Self { pitch: value }
+    }
+}
+
+#[derive(Component, Debug, Copy, Clone)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Flight {
     pub allow: bool,
     pub is_flying: bool,
+    pub speed: f32,
 }
 
-// TODO: This might be a good fit for a relationship?
+impl Default for Flight {
+    fn default() -> Self {
+        Self {
+            allow: false,
+            is_flying: false,
+            speed: 0.05,
+        }
+    }
+}
+
 #[derive(Component)]
+#[relationship(relationship_target = Owns)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
-pub struct Owner {
+pub struct OwnedBy {
     pub entity: Entity,
 }
 
-impl Owner {
+impl OwnedBy {
     #[must_use]
     pub const fn new(entity: Entity) -> Self {
         Self { entity }
     }
 }
 
-/// If the entity can be targeted by non-player entities.
 #[derive(Component)]
+#[relationship_target(relationship  = OwnedBy)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
+pub struct Owns(Vec<Entity>);
+
+/// If the entity can be targeted by non-player entities.
+#[derive(Component, Default)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct AiTargetable;
-
-#[derive(Component, Debug, Copy, Clone, PartialEq)]
-#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
-pub struct FlyingSpeed {
-    pub speed: f32,
-}
-
-impl FlyingSpeed {
-    #[must_use]
-    pub const fn new(speed: f32) -> Self {
-        Self { speed }
-    }
-}
-
-impl Default for FlyingSpeed {
-    fn default() -> Self {
-        Self { speed: 0.05 }
-    }
-}

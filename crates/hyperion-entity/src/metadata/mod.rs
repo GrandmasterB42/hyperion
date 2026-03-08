@@ -1,15 +1,8 @@
 use std::fmt::Debug;
 
 use bevy_app::{App, FixedPostUpdate, Plugin};
-use bevy_ecs::{
-    component::Component,
-    lifecycle::Insert,
-    observer::On,
-    system::{Commands, Query},
-    world::EntityRef,
-};
+use bevy_ecs::{component::Component, system::Query, world::EntityRef};
 use hyperion_utils::{Prev, track_prev};
-use tracing::error;
 use valence_protocol::{Encode, VarInt};
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
@@ -50,53 +43,10 @@ where
     );
 }
 
-fn initialize_entity(
-    entity: On<'_, '_, Insert, EntityKind>,
-    query: Query<'_, '_, &EntityKind>,
-    mut commands: Commands<'_, '_>,
-) {
-    let kind = match query.get(entity.entity) {
-        Ok(kind) => *kind,
-        Err(e) => {
-            error!("failed to initialize entity: query failed: {e}");
-            return;
-        }
-    };
-
-    let mut entity = commands.entity(entity.entity);
-
-    entity.insert((
-        MetadataChanges::default(),
-        EntityFlags::default(),
-        Pose::default(),
-        entity::default_components(),
-    ));
-
-    match kind {
-        EntityKind::BlockDisplay => {
-            entity.insert((
-                display::default_components(),
-                block_display::default_components(),
-            ));
-        }
-        EntityKind::Player => {
-            entity.insert((
-                living_entity::default_components(),
-                player::default_components(),
-            ));
-        }
-        EntityKind::Item => {
-            entity.insert(item::default_components());
-        }
-        _ => {}
-    }
-}
-
 pub struct MetadataPlugin;
 
 impl Plugin for MetadataPlugin {
     fn build(&self, app: &mut App) {
-        app.add_observer(initialize_entity);
         component_and_track::<EntityFlags>(app);
         component_and_track::<Pose>(app);
 

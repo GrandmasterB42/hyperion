@@ -6,7 +6,7 @@ use bevy_ecs::{
 };
 use glam::{IVec3, Vec3};
 use hyperion_entity::{
-    EntitySize, Flight, Owner, PendingTeleportation, Pitch, Position, Velocity, Yaw,
+    EntitySize, Flight, OwnedBy, PendingTeleportation, Pitch, Position, Velocity, Yaw,
     metadata::MetadataChanges,
     player::{ActiveAnimation, Xp},
 };
@@ -297,7 +297,7 @@ pub(crate) fn sync_player_entity(
 }
 
 pub(crate) fn update_projectile_positions(
-    arrow_query: Query<'_, '_, (Entity, &Owner)>,
+    arrow_query: Query<'_, '_, (Entity, &OwnedBy)>,
     mut query_set: ParamSet<
         '_,
         '_,

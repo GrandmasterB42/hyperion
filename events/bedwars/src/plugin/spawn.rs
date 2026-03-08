@@ -1,14 +1,14 @@
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
-    event::EntityEvent,
-    observer::On,
-    system::{Commands, Res, ResMut},
+    entity::Entity,
+    system::{Res, ResMut, SystemState},
+    world::World,
 };
 use glam::{I16Vec2, IVec2, IVec3, Vec3};
 use hyperion::{
     entity::Position,
     protocol::{BlockKind, BlockState},
-    simulation::login::InitializePlayerPosition,
+    simulation::login::{PlayerSpawnPosition, SpawnPosition},
     utils::runtime::AsyncRuntime,
     world::Blocks,
 };
@@ -45,21 +45,18 @@ pub struct SpawnPlugin;
 
 impl Plugin for SpawnPlugin {
     fn build(&self, app: &mut App) {
-        let avoid_blocks = avoid_blocks();
-
-        app.add_observer(
-            move |init_position: On<'_, '_, InitializePlayerPosition>,
-                  mut blocks: ResMut<'_, Blocks>,
-                  runtime: Res<'_, AsyncRuntime>,
-                  mut commands: Commands<'_, '_>| {
-                let position =
-                    Position::from(find_spawn_position(&mut blocks, &runtime, &avoid_blocks));
-                commands
-                    .entity(init_position.event_target())
-                    .insert(position);
-            },
-        );
+        app.insert_resource(PlayerSpawnPosition::new(spawn_player));
     }
+}
+
+fn spawn_player(_entity: Entity, world: &mut World) -> SpawnPosition {
+    let mut state: SystemState<(Res<'_, AsyncRuntime>, ResMut<'_, Blocks>)> =
+        SystemState::new(world);
+    let (runtime, mut blocks) = state.get_mut(world);
+
+    let avoid_blocks = avoid_blocks();
+    let pos = find_spawn_position(&mut blocks, &runtime, &avoid_blocks);
+    SpawnPosition::new(Position::from(pos), 45.0, 45.0)
 }
 
 pub fn find_spawn_position(

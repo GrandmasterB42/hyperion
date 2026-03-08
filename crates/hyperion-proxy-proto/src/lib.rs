@@ -102,7 +102,7 @@ impl ConnectionId {
 }
 
 /// A component marking an entity as a packet channel.
-#[derive(Component, Copy, Clone, Debug)]
+#[derive(Component, Default, Copy, Clone, Debug)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Channel;
 

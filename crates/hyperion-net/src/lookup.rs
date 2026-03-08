@@ -9,12 +9,10 @@ use bevy_ecs::{
     lifecycle::{Add, Remove},
     name::Name,
     observer::On,
-    query::With,
     resource::Resource,
-    system::{Commands, Query, Res, ResMut},
-    world::World,
+    system::{Query, Res, ResMut},
 };
-use hyperion_entity::{EntityKind, Uuid, player::Player};
+use hyperion_entity::Uuid;
 use hyperion_proxy_proto::ConnectionId;
 use rustc_hash::FxHashMap;
 use tracing::{error, info};
@@ -142,30 +140,21 @@ impl Plugin for LookupPlugin {
             .init_resource::<PlayerUuidLookup>()
             .init_resource::<PlayerNameLookup>()
             .add_observer(initialize_player)
-            .add_observer(remove_player)
-            .add_observer(initialize_uuid);
+            .add_observer(remove_player);
     }
 }
 
+// TODO: This needs to be reconsidered more deeply:
+//       Player deduplication should probably happen in the authentication stage of the login flow
+//       Uuid and name lookup could probabaly be seperated into hooks, or at least different observers?
 fn initialize_player(
     now_playing: On<'_, '_, Add, packet_state::Play>,
     mut name_map: ResMut<'_, PlayerNameLookup>,
     mut uuid_map: ResMut<'_, PlayerUuidLookup>,
     compose: Res<'_, Compose>,
-    name_query: Query<'_, '_, (&Name, &Uuid), With<Player>>,
+    name_query: Query<'_, '_, (&Name, &Uuid)>,
     connection_id_query: Query<'_, '_, &ConnectionId>,
-    mut commands: Commands<'_, '_>,
 ) {
-    // TODO: This is definitly a player required component situation, maybe on Packetstate::Play? Maybe hyperion_player crate? Maybe hyperion_entity for player and stuff like entitiykind?
-    // This should really be seperate form the uuid and name lookup initialization
-    commands.entity(now_playing.entity).insert((
-        hyperion_entity::player::ConfirmBlockSequences::default(),
-        hyperion_entity::EntitySize::default(),
-        hyperion_entity::Flight::default(),
-        hyperion_entity::FlyingSpeed::default(),
-        hyperion_inventory::CursorItem::default(),
-    ));
-
     let Ok((name, uuid)) = name_query.get(now_playing.entity) else {
         error!("failed to initialize player: missing Name or Uuid component");
         return;
@@ -203,7 +192,7 @@ fn remove_player(
     not_playing: On<'_, '_, Remove, packet_state::Play>,
     mut name_map: ResMut<'_, PlayerNameLookup>,
     mut uuid_map: ResMut<'_, PlayerUuidLookup>,
-    player_query: Query<'_, '_, (&Name, &Uuid), With<Player>>,
+    player_query: Query<'_, '_, (&Name, &Uuid)>,
 ) {
     let (name, uuid) = match player_query.get(not_playing.entity) {
         Ok(name) => name,
@@ -256,17 +245,4 @@ fn remove_player(
             );
         }
     }
-}
-
-/// For every new entity without a UUID, give it one
-fn initialize_uuid(known_entitykind: On<'_, '_, Add, EntityKind>, mut commands: Commands<'_, '_>) {
-    let e = known_entitykind.entity;
-    commands.queue(move |world: &mut World| {
-        let mut entity = world.entity_mut(e);
-
-        // This doesn't use insert_if_new to avoid the cost of generating a random uuid if it is not needed
-        if entity.get::<Uuid>().is_none() {
-            entity.insert(Uuid::new_v4());
-        }
-    });
 }

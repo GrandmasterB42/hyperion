@@ -2,10 +2,17 @@ use bevy_ecs::component::Component;
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
-/// A UUID component. Generally speaking, this tends to be tied to entities with a [`crate::player::Player`] component.
+/// Uniquely identifies an Entity
 #[derive(Component, Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[component(immutable)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Uuid(pub uuid::Uuid);
+
+impl std::fmt::Display for Uuid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
 
 impl Uuid {
     #[must_use]
