@@ -1,10 +1,51 @@
-use bevy_ecs::component::Component;
+use bevy_ecs::{component::Component, lifecycle::HookContext, world::DeferredWorld};
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
+use crate::metadata::{
+    MetadataChanges, block_display, display,
+    entity::{self, EntityFlags, Pose},
+    item, living_entity, player,
+};
+
+fn initialize_entity(mut world: DeferredWorld<'_>, ctx: HookContext) {
+    let kind = *world
+        .get::<EntityKind>(ctx.entity)
+        .expect("This is the hook for this component");
+
+    let mut cmd = world.commands();
+    let mut entity_cmd = cmd.entity(ctx.entity);
+
+    // TODO: Are these really universal?
+    entity_cmd.insert(entity::default_components());
+
+    match kind {
+        EntityKind::BlockDisplay => {
+            entity_cmd.insert((
+                display::default_components(),
+                block_display::default_components(),
+            ));
+        }
+        EntityKind::Player => {
+            entity_cmd.insert((
+                living_entity::default_components(),
+                player::default_components(),
+            ));
+        }
+        EntityKind::Item => {
+            entity_cmd.insert(item::default_components());
+        }
+        _ => {}
+    }
+}
+
 #[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[require(MetadataChanges, EntityFlags, Pose)] // TODO: I migrated these from a observer, but pose and Flags seem pretty player-specific
+#[component(on_insert = initialize_entity)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 #[repr(C)]
+// TODO: All of these probably need different components. How could this be cleanly modeled with required components.
+//       Maybe these all become like Player, having a marker component that requires specific stuff and maybe a Marker Entity Component, that has the truly common info, like Position
 pub enum EntityKind {
     Allay = 0,
     AreaEffectCloud = 1,
