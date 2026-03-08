@@ -2,11 +2,13 @@ use bevy_app::{App, FixedUpdate, Plugin};
 use bevy_ecs::{component::Component, schedule::IntoScheduleConfigs};
 use glam::{DVec3, Vec3};
 use hyperion_entity::{
-    AiTargetable, ChunkPosition, EntityKind, EntitySize, Flight, Pitch, Velocity, Yaw,
+    AiTargetable, ChunkPosition, EntityKind, EntitySize, Flight, Velocity,
     player::{ActiveAnimation, ConfirmBlockSequences, ImmuneStatus, Xp},
+    skin::PlayerSkin,
 };
 use hyperion_inventory::CursorItem;
-use hyperion_net::decode;
+use hyperion_net::{decode, packet_state};
+use hyperion_proxy_proto::Channel;
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
@@ -28,7 +30,10 @@ mod movement;
 #[derive(Component, Debug, Default)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 #[require(
+    Channel,
+    packet_state::Play,
     EntityKind::Player,
+    PlayerSkin::ToResolve,
     ActiveAnimation::NONE,
     AiTargetable,
     ImmuneStatus,
@@ -36,8 +41,6 @@ mod movement;
     ChunkSendQueue,
     ConfirmBlockSequences,
     Velocity,
-    Pitch,
-    Yaw,
     Flight,
     EntitySize,
     Xp,
@@ -45,7 +48,7 @@ mod movement;
 )]
 pub struct Player;
 
-#[derive(Component, Default, Debug, Copy, Clone)]
+#[derive(Component, Debug, Copy, Clone)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct MovementTracking {
     pub fall_start_y: f32,
@@ -59,6 +62,21 @@ pub struct MovementTracking {
     pub server_velocity: DVec3,
     pub sprinting: bool,
     pub was_on_ground: bool,
+}
+
+impl MovementTracking {
+    #[must_use]
+    pub fn new(position: Vec3) -> Self {
+        Self {
+            received_movement_packets: 0,
+            last_tick_flying: false,
+            last_tick_position: position,
+            fall_start_y: position.y,
+            server_velocity: DVec3::ZERO,
+            sprinting: false,
+            was_on_ground: false,
+        }
+    }
 }
 
 pub struct PlayerPlugin;

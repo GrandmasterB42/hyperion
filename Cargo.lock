@@ -3223,7 +3223,6 @@ dependencies = [
  "glam 0.29.3",
  "hyperion-data",
  "hyperion-entity",
- "hyperion-inventory",
  "hyperion-packet-macros",
  "hyperion-proxy-proto",
  "hyperion-text",

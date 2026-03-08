@@ -23,6 +23,6 @@ pub struct Status;
 pub struct Login;
 
 /// Marks players who are in the play state.
-#[derive(Component)]
+#[derive(Component, Default)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Play;

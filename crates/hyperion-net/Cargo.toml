@@ -12,7 +12,6 @@ reflect = [
     "bevy_app/reflect_auto_register",
     "hyperion-data/reflect",
     "hyperion-entity/reflect",
-    "hyperion-inventory/reflect",
     "hyperion-proxy-proto/reflect",
     "hyperion-utils/reflect",
 ]
@@ -20,7 +19,6 @@ reflect = [
 [dependencies]
 hyperion-data.workspace = true
 hyperion-entity.workspace = true
-hyperion-inventory.workspace = true
 hyperion-packet-macros.workspace = true
 hyperion-proxy-proto.workspace = true
 hyperion-text.workspace = true

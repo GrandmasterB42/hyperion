@@ -134,6 +134,12 @@ impl std::ops::Deref for Yaw {
     }
 }
 
+impl From<f32> for Yaw {
+    fn from(value: f32) -> Self {
+        Self { yaw: value }
+    }
+}
+
 #[derive(Component, Copy, Clone, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 pub struct Pitch {
@@ -159,6 +165,12 @@ impl std::ops::Deref for Pitch {
 
     fn deref(&self) -> &Self::Target {
         &self.pitch
+    }
+}
+
+impl From<f32> for Pitch {
+    fn from(value: f32) -> Self {
+        Self { pitch: value }
     }
 }
 

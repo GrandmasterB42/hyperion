@@ -3,25 +3,21 @@ use std::{borrow::Cow, collections::BTreeSet};
 use anyhow::Context;
 use bevy_ecs::{
     entity::Entity,
-    lifecycle::Add,
     message::{Message, MessageReader, MessageWriter},
     name::Name,
-    observer::On,
-    system::{Commands, Local, ParallelCommands, Query, Res},
+    query::{Changed, QueryState, With},
+    system::{Commands, Local, ParallelCommands, Query, Res, SystemState},
     world::{FromWorld, World},
 };
 use colored::Colorize;
 use glam::DVec3;
 use hyperion_crafting::{Action, CraftingRegistry, RecipeBookState};
-use hyperion_entity::{
-    PendingTeleportation, Position, Uuid, Yaw,
-    skin::{MojangClient, PlayerSkin, SkinHandler},
-};
+use hyperion_entity::{PendingTeleportation, Pitch, Position, Uuid, Yaw, skin::PlayerSkin};
 use hyperion_net::{Compose, DataBundle, decoder::PacketDecoder, packet, packet_state};
-use hyperion_proxy_proto::{Channel, ConnectionId};
-use hyperion_utils::{EntityExt, command_channel::CommandChannel, runtime::AsyncRuntime};
+use hyperion_proxy_proto::ConnectionId;
+use hyperion_utils::EntityExt;
 use hyperion_world::registry::registry_codec_raw;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 use valence_bytes::{Bytes, CowBytes, CowUtf8Bytes, Utf8Bytes};
 use valence_protocol::{
     GameMode, Ident, PacketEncoder, RawBytes, VarInt,
@@ -41,17 +37,23 @@ use valence_text::IntoText;
 
 use crate::{
     config::Config,
-    login::{InitializePlayerPosition, offline_uuid},
+    login::{PlayerSpawnPosition, SpawnPosition, offline_uuid},
     player::{MovementTracking, Player},
 };
 
+// Normal Login sequence: "https://minecraft.wiki/w/Java_Edition_protocol/FAQ#What's_the_normal_login_sequence_for_a_client?
+
+// system messages
+#[derive(Message)]
+pub(crate) struct ResolvePosition(Entity);
+
+#[derive(Message)]
+pub(crate) struct UpdateState(Entity);
+
 pub(crate) fn process_login_hello(
     mut packets: MessageReader<'_, '_, packet::login::LoginHello>,
+    mut to_spawn: MessageWriter<'_, ResolvePosition>,
     compose: Res<'_, Compose>,
-    runtime: Res<'_, AsyncRuntime>,
-    skins_collection: Res<'_, SkinHandler>,
-    mojang: Res<'_, MojangClient>,
-    command_channel: Res<'_, CommandChannel>,
     mut commands: Commands<'_, '_>,
     mut query: Query<'_, '_, &mut PacketDecoder>,
 ) {
@@ -86,88 +88,116 @@ pub(crate) fn process_login_hello(
 
         compose.unicast(&pkt, packet.connection_id()).unwrap();
 
-        let skin = if profile_id.is_some() {
-            let mojang = mojang.as_ref().clone();
-            let skins_collection = skins_collection.as_ref().clone();
-            let command_channel = command_channel.as_ref().clone();
-            runtime.spawn(async move {
-                let skin = match PlayerSkin::from_uuid(uuid, &mojang, &skins_collection).await {
-                    Ok(Some(skin)) => skin,
-                    Err(e) => {
-                        error!("failed to get skin {e}. Using empty skin");
-                        PlayerSkin::EMPTY
-                    }
-                    Ok(None) => {
-                        error!("failed to get skin. Using empty skin");
-                        PlayerSkin::EMPTY
-                    }
-                };
-
-                command_channel.push(move |world: &mut World| {
-                    let Ok(mut entity) = world.get_entity_mut(sender) else {
-                        warn!(
-                            "failed to get entity after skin has been fetched (likely because the \
-                             player has already left the server)"
-                        );
-                        return;
-                    };
-
-                    entity.insert(skin);
-                });
-            });
-            None
-        } else {
-            Some(PlayerSkin::EMPTY)
-        };
-
         let username = username.to_string();
-        commands.queue(move |world: &mut World| {
-            let mut entity = world.entity_mut(sender);
+        commands
+            .entity(sender)
+            .remove::<packet_state::Login>()
+            .insert((Player, Name::new(username.clone()), Uuid(uuid)));
 
-            // TODO: The more specific components (such as ChunkSendQueue) should be added in a
-            // separate system, this might be a case for required components?
-            entity.remove::<packet_state::Login>().insert((
-                Player,
-                Name::new(username.clone()),
-                Uuid(uuid),
-            ));
-
-            world.trigger(InitializePlayerPosition(sender));
-
-            if let Some(skin) = skin {
-                let mut entity = world.entity_mut(sender);
-                entity.insert(skin);
-            }
-        });
+        to_spawn.write(ResolvePosition(sender));
     }
 }
 
-#[derive(Message)]
-pub struct ProcessPlayerJoin(Entity);
-
-pub(crate) fn add_process_player_join(
-    added_player_skin: On<'_, '_, Add, PlayerSkin>,
-    mut events: MessageWriter<'_, ProcessPlayerJoin>,
+pub(crate) fn resolve_joined_position(
+    world: &mut World,
+    state: &mut SystemState<(
+        MessageReader<'_, '_, ResolvePosition>,
+        MessageWriter<'_, UpdateState>,
+        Res<'_, PlayerSpawnPosition>,
+        Res<'_, Compose>,
+        Commands<'_, '_>,
+    )>,
+    player_query: &mut QueryState<&ConnectionId>,
+    // Allocations that get reused. These do not shrink, but also don't need to be allocated on each call
+    mut entities_to_spawn: Local<'_, Vec<Entity>>,
+    mut resolved_positions: Local<'_, Vec<(Entity, ConnectionId, SpawnPosition)>>,
 ) {
-    events.write(ProcessPlayerJoin(added_player_skin.entity));
+    // get all entities
+
+    let (mut to_resolve, ..) = state.get_mut(world);
+    to_resolve
+        .read()
+        .map(|ResolvePosition(e)| *e)
+        .for_each(|e| entities_to_spawn.push(e));
+
+    if entities_to_spawn.is_empty() {
+        return;
+    }
+
+    // Copy out the function pointer
+    let spawn_fn = world.resource::<PlayerSpawnPosition>().f;
+
+    // get all connection ids and spawn positions
+    entities_to_spawn
+        .iter()
+        .map(|&entity| {
+            let connection_id = *player_query.get(world, entity).unwrap();
+            let spawn = spawn_fn(entity, world);
+            (entity, connection_id, spawn)
+        })
+        .for_each(|x| resolved_positions.push(x));
+
+    // Send the packets
+    let (_, mut to_update, _, compose, mut cmd) = state.get_mut(world);
+
+    for (entity, connection_id, spawn) in &resolved_positions {
+        let position = spawn.pos;
+
+        // bundle for deferring the sending
+        let mut unicast_bundle = DataBundle::new(&compose);
+
+        let center_chunk = position.to_chunk();
+
+        let pkt = play::ChunkRenderDistanceCenterS2c {
+            chunk_x: VarInt(i32::from(center_chunk.x)),
+            chunk_z: VarInt(i32::from(center_chunk.y)),
+        };
+        unicast_bundle.add_packet(&pkt).unwrap();
+
+        let pkt = play::PlayerSpawnPositionS2c {
+            position: position.as_dvec3().into(),
+            angle: spawn.yaw,
+        };
+
+        unicast_bundle.add_packet(&pkt).unwrap();
+
+        unicast_bundle.unicast(*connection_id).unwrap();
+
+        cmd.entity(*entity).insert((
+            position,
+            MovementTracking::new(*position),
+            PendingTeleportation::new(*position),
+            Pitch::from(spawn.pitch),
+            Yaw::from(spawn.yaw),
+        ));
+
+        to_update.write(UpdateState(*entity));
+    }
+
+    // Clearing is more or less zero cost
+    entities_to_spawn.clear();
+    resolved_positions.clear();
+
+    // Important! This applies commands and similar!
+    state.apply(world);
 }
 
-pub(crate) fn process_player_join(
-    mut events: MessageReader<'_, '_, ProcessPlayerJoin>,
+pub(crate) fn join_finish(
+    mut position_resolved: MessageReader<'_, '_, UpdateState>,
     compose: Res<'_, Compose>,
     config: Res<'_, Config>,
-    target_query: Query<'_, '_, (&Uuid, &Name, &ConnectionId, &Position, &Yaw, &PlayerSkin)>,
+    target_query: Query<'_, '_, (&Name, &ConnectionId, &Position, &Yaw), With<Player>>,
     others_query: Query<'_, '_, (Entity, &Uuid, &Name)>,
     commands: ParallelCommands<'_, '_>,
     common_response: Local<'_, CommonPlayerJoinResponses>,
 ) {
-    events.par_read().for_each(|event| {
+    position_resolved.par_read().for_each(|event| {
         let mut bundle = DataBundle::new(&compose);
 
         let entity_id = event.0;
         let id = entity_id.minecraft_id();
 
-        let (uuid, name, &connection_id, position, yaw, skin) = match target_query.get(entity_id) {
+        let (name, &connection_id, position, yaw) = match target_query.get(entity_id) {
             Ok(components) => components,
             Err(e) => {
                 error!("player_join_world failed: {e}");
@@ -284,41 +314,9 @@ pub(crate) fn process_player_join(
                 .unwrap();
         }
 
-        let PlayerSkin {
-            textures,
-            signature,
-        } = skin.clone();
-
-        // todo: in future, do not clone
-        let property = valence_protocol::profile::Property {
-            name: Utf8Bytes::from_static("textures"),
-            value: textures.into(),
-            signature: Some(signature.into()),
-        };
-
-        let property = &[property];
-
-        let singleton_entry = &[PlayerListEntry {
-            player_uuid: **uuid,
-            username: CowUtf8Bytes::Borrowed(name),
-            properties: Cow::Borrowed(property),
-            chat_data: None,
-            listed: true,
-            ping: 20,
-            game_mode: GameMode::Survival,
-            display_name: Some(name.to_string().into_cow_text()),
-        }];
-
-        let pkt = PlayerListS2c {
-            actions,
-            entries: Cow::Borrowed(singleton_entry),
-        };
-
-        compose.broadcast(&pkt).send().unwrap();
-        bundle.add_packet(&pkt).unwrap();
-
         let player_name = vec![CowUtf8Bytes::Borrowed(name.as_str())];
 
+        // TODO: Are teams really needed or is this additional functionality?
         compose
             .broadcast(&play::TeamS2c {
                 team_name: Utf8Bytes::from_static("no_tag").into(),
@@ -346,7 +344,6 @@ pub(crate) fn process_player_join(
         let position = **position;
         commands.command_scope(move |mut commands| {
             commands.entity(entity_id).insert((
-                Channel,
                 MovementTracking {
                     received_movement_packets: 0,
                     last_tick_flying: false,
@@ -357,12 +354,54 @@ pub(crate) fn process_player_join(
                     was_on_ground: false,
                 },
                 PendingTeleportation::new(position),
-                packet_state::Play,
             ));
         });
 
         info!("{name} joined the world");
     });
+}
+
+// TODO: PlayerSkins can also be changed on non-player entities or be changed during gameplay
+pub(crate) fn process_resolved_skin(
+    compose: Res<'_, Compose>,
+    query: Query<'_, '_, (&Uuid, &Name, &PlayerSkin), (With<Player>, Changed<PlayerSkin>)>,
+) {
+    for (uuid, name, skin) in query.iter() {
+        let data = match skin {
+            PlayerSkin::Resolved(player_skin_data) => player_skin_data.clone(),
+            _ => continue,
+        };
+
+        let property = valence_protocol::profile::Property {
+            name: Utf8Bytes::from_static("textures"),
+            value: data.textures.into(),
+            signature: Some(data.signature.into()),
+        };
+        let prop = &[property];
+
+        let singleton_entry = &[PlayerListEntry {
+            player_uuid: **uuid,
+            username: CowUtf8Bytes::Borrowed(name),
+            properties: Cow::Borrowed(prop),
+            chat_data: None,
+            listed: true,
+            ping: 20,
+            game_mode: GameMode::Survival,
+            display_name: Some(name.to_string().into_cow_text()),
+        }];
+
+        let actions = PlayerListActions::default()
+            .with_add_player(true)
+            .with_update_listed(true)
+            .with_update_display_name(true);
+
+        let pkt = PlayerListS2c {
+            actions,
+            entries: Cow::Borrowed(singleton_entry),
+        };
+
+        compose.broadcast(&pkt).send().unwrap();
+    }
 }
 
 pub(crate) struct CommonPlayerJoinResponses {

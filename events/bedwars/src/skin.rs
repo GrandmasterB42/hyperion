@@ -30,7 +30,6 @@ impl Plugin for SkinPlugin {
         app.add_systems(FixedUpdate, on_set_skin);
     }
 }
-
 fn on_set_skin(
     mut events: MessageReader<'_, '_, message::SetSkin>,
     compose: Res<'_, Compose>,
@@ -87,7 +86,7 @@ fn on_set_skin(
             })
             .unwrap();
 
-        // // Respawn player
+        // Respawn player
         bundle
             .add_packet(&PlayerRespawnS2c {
                 dimension_type_name: ident!("minecraft:overworld"),
