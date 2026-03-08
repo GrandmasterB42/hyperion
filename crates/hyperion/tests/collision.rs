@@ -8,13 +8,13 @@ use bevy_app::{App, FixedMain};
 use bevy_ecs::{entity::Entity, world::World};
 use glam::Vec3;
 use hyperion::HyperionCore;
-use hyperion_entity::{EntityKind, EntitySize, Owner, Pitch, Position, Velocity, Yaw};
+use hyperion_entity::{EntityKind, EntitySize, OwnedBy, Pitch, Position, Velocity, Yaw};
 use hyperion_simulation::spatial::Spatial;
 
 #[test]
 fn test_get_first_collision() {
     /// Function to spawn arrows at different angles
-    fn spawn_arrow(world: &mut World, position: Vec3, direction: Vec3, owner: Owner) -> Entity {
+    fn spawn_arrow(world: &mut World, position: Vec3, direction: Vec3, owner: OwnedBy) -> Entity {
         tracing::debug!("Spawning arrow at position: {position:?} with direction: {direction:?}");
         world
             .spawn((
@@ -54,7 +54,7 @@ fn test_get_first_collision() {
                 world,
                 Vec3::new(0.0, 21.0, 0.0),
                 *velocity,
-                Owner::new(player),
+                OwnedBy::new(player),
             )
         })
         .collect();

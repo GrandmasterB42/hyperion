@@ -192,19 +192,24 @@ impl Default for Flight {
     }
 }
 
-// TODO: This might be a good fit for a relationship?
 #[derive(Component)]
+#[relationship(relationship_target = Owns)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
-pub struct Owner {
+pub struct OwnedBy {
     pub entity: Entity,
 }
 
-impl Owner {
+impl OwnedBy {
     #[must_use]
     pub const fn new(entity: Entity) -> Self {
         Self { entity }
     }
 }
+
+#[derive(Component)]
+#[relationship_target(relationship  = OwnedBy)]
+#[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
+pub struct Owns(Vec<Entity>);
 
 /// If the entity can be targeted by non-player entities.
 #[derive(Component, Default)]

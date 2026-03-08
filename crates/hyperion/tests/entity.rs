@@ -6,7 +6,7 @@
 
 use bevy_app::{App, FixedMain};
 use hyperion::HyperionCore;
-use hyperion_entity::{EntityKind, Owner, Position, Uuid, Velocity};
+use hyperion_entity::{EntityKind, OwnedBy, Position, Uuid, Velocity};
 use serial_test::serial;
 
 #[test]
@@ -32,7 +32,7 @@ fn arrow() {
     arrow.insert((
         Velocity::new(0.0, 1.0, 0.0),
         Position::new(0.0, 20.0, 0.0),
-        Owner::new(owner),
+        OwnedBy::new(owner),
     ));
 
     FixedMain::run_fixed_main(world);
