@@ -10,10 +10,9 @@ use bevy_ecs::{
     name::Name,
     observer::On,
     resource::Resource,
-    system::{Commands, Query, Res, ResMut},
-    world::World,
+    system::{Query, Res, ResMut},
 };
-use hyperion_entity::{EntityKind, Uuid};
+use hyperion_entity::Uuid;
 use hyperion_proxy_proto::ConnectionId;
 use rustc_hash::FxHashMap;
 use tracing::{error, info};
@@ -141,11 +140,13 @@ impl Plugin for LookupPlugin {
             .init_resource::<PlayerUuidLookup>()
             .init_resource::<PlayerNameLookup>()
             .add_observer(initialize_player)
-            .add_observer(remove_player)
-            .add_observer(initialize_uuid);
+            .add_observer(remove_player);
     }
 }
 
+// TODO: This needs to be reconsidered more deeply:
+//       Player deduplication should probably happen in the authentication stage of the login flow
+//       Uuid and name lookup could probabaly be seperated into hooks, or at least different observers?
 fn initialize_player(
     now_playing: On<'_, '_, Add, packet_state::Play>,
     mut name_map: ResMut<'_, PlayerNameLookup>,
@@ -244,17 +245,4 @@ fn remove_player(
             );
         }
     }
-}
-
-/// For every new entity without a UUID, give it one
-fn initialize_uuid(known_entitykind: On<'_, '_, Add, EntityKind>, mut commands: Commands<'_, '_>) {
-    let e = known_entitykind.entity;
-    commands.queue(move |world: &mut World| {
-        let mut entity = world.entity_mut(e);
-
-        // This doesn't use insert_if_new to avoid the cost of generating a random uuid if it is not needed
-        if entity.get::<Uuid>().is_none() {
-            entity.insert(Uuid::new_v4());
-        }
-    });
 }

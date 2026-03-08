@@ -2,10 +2,13 @@ use bevy_ecs::{component::Component, lifecycle::HookContext, world::DeferredWorl
 #[cfg(feature = "reflect")]
 use {bevy_ecs::reflect::ReflectComponent, bevy_reflect::Reflect};
 
-use crate::metadata::{
-    MetadataChanges, block_display, display,
-    entity::{self, EntityFlags, Pose},
-    item, living_entity, player,
+use crate::{
+    Uuid,
+    metadata::{
+        MetadataChanges, block_display, display,
+        entity::{self, EntityFlags, Pose},
+        item, living_entity, player,
+    },
 };
 
 fn initialize_entity(mut world: DeferredWorld<'_>, ctx: HookContext) {
@@ -39,9 +42,18 @@ fn initialize_entity(mut world: DeferredWorld<'_>, ctx: HookContext) {
     }
 }
 
+/// For every new entity without a UUID, give it one
+fn initialize_uuid(mut world: DeferredWorld<'_>, ctx: HookContext) {
+    world
+        .commands()
+        .entity(ctx.entity)
+        .entry::<Uuid>()
+        .or_insert_with(Uuid::new_v4);
+}
+
 #[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[require(MetadataChanges, EntityFlags, Pose)] // TODO: I migrated these from a observer, but pose and Flags seem pretty player-specific
-#[component(on_insert = initialize_entity)]
+#[component(on_insert = initialize_entity, on_add = initialize_uuid)]
 #[cfg_attr(feature = "reflect", derive(Reflect), reflect(Component))]
 #[repr(C)]
 // TODO: All of these probably need different components. How could this be cleanly modeled with required components.
